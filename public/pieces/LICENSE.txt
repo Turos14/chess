@@ -1,0 +1,5 @@
+Pièces "Cburnett" — © Colin M.L. Burnett.
+Source : https://github.com/lichess-org/lila/tree/master/public/piece/cburnett
+(originaux : Wikimedia Commons, "Chess_klt45.svg" etc.)
+Licences (au choix) : CC BY-SA 3.0, GFDL, BSD, GPLv2+.
+Attribution requise : Colin M.L. Burnett.

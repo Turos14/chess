@@ -1,0 +1,2 @@
+peerjs.min.js — PeerJS 1.5.4 (https://peerjs.com), licence MIT, © Michelle Bu, Eric Zhang, Alex Sosnovskiy.
+Fichier officiel dist/peerjs.min.js transpilé en ES2015 (esbuild --target=es2015) pour les anciens iOS / Android.

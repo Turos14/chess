@@ -1,0 +1,211 @@
+<!-- Convention de cache : chaque lien vers public/ porte "?v=N". Le serveur (nginx sur le NAS) ne renvoie
+     aucun en-tête Cache-Control pour ces fichiers (vérifié), donc les navigateurs — et surtout les applis
+     ajoutées à l'écran d'accueil iOS, très agressives à ce sujet — peuvent servir une version JS/CSS ancienne
+     sans le savoir. Incrémenter N ici ET dans public/js/net.js (peerjs.min.js) à chaque modification de
+     public/js|css : ça force un fichier "différent" aux yeux du cache, sans dépendre des en-têtes serveur.
+     Le vrai correctif reste côté serveur : voir la section "Mises à jour et cache" du README. -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Échecs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Échecs">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1b1d22">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json?v=6">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=6">
+<link rel="icon" href="icons/icon-192.png?v=6">
+<link rel="stylesheet" href="css/style.css?v=6">
+<link rel="stylesheet" href="css/pieces.css?v=6">
+</head>
+<body>
+
+<!-- Accueil -->
+<div id="scr-home" class="screen page active">
+  <div class="home">
+    <h1 class="logo">Échecs</h1>
+    <button class="btn big" data-go="pendule-setup">Pendule</button>
+    <button class="btn big" data-go="local-setup">Partie d’échecs</button>
+    <button class="btn big" data-go="ai-setup">Jouer contre l’IA</button>
+    <button class="btn big" data-go="online">Partie en ligne</button>
+    <button class="btn big" data-go="records">Parties enregistrées <span id="rec-count" class="badge"></span></button>
+    <button class="btn big" data-go="elo">Classement Elo</button>
+    <p class="hint center">Pour le plein écran sur iPhone / iPad : Partager → « Sur l’écran d’accueil ».</p>
+  </div>
+</div>
+
+<!-- Pendule : réglages -->
+<div id="scr-pendule-setup" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Pendule</h1></div>
+  <div class="content">
+    <h3>Temps de jeu</h3>
+    <div id="pd-tf"></div>
+    <h3>Alertes</h3>
+    <div id="pd-sound"></div>
+    <p class="hint">Les Blancs touchent leur moitié d’écran pour lancer la pendule, puis chaque joueur touche sa moitié à la fin de son tour.</p>
+    <button id="pd-start" class="btn primary big">Démarrer la pendule</button>
+  </div>
+</div>
+
+<!-- Pendule : en cours -->
+<div id="scr-pendule" class="screen live turn-w">
+  <div id="pz-b" class="pzone black"><div class="pinner"><div class="pcell"><div id="pt-b" class="ptime"></div><div id="ps-b" class="psub"></div></div></div></div>
+  <div id="pband">
+    <button id="pb-pause" class="rbtn" type="button" aria-label="Pause"></button>
+    <button id="pb-fs" class="rbtn" type="button" aria-label="Plein écran"></button>
+    <button id="pb-quit" class="rbtn" type="button" aria-label="Quitter"></button>
+  </div>
+  <div id="pz-w" class="pzone white"><div class="pinner"><div class="pcell"><div id="pt-w" class="ptime"></div><div id="ps-w" class="psub"></div></div></div></div>
+</div>
+
+<!-- Partie locale : réglages -->
+<div id="scr-local-setup" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie d’échecs</h1></div>
+  <div class="content">
+    <h3>Joueurs</h3>
+    <div class="fieldrow"><input id="lc-w" class="txt" maxlength="20" placeholder="Blancs" autocomplete="off"><input id="lc-b" class="txt" maxlength="20" placeholder="Noirs" autocomplete="off"></div>
+    <div id="lc-elo-start" class="fieldrow"></div>
+    <div id="lc-elo"></div>
+    <h3>Pendule</h3>
+    <div id="lc-tf"></div>
+    <h3>Vue de l’échiquier</h3>
+    <div id="lc-view"></div>
+    <div id="lc-face"></div>
+    <h3>Alertes</h3>
+    <div id="lc-sound"></div>
+    <button id="lc-start" class="btn primary big">Commencer la partie</button>
+  </div>
+</div>
+
+<!-- Partie contre l'IA : réglages -->
+<div id="scr-ai-setup" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie contre l’IA</h1></div>
+  <div class="content">
+    <h3>Toi</h3>
+    <input id="ai-name" class="txt" maxlength="20" placeholder="Ton nom" autocomplete="off">
+    <h3>Niveau de l’IA</h3>
+    <div class="fieldrow"><input id="ai-elo" class="num" type="number" min="100" max="3000" inputmode="numeric" style="width:100%"></div>
+    <p class="hint">Pré-rempli avec ton Elo actuel si ton nom est suivi dans le classement, modifiable sinon. L’IA
+      (Stockfish) est calibrée approximativement sur ce nombre : moins précise en dessous de 1300 (elle pioche alors
+      parmi plusieurs bons coups plutôt que de vraiment jouer plus faible), très largement suffisante au-dessus de 2500.</p>
+    <h3>Couleur</h3>
+    <div id="ai-color"></div>
+    <h3>Pendule</h3>
+    <div id="ai-tf"></div>
+    <h3>Alertes</h3>
+    <div id="ai-sound"></div>
+    <button id="ai-start" class="btn primary big">Commencer la partie</button>
+  </div>
+</div>
+
+<!-- Partie en ligne -->
+<div id="scr-online" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie en ligne</h1></div>
+  <div class="content">
+    <div id="on-status" class="hint center"></div>
+    <div id="on-resume"></div>
+    <h3>Ton nom</h3>
+    <input id="on-name" class="txt" maxlength="20" placeholder="Nom d’utilisateur" autocomplete="off">
+    <div id="on-elo-start"></div>
+    <div id="on-elo"></div>
+    <h3>Créer une partie</h3>
+    <div id="on-color"></div>
+    <div id="on-tf"></div>
+    <button id="on-create" class="btn primary big">Créer la partie</button>
+    <h3>Rejoindre une partie</h3>
+    <input id="on-code" class="txt code" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
+    <div class="btnrow"><button id="on-watch" class="btn big">Spectateur</button><button id="on-join" class="btn primary big">Jouer</button></div>
+    <div id="on-error" class="error"></div>
+  </div>
+</div>
+
+<!-- Partie (locale ou en ligne) -->
+<div id="scr-game" class="screen live">
+  <div id="g-head"><span id="g-info"></span><span id="g-rec"></span></div>
+  <div id="g-top" class="pbar"></div>
+  <div id="g-board"></div>
+  <div id="g-bottom" class="pbar"></div>
+  <div id="g-tools"></div>
+</div>
+
+<!-- Parties enregistrées -->
+<div id="scr-records" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Parties enregistrées</h1></div>
+  <div class="content"><div id="rec-list"></div></div>
+</div>
+
+<!-- Classement Elo -->
+<div id="scr-elo" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Classement Elo</h1></div>
+  <div class="content">
+    <p class="hint">Classement propre à cet appareil (pas synchronisé entre joueurs) : toute partie locale ou en ligne où
+      les deux joueurs ont un nom différent (pas seulement « Blancs »/« Noirs ») est comptabilisée. Touche un joueur pour
+      voir sa courbe.</p>
+    <button id="elo-calc" class="btn primary big">Calculer une partie</button>
+    <div id="elo-list"></div>
+    <button id="elo-reset" class="btn danger" style="margin-top:24px">Réinitialiser le classement</button>
+  </div>
+</div>
+
+<!-- Revue -->
+<div id="scr-replay" class="screen page">
+  <div class="topbar"><button id="rv-back" class="back">‹ Liste</button><h1 id="rv-title"></h1></div>
+  <div class="replay">
+    <div class="rv-left">
+      <div id="rv-board"></div>
+      <div class="rv-ctrl">
+        <button id="rv-first" class="btn">«</button><button id="rv-prev" class="btn">‹</button>
+        <span id="rv-count" class="rv-count"></span>
+        <button id="rv-next" class="btn">›</button><button id="rv-last" class="btn">»</button>
+      </div>
+    </div>
+    <div class="rv-right">
+      <div id="rv-info" class="hint"></div>
+      <h3>Branches</h3>
+      <div id="rv-branches" class="chips"></div>
+      <button id="rv-branch-new" class="btn">+ Nouvelle branche depuis ce coup</button>
+      <div id="rv-edit" class="rv-edit" style="display:none">
+        <div id="rv-edit-status" class="hint"></div>
+        <label class="check"><input type="checkbox" id="rv-edit-ai"><span>Laisser l’IA jouer (son propre Elo pour chaque camp)</span></label>
+        <div class="btnrow">
+          <button id="rv-edit-undo" class="btn">Annuler le coup</button>
+          <button id="rv-edit-done" class="btn primary">Terminer</button>
+        </div>
+        <button id="rv-edit-discard" class="btn danger">Supprimer cette branche</button>
+      </div>
+      <div class="rv-ctrl2">
+        <button id="rv-play" class="btn primary">Lecture</button><button id="rv-flip" class="btn">Retourner</button>
+        <button id="rv-pgn" class="btn">PGN</button><button id="rv-del" class="btn danger">Supprimer</button>
+      </div>
+      <div id="rv-moves"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal"><div id="modal-box" class="box"></div></div>
+<div id="toast"></div>
+
+<script src="js/chess.js?v=6"></script>
+<script src="js/util.js?v=6"></script>
+<script src="js/clock.js?v=6"></script>
+<script src="js/board.js?v=6"></script>
+<script src="js/elo.js?v=6"></script>
+<script src="js/eloChart.js?v=6"></script>
+<script src="js/eloview.js?v=6"></script>
+<script src="js/records.js?v=6"></script>
+<script src="js/gameview.js?v=6"></script>
+<script src="js/pendule.js?v=6"></script>
+<script src="js/local.js?v=6"></script>
+<script src="js/engineStrength.js?v=6"></script>
+<script src="js/engine.js?v=6"></script>
+<script src="js/ai.js?v=6"></script>
+<script src="js/room.js?v=6"></script>
+<script src="js/net.js?v=6"></script>
+<script src="js/online.js?v=6"></script>
+<script src="js/app.js?v=6"></script>
+</body>
+</html>

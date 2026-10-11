@@ -1,0 +1,138 @@
+# Échecs — pendule, parties locales et en ligne
+
+Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iOS / Android).
+
+## Fonctions
+
+- **Pendule seule** : deux moitiés d'écran face à face (celle du haut est retournée), bandeau central
+  de la couleur du joueur dont c'est le tour, avec 3 boutons ronds (pause, plein écran, quitter).
+  Les Blancs touchent leur moitié pour lancer la pendule, puis chaque joueur touche la sienne à la fin de son tour.
+  Réglages : temps (et incrément) par joueur, alertes silencieux / vibreur / son. Quitter demande confirmation.
+- **Partie d'échecs locale** (2 joueurs, sans IA) : règles complètes (roque, prise en passant, promotion, mat, pat,
+  nulle par répétition / 50 coups / matériel insuffisant), pendule optionnelle, vue inversée / alternée,
+  mode « face à face » (pièces du joueur du haut retournées), abandon, nulle.
+- **Partie en ligne** (pair-à-pair, comme l'app poker) : créer une partie (code à 5 caractères) ou la rejoindre avec un
+  nom d'utilisateur, mode **spectateur** avec le même code, abandon / nulle, pendule. **Si l'hôte se déconnecte, un autre
+  participant prend automatiquement le relais** (les joueurs passent avant les spectateurs), la pendule est figée pendant
+  la bascule, et chacun retrouve son siège. Un joueur qui revient (« Reprendre ») retrouve sa place.
+- **Partie contre l'IA** (Stockfish, calibré approximativement sur l'Elo visé) : choisis ta couleur, le niveau
+  de l'IA (pré-rempli avec ton Elo actuel si ton nom est suivi), avec ou sans pendule. L'IA ne compte jamais pour
+  le classement : ta note sert à régler sa force, dans un seul sens. Le niveau est modifiable **en cours de
+  partie** (menu « Niveau de l'IA », s'applique au coup suivant).
+- **Classement Elo** (onglet dédié) : chaque partie locale ou en ligne terminée entre deux joueurs nommés
+  différemment (pas juste « Blancs »/« Noirs ») met à jour leur note (1200 au départ, K décroissant avec
+  l'expérience). Case à cocher pour désactiver au cas par cas. **Classement propre à l'appareil** (stocké dans le
+  navigateur, comme l'historique des parties) : en ligne, chaque participant calcule sa propre copie à partir du
+  même résultat, ce n'est pas un classement central partagé. Touche un joueur pour voir sa **courbe** de progression
+  (survol/glisser pour le détail de chaque partie). Le bouton **« Calculer une partie »** permet d'enregistrer un
+  résultat obtenu ailleurs (échiquier physique, autre appli) : deux noms, qui a gagné (ou nulle), et les nouvelles
+  notes s'affichent — c'est un raccourci vers le même calcul, sans passer par une partie jouée dans l'app.
+  Quand un nom est nouveau, un champ facultatif **« Elo de départ »** apparaît (partie locale, en ligne, calcul
+  manuel) pour partir d'une note connue plutôt que de 1200 ; il est ignoré si ce joueur existe déjà.
+- **Enregistrement et revue** : proposition d'enregistrer en fin de partie ; bouton « Enreg. » pour enregistrer
+  le plateau actuel + les coups suivants jusqu'à l'arrêt. Revue pas à pas / lecture auto, export PGN (ligne
+  principale). Les parties sont stockées dans le navigateur (`localStorage`).
+- **Branches dans les parties enregistrées** : depuis la revue, « + Nouvelle branche depuis ce coup » pour jouer
+  une variante à partir d'une position de la ligne principale (coups manuels sur l'échiquier) ; « Continuer cette
+  branche » pour reprendre l'édition d'une branche existante. Case **« Laisser l'IA jouer »** : l'IA enchaîne les
+  coups des deux camps automatiquement, chacun à **sa propre note Elo suivie** (celle du nom sous ce camp dans le
+  classement, sinon 1200) — jusqu'à décocher, la fin de partie, ou « Terminer ». Restriction volontaire : pas de
+  branche depuis une autre branche (pas de sous-arbre).
+- **Score matériel** affiché dans le bandeau du joueur en avance (ex. « +3 »), recalculé à chaque coup.
+- **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
+- **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
+  glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
+  fois, jamais un écran bloqué à mi-fondu — voir `App.show` dans `app.js`).
+
+## Lancer / tester
+
+```bash
+npm start            # serveur de fichiers local : http://localhost:3000
+npm test             # moteur (perft) + logique de salle (sièges, pendule, bascule d'hôte)
+```
+
+## Héberger
+
+L'app est **100 % statique** : copier le dossier `public/` sur n'importe quel hébergement de fichiers (nginx, Web Station…),
+**aucun serveur Node** n'est nécessaire. Servir en **HTTPS** (verrou d'écran, presse-papiers, WebRTC sur certains navigateurs).
+
+## Mises à jour et cache
+
+Le serveur ne renvoie **aucun en-tête `Cache-Control`** pour les fichiers statiques (vérifié en production) : les
+navigateurs appliquent alors leur propre heuristique, et une appli **ajoutée à l'écran d'accueil iOS** en particulier
+peut rester bloquée longtemps sur une version JS/CSS ancienne sans jamais revérifier le serveur — au point qu'une
+fonctionnalité entière (comme le classement Elo) peut sembler ne pas marcher alors que le code est à jour côté serveur.
+
+- **Palliatif déjà en place dans le code** : chaque référence à un fichier de `public/` porte `?v=N`
+  (voir le commentaire en tête de `public/index.html`). Après un déploiement qui touche `public/js` ou `public/css`,
+  incrémenter ce `N` (dans `index.html` et dans `public/js/net.js` pour `peerjs.min.js`) force les navigateurs à
+  aller chercher une version « différente », sans dépendre des en-têtes du serveur. Ça ne couvre que les fichiers
+  *chargés depuis* `index.html` — si `index.html` lui-même reste en cache (typiquement l'icône iOS), rien ne le
+  détecte automatiquement.
+- **Vrai correctif, côté serveur (recommandé)** : faire renvoyer par nginx `Cache-Control: no-cache` sur ce dossier,
+  pour forcer une revalidation (rapide, via `ETag`) à chaque visite :
+  ```nginx
+  location /apps/chess/ {
+      add_header Cache-Control "no-cache";
+  }
+  ```
+- **Si un appareil reste bloqué sur une ancienne version** : sur iPhone/iPad, supprimer puis réajouter l'icône
+  à l'écran d'accueil (ou forcer-quitter l'appli depuis le multitâche avant de la rouvrir) ; dans un navigateur,
+  un rechargement forcé (vider le cache du site) suffit.
+- Par ailleurs, si le Classement Elo reste ouvert dans un onglet pendant qu'une partie se termine dans un **autre**
+  onglet du même navigateur, l'écran se met maintenant à jour tout seul (écoute de l'évènement `storage`).
+
+## Comment marche l'IA
+
+- Moteur : **Stockfish.js 10** (vendor/, GPL-3.0, voir `stockfish-README.txt`), ~430 Ko, chargé en **Web Worker**
+  (protocole UCI par `postMessage`). Choisi pour sa légèreté : les versions récentes de Stockfish nécessitent un
+  réseau de neurones (NNUE) de plusieurs dizaines de Mo, disproportionné pour une appli statique. Temps de
+  réflexion fixe : 2 s par coup par défaut, réglable en cours de partie (menu « Niveau de l’IA »).
+- Cette version n'a **pas** les options `UCI_LimitStrength`/`UCI_Elo` des Stockfish récents. La difficulté est donc
+  calibrée nous-mêmes (`public/js/engineStrength.js`, testable sous Node) à partir du réglage « Skill Level »
+  (0-20) + le temps de réflexion, et étendue en dessous de ~1300 en piochant au hasard parmi plusieurs des
+  meilleurs coups (Skill Level seul ne descend pas assez bas pour un vrai débutant). Approximatif par nature, et
+  calé sur l'Elo **local** de l'app (voir ci-dessus), pas sur un classement FIDE.
+- `public/js/engine.js` encapsule le Worker ; `public/js/ai.js` est le mode de jeu (comme `local.js`/`online.js`).
+
+## Comment marche le mode en ligne
+
+- Transport : **WebRTC** (canaux de données directs entre appareils) via **PeerJS** (`public/vendor/peerjs.min.js`).
+  Le serveur public gratuit de PeerJS (`0.peerjs.com`) sert uniquement à mettre les appareils en relation ;
+  STUN / TURN publics pour traverser les box et pare-feux. Les coups ne passent pas par lui.
+- Le créateur **héberge** : son appareil arbitre la partie (règles, pendule) et diffuse l'état à tous.
+  L'identifiant de la salle est `echecs-v1-<CODE>`.
+- **Bascule d'hôte** : si l'hôte disparaît (fermeture, coupure, veille), chaque appareil retente d'enregistrer cet
+  identifiant avec un délai aléatoire croissant ; le premier devient hôte et repart du dernier état reçu, les autres se
+  reconnectent à lui. Les sièges sont liés à un identifiant client mémorisé sur l'appareil (pas à la connexion).
+- Limites : la partie n'existe que tant qu'au moins un participant est connecté ; les appareils doivent gérer WebRTC
+  (iOS 11+, Android 5+). Sans accès au serveur PeerJS, le mode en ligne échoue, le reste de l'app fonctionne.
+- Serveur PeerJS personnel (facultatif) : définir `window.PEER_CONFIG = { host: '…', port: 443, path: '/', secure: true }`
+  avant les scripts (ex. `<script>` dans `index.html`), ou tester avec `?peer=hote:9000` dans l'URL.
+
+## Pièces
+
+Les pièces sont des SVG dans `public/pieces/` (jeu « Cburnett », licence dans `LICENSE.txt`), branchés par **`public/css/pieces.css`**.
+Chaque case contient `<div class="pc pc-XY">` (X = `w`/`b`, Y = `K Q R B N P`), qui remplit la case ;
+remplacer les SVG (mêmes noms) ou ce fichier suffit à changer le jeu.
+
+## Structure
+
+```
+server.js            serveur de fichiers de développement (npm start)
+public/index.html    écrans
+public/js/chess.js   moteur de règles + calcul du matériel, testable sous Node
+public/js/records.js enregistrement, revue, branches (variantes, avec poursuite par l'IA)
+public/js/room.js    salle de jeu côté hôte (sièges, pendule, nulle, abandon), testable sous Node
+public/js/elo.js     calcul de classement Elo (module pur, testable sous Node)
+public/js/engineStrength.js  calibration Elo -> réglages du moteur (module pur, testable sous Node)
+public/js/engine.js  enveloppe Web Worker autour du moteur Stockfish
+public/js/ai.js      mode de jeu « contre l'IA »
+public/js/eloChart.js courbe Elo (SVG, sans dépendance)
+public/js/eloview.js écran « Classement » et stockage du classement (navigateur)
+public/js/net.js     réseau pair-à-pair, bascule d'hôte
+public/js/           util, clock, board, gameview, pendule, local, online, app
+public/vendor/       PeerJS (MIT) et Stockfish.js 10 (GPL-3.0)
+public/css/          style.css, pieces.css
+test/                tests du moteur et de la salle
+```

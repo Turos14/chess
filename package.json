@@ -1,0 +1,12 @@
+{
+  "name": "echecs",
+  "version": "1.0.0",
+  "description": "Pendule d'échecs, parties locales et en ligne pair-à-pair, enregistrement et revue",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/chess.test.js && node test/room.test.js && node test/elo.test.js && node test/engineStrength.test.js"
+  },
+  "engines": { "node": ">=12" },
+  "license": "MIT"
+}
