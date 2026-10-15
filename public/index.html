@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=7">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=7">
-<link rel="icon" href="icons/icon-192.png?v=7">
-<link rel="stylesheet" href="css/style.css?v=7">
-<link rel="stylesheet" href="css/pieces.css?v=7">
+<link rel="manifest" href="manifest.json?v=8">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=8">
+<link rel="icon" href="icons/icon-192.png?v=8">
+<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/pieces.css?v=8">
 </head>
 <body>
 
@@ -163,6 +163,42 @@
   </div>
 </div>
 
+<!-- Problèmes : éditeur (placement des pièces puis coups de la solution) -->
+<div id="scr-puzzle-editor" class="screen page">
+  <div class="topbar"><button id="pze-back" class="back">‹ Problèmes</button><h1>Proposer un problème</h1></div>
+  <div class="replay">
+    <div class="rv-left">
+      <div id="pze-board"></div>
+    </div>
+    <div class="rv-right">
+      <div id="pze-phase1" class="pze-phase">
+        <h3>1. Place les pièces</h3>
+        <div id="pze-palette" class="chips"></div>
+        <div id="pze-turn"></div>
+        <div class="btnrow">
+          <button id="pze-reset-start" class="btn">Position de départ</button>
+          <button id="pze-clear" class="btn">Vider l’échiquier</button>
+        </div>
+        <p class="hint">Choisis une pièce (ou ✕ pour effacer), puis touche les cases de l’échiquier pour la placer.</p>
+        <div id="pze-err1" class="error"></div>
+        <button id="pze-next" class="btn primary big">Suivant : jouer les coups</button>
+        <p class="hint center"><button id="pze-text-mode" class="btn small" type="button">Ou entrer une FEN directement</button></p>
+      </div>
+      <div id="pze-phase2" class="pze-phase" style="display:none">
+        <h3>2. Joue le ou les coups de la solution</h3>
+        <p class="hint">Trait aux <span id="pze-turn-label"></span>. Joue le coup à trouver, et en alternance les
+          réponses forcées de l’adversaire s’il y en a — autant de coups que tu veux.</p>
+        <div id="pze-sol-list" class="hint"></div>
+        <div class="btnrow">
+          <button id="pze-back1" class="btn">‹ Échiquier</button>
+          <button id="pze-undo" class="btn">Annuler le coup</button>
+        </div>
+        <button id="pze-done2" class="btn primary big">Suivant : titre et envoi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Problèmes : résolution -->
 <div id="scr-puzzle-solve" class="screen page">
   <div class="topbar"><button id="pzs-back" class="back">‹ Liste</button><h1 id="pzs-title">Problème</h1></div>
@@ -221,24 +257,24 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=7"></script>
-<script src="js/util.js?v=7"></script>
-<script src="js/clock.js?v=7"></script>
-<script src="js/board.js?v=7"></script>
-<script src="js/elo.js?v=7"></script>
-<script src="js/eloChart.js?v=7"></script>
-<script src="js/eloview.js?v=7"></script>
-<script src="js/records.js?v=7"></script>
-<script src="js/puzzles.js?v=7"></script>
-<script src="js/gameview.js?v=7"></script>
-<script src="js/pendule.js?v=7"></script>
-<script src="js/local.js?v=7"></script>
-<script src="js/engineStrength.js?v=7"></script>
-<script src="js/engine.js?v=7"></script>
-<script src="js/ai.js?v=7"></script>
-<script src="js/room.js?v=7"></script>
-<script src="js/net.js?v=7"></script>
-<script src="js/online.js?v=7"></script>
-<script src="js/app.js?v=7"></script>
+<script src="js/chess.js?v=8"></script>
+<script src="js/util.js?v=8"></script>
+<script src="js/clock.js?v=8"></script>
+<script src="js/board.js?v=8"></script>
+<script src="js/elo.js?v=8"></script>
+<script src="js/eloChart.js?v=8"></script>
+<script src="js/eloview.js?v=8"></script>
+<script src="js/records.js?v=8"></script>
+<script src="js/puzzles.js?v=8"></script>
+<script src="js/gameview.js?v=8"></script>
+<script src="js/pendule.js?v=8"></script>
+<script src="js/local.js?v=8"></script>
+<script src="js/engineStrength.js?v=8"></script>
+<script src="js/engine.js?v=8"></script>
+<script src="js/ai.js?v=8"></script>
+<script src="js/room.js?v=8"></script>
+<script src="js/net.js?v=8"></script>
+<script src="js/online.js?v=8"></script>
+<script src="js/app.js?v=8"></script>
 </body>
 </html>

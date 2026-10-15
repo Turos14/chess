@@ -41,11 +41,14 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
 - **Score matériel** affiché dans le bandeau du joueur en avance (ex. « +3 »), recalculé à chaque coup.
 - **Problèmes** (onglet dédié) : liste **publique, partagée entre tous les visiteurs** (contrairement au reste de
   l'appli, qui est propre à chaque appareil). Résolution sur l'échiquier, indice, « Voir la solution », suivi
-  « résolu » local (coche ✓). Bouton **« Proposer un problème »** : ouvre un ticket GitHub pré-rempli (FEN +
-  solution en UCI) — un compte GitHub gratuit suffit, pas de compte sur le site. Une Action GitHub revérifie la
-  proposition avec le même moteur d'échecs que le site, puis l'ajoute automatiquement à la liste publique et ferme
-  le ticket (ou commente l'erreur si la FEN/solution est invalide). Voir « Comment marche l'ajout de problèmes »
-  ci-dessous.
+  « résolu » local (coche ✓). Bouton **« Proposer un problème »** : un **éditeur visuel** en deux étapes — 1) place
+  les pièces sur l'échiquier (palette, position de départ ou échiquier vide, trait à qui), 2) joue directement sur
+  l'échiquier le ou les coups de la solution (un seul pour un mat en 1, plusieurs en alternant avec les réponses de
+  l'adversaire pour une combinaison plus longue) — puis ouvre un ticket GitHub pré-rempli ; un compte GitHub gratuit
+  suffit, pas de compte sur le site (un lien permet aussi de saisir directement une FEN/solution en texte). Une
+  Action GitHub revérifie la proposition avec le même moteur d'échecs que le site, puis l'ajoute automatiquement à
+  la liste publique et ferme le ticket (ou commente l'erreur précise sinon). Voir « Comment marche l'ajout de
+  problèmes » ci-dessous.
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
@@ -124,14 +127,20 @@ fonctionnalité entière (comme le classement Elo) peut sembler ne pas marcher a
 
 L'appli reste 100 % statique côté client ; pas de backend à nous pour autant. Le flux :
 
-1. Dans l'appli, **« Proposer un problème »** valide la FEN/solution localement (même moteur `chess.js`), puis ouvre
-   un **ticket GitHub pré-rempli** (`.github/ISSUE_TEMPLATE/puzzle.yml`) dans un nouvel onglet — il faut un compte
-   GitHub gratuit pour le soumettre, pas de compte sur le site.
+1. Dans l'appli, **« Proposer un problème »** ouvre un éditeur en deux étapes : placement des pièces
+   (`public/js/puzzles.js`, échiquier interactif + palette de pièces), puis les coups de la solution joués
+   directement dessus (autant que voulu). Le texte libre (FEN + coups UCI) reste possible en secours. Validation
+   locale (même moteur `chess.js`) avant d'ouvrir un **ticket GitHub pré-rempli**
+   (`.github/ISSUE_TEMPLATE/puzzle.yml`) dans un nouvel onglet — il faut un compte GitHub gratuit pour le soumettre,
+   pas de compte sur le site.
 2. À l'ouverture (ou modification) d'un ticket étiqueté `puzzle`, l'Action `.github/workflows/puzzle-intake.yml`
    lance `scripts/puzzle-intake.js` (Node) : relit le corps du ticket, **revalide** la FEN et chaque coup de la
    solution avec `public/js/chess.js` (ne fait jamais confiance au client).
-3. Si c'est valide : ajoute/maj le problème dans `public/data/puzzles.json`, commit + push sur `main` (ce qui
-   republie aussi le site via `deploy.yml`), commente et ferme le ticket. Sinon : commente l'erreur précise et
+3. Si c'est valide : ajoute/maj le problème dans `public/data/puzzles.json` (id préfixé `gh-<numéro de ticket>`,
+   pour ne jamais entrer en collision avec les problèmes de départ, en `seed-N`), commit + push sur `main`, commente
+   et ferme le ticket. Un push fait avec le jeton par défaut de l'Action ne redéclenche pas les autres workflows sur
+   push (anti-boucle, limitation volontaire de GitHub) : le déploiement Pages est donc **déclenché explicitement**
+   (`gh workflow run deploy.yml`) après ce push. Si la FEN/solution est invalide : commente l'erreur précise et
    laisse le ticket ouvert — le corriger relance la vérification.
 4. Visible par tout le monde dans l'onglet **Problèmes** à la republication (~1 min), la liste étant rechargée à
    chaque ouverture de l'écran (anti-cache par horodatage, pas seulement `?v=N` : la liste change sans déploiement).

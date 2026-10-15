@@ -156,9 +156,12 @@
 
   function askSolvePromotion(color, from, to) {
     var node = U.el('div', 'promo');
+    var size = Math.max(48, Math.min(72, Math.floor(U.viewport().w / 5)));
     ['Q', 'R', 'B', 'N'].forEach(function (t) {
       var b = U.el('button', 'pbtn');
       b.type = 'button';
+      b.style.fontSize = Math.round(size * 0.8) + 'px';
+      b.style.width = size + 'px'; b.style.height = size + 'px';
       b.appendChild(U.el('div', 'pc pc-' + color + t));
       U.on(b, 'click', function () { U.closeDialog(); trySolveMove(from, to, t.toLowerCase()); });
       node.appendChild(b);
@@ -249,6 +252,205 @@
   }
   window.addEventListener('resize', function () { if (U.hasClass(U.$('scr-puzzle-solve'), 'active')) layoutSolve(); }, false);
 
+  /* ---------- Éditeur : placement des pièces (phase 1) puis coups de la solution (phase 2) ---------- */
+  // ed : {phase:1|2, board:[64], turn:'w'|'b', tool (code pièce 'wK'.. ou 'erase' ou null),
+  //       fen, game, sel, moves:[uci...], sanList:[san...]} — null quand l'éditeur n'est pas ouvert.
+  var ed = null, editorBoard = null, turnSeg = null;
+  var PALETTE = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP', 'bK', 'bQ', 'bR', 'bB', 'bN', 'bP'];
+  var paletteBtns = null;
+
+  function emptyBoard() { var b = [], i; for (i = 0; i < 64; i++) b.push(null); return b; }
+  function startBoard() { return Chess.parseFen(Chess.START).board; }
+
+  function boardToFen(board, turn) {
+    var rows = [], r, f, s, p, row, empty;
+    for (r = 0; r < 8; r++) {
+      row = ''; empty = 0;
+      for (f = 0; f < 8; f++) {
+        s = r * 8 + f; p = board[s];
+        if (!p) { empty++; continue; }
+        if (empty) { row += empty; empty = 0; }
+        row += p.charAt(0) === 'w' ? p.charAt(1) : p.charAt(1).toLowerCase();
+      }
+      if (empty) row += empty;
+      rows.push(row);
+    }
+    return rows.join('/') + ' ' + turn + ' - - 0 1';
+  }
+
+  function buildPalette() {
+    var box = U.$('pze-palette');
+    U.clear(box);
+    paletteBtns = {};
+    PALETTE.forEach(function (code) {
+      var b = U.el('button', 'pzbtn');
+      b.type = 'button';
+      b.appendChild(U.el('div', 'pc pc-' + code));
+      U.on(b, 'click', function () { if (ed) { ed.tool = code; renderPalette(); } });
+      paletteBtns[code] = b;
+      box.appendChild(b);
+    });
+    var er = U.el('button', 'pzbtn erase', '✕');
+    er.type = 'button';
+    U.on(er, 'click', function () { if (ed) { ed.tool = 'erase'; renderPalette(); } });
+    paletteBtns.erase = er;
+    box.appendChild(er);
+  }
+
+  function renderPalette() {
+    if (!paletteBtns) return;
+    var k;
+    for (k in paletteBtns) if (paletteBtns.hasOwnProperty(k)) U.toggleClass(paletteBtns[k], 'on', !!ed && ed.tool === k);
+  }
+
+  P.openEditor = function () {
+    ed = { phase: 1, board: startBoard(), turn: 'w', tool: null, fen: null, game: null, sel: -1, moves: [], sanList: [] };
+    if (!editorBoard) { editorBoard = new Board(U.$('pze-board')); editorBoard.onSquare = onEditorSquare; }
+    if (!paletteBtns) buildPalette();
+    if (turnSeg) turnSeg.set('w');
+    U.$('pze-err1').textContent = '';
+    App.show('puzzle-editor');
+    layoutEditor();
+    renderEditor();
+  };
+
+  function onEditorSquare(idx) {
+    if (!ed) return;
+    if (ed.phase === 1) { placePiece(idx); return; }
+    var g = ed.game, piece = g.board()[idx], turn = g.turn(), i;
+    if (ed.sel >= 0) {
+      var targets = g.targets(ed.sel);
+      for (i = 0; i < targets.length; i++) {
+        if (targets[i].to === idx) {
+          var from = ed.sel, promo = targets[i].promo;
+          ed.sel = -1;
+          if (promo) { askEditorPromotion(turn, from, idx); return; }
+          playEditorMove(from, idx, null);
+          return;
+        }
+      }
+    }
+    if (piece && piece.charAt(0) === turn && idx !== ed.sel) ed.sel = idx; else ed.sel = -1;
+    renderEditor();
+  }
+
+  function placePiece(idx) {
+    if (!ed.tool) return;   // aucun outil choisi dans la palette : rien à faire
+    ed.board[idx] = ed.tool === 'erase' ? null : ed.tool;
+    renderEditor();
+  }
+
+  function askEditorPromotion(color, from, to) {
+    var node = U.el('div', 'promo');
+    var size = Math.max(48, Math.min(72, Math.floor(U.viewport().w / 5)));
+    ['Q', 'R', 'B', 'N'].forEach(function (t) {
+      var b = U.el('button', 'pbtn');
+      b.type = 'button';
+      b.style.fontSize = Math.round(size * 0.8) + 'px';
+      b.style.width = size + 'px'; b.style.height = size + 'px';
+      b.appendChild(U.el('div', 'pc pc-' + color + t));
+      U.on(b, 'click', function () { U.closeDialog(); playEditorMove(from, to, t.toLowerCase()); });
+      node.appendChild(b);
+    });
+    U.dialog({ title: 'Promotion', node: node, onclose: function () { renderEditor(); } });
+  }
+
+  function playEditorMove(from, to, promo) {
+    var rec = ed.game.move(from, to, promo);
+    if (!rec) return;
+    ed.moves.push(rec.from + rec.to + (rec.promo || ''));
+    ed.sanList.push(rec.san);
+    U.fx('move');
+    renderEditor();
+  }
+
+  function editorUndo() {
+    if (!ed || !ed.moves.length) return;
+    ed.game.undo();
+    ed.moves.pop(); ed.sanList.pop();
+    renderEditor();
+  }
+
+  function toPhase2() {
+    if (!ed) return;
+    var wKings = 0, bKings = 0, i;
+    for (i = 0; i < 64; i++) {
+      if (ed.board[i] === 'wK') wKings++;
+      else if (ed.board[i] === 'bK') bKings++;
+    }
+    var err = U.$('pze-err1');
+    if (wKings !== 1 || bKings !== 1) { err.textContent = 'Il faut exactement un roi blanc et un roi noir.'; return; }
+    var fen = boardToFen(ed.board, ed.turn), g;
+    try { g = new Chess.Game(fen); } catch (e) { err.textContent = 'Position invalide : ' + e.message; return; }
+    if (!g.legalMoves().length) { err.textContent = 'Cette position n’a aucun coup légal : il en faut au moins un à jouer.'; return; }
+    err.textContent = '';
+    ed.fen = fen; ed.game = g; ed.sel = -1; ed.moves = []; ed.sanList = []; ed.phase = 2;
+    renderEditor();
+  }
+
+  function backToPhase1() {
+    if (!ed) return;
+    function go() { ed.phase = 1; ed.fen = null; ed.game = null; ed.moves = []; ed.sanList = []; renderEditor(); }
+    if (ed.moves.length) U.confirm('Retourner à l’échiquier ?', 'Les coups déjà joués seront perdus.', 'Continuer', 'Annuler', go, null, true);
+    else go();
+  }
+
+  function renderEditorMoves() {
+    var box = U.$('pze-sol-list');
+    if (!ed.sanList.length) { box.textContent = 'Aucun coup joué pour l’instant.'; return; }
+    var fp = ed.fen.split(' '), startTurn = fp[1], startFull = parseInt(fp[5], 10) || 1, parts = [];
+    ed.sanList.forEach(function (san, i) {
+      var white = (startTurn === 'w') === (i % 2 === 0);
+      var num = startFull + Math.floor((i + (startTurn === 'b' ? 1 : 0)) / 2);
+      if (white) parts.push(num + '.');
+      else if (i === 0) parts.push(num + '…');
+      parts.push(san);
+    });
+    box.textContent = parts.join(' ');
+  }
+
+  function renderEditor() {
+    if (!ed) return;
+    U.$('pze-phase1').style.display = ed.phase === 1 ? 'block' : 'none';
+    U.$('pze-phase2').style.display = ed.phase === 2 ? 'block' : 'none';
+    if (ed.phase === 1) {
+      editorBoard.render({ board: ed.board, orient: 'w', last: null, sel: -1, targets: [], check: -1, coords: U.getSetting('coords'), faceTop: null });
+      renderPalette();
+    } else {
+      var g = ed.game, last = g.lastMove(), check = -1;
+      if (last && /[+#]$/.test(last.san)) {
+        var b = g.board();
+        for (var s = 0; s < 64; s++) if (b[s] === g.turn() + 'K') check = s;
+      }
+      var targets = ed.sel >= 0 ? g.targets(ed.sel) : [];
+      editorBoard.render({
+        board: g.board(), orient: 'w',
+        last: last ? { from: Chess.sqIndex(last.from), to: Chess.sqIndex(last.to) } : null,
+        sel: ed.sel, targets: U.getSetting('hints') ? targets : [], check: check,
+        coords: U.getSetting('coords'), faceTop: null
+      });
+      U.$('pze-turn-label').textContent = g.turn() === 'w' ? 'Blancs' : 'Noirs';
+      renderEditorMoves();
+      U.$('pze-undo').disabled = !ed.moves.length;
+      U.$('pze-done2').disabled = !ed.moves.length;
+    }
+  }
+
+  function layoutEditor() {
+    if (!editorBoard) return;
+    var vp = U.viewport();
+    var land = vp.w > vp.h * 1.25;
+    var size = land ? Math.min(vp.h - 70, vp.w * 0.55) : Math.min(vp.w - 12, vp.h - 330);
+    editorBoard.setSize(Math.max(160, size));
+    U.toggleClass(U.$('scr-puzzle-editor'), 'land', land);
+  }
+  window.addEventListener('resize', function () { if (U.hasClass(U.$('scr-puzzle-editor'), 'active')) layoutEditor(); }, false);
+
+  function finishEditorToSubmit() {
+    if (!ed || !ed.moves.length) return;
+    proposeDialog({ fen: ed.fen, solution: ed.moves.slice() });
+  }
+
   /* ---------- Proposer un problème ---------- */
   function openGithubIssue(fen, solutionRaw, title, author) {
     var uci = solutionRaw.replace(/^\s+|\s+$/g, '').split(/\s+/).join(' ');
@@ -262,46 +464,66 @@
     window.open(url, '_blank');
   }
 
-  function proposeDialog() {
+  // prefill : {fen, solution:[uci...]} si on vient de l'éditeur visuel (champs FEN/solution masqués, déjà
+  // valides par construction — revérifiés quand même avant d'ouvrir GitHub) ; sinon saisie texte libre.
+  function proposeDialog(prefill) {
     var node = U.el('div');
-    var fenIn = U.el('input', 'txt'); fenIn.placeholder = 'FEN de départ'; fenIn.value = Chess.START; fenIn.setAttribute('autocomplete', 'off');
-    node.appendChild(fenIn);
-    var solIn = U.el('input', 'txt'); solIn.placeholder = 'Solution, coups UCI séparés par des espaces (ex: d1h5 g7g6 h5f7)'; solIn.setAttribute('autocomplete', 'off');
-    node.appendChild(solIn);
+    var fenIn = null, solIn = null;
+    if (prefill) {
+      var n = prefill.solution.length;
+      node.appendChild(U.el('p', 'hint', 'Position et solution construites avec l’éditeur (' + n + ' coup' + (n > 1 ? 's' : '') + ').'));
+    } else {
+      fenIn = U.el('input', 'txt'); fenIn.placeholder = 'FEN de départ'; fenIn.value = Chess.START; fenIn.setAttribute('autocomplete', 'off');
+      node.appendChild(fenIn);
+      solIn = U.el('input', 'txt'); solIn.placeholder = 'Solution, coups UCI séparés par des espaces (ex: d1h5 g7g6 h5f7)'; solIn.setAttribute('autocomplete', 'off');
+      node.appendChild(solIn);
+    }
     var row = U.el('div', 'fieldrow');
     var titleIn = U.el('input', 'txt'); titleIn.placeholder = 'Titre (optionnel)'; titleIn.setAttribute('autocomplete', 'off');
     var authorIn = U.el('input', 'txt'); authorIn.placeholder = 'Ton pseudo (optionnel)'; authorIn.setAttribute('autocomplete', 'off');
     authorIn.value = U.store.get('puzzleAuthor', '');
     row.appendChild(titleIn); row.appendChild(authorIn);
     node.appendChild(row);
-    node.appendChild(U.el('p', 'hint', 'Le coup à trouver, puis en alternance les réponses forcées de l’adversaire. Format UCI : « e2e4 », ou « e7e8q » pour une promotion.'));
+    if (!prefill) node.appendChild(U.el('p', 'hint', 'Le coup à trouver, puis en alternance les réponses forcées de l’adversaire. Format UCI : « e2e4 », ou « e7e8q » pour une promotion.'));
     var err = U.el('div', 'error');
     node.appendChild(err);
+    var buttons = [{ label: 'Annuler' }];
+    if (!prefill) buttons.push({ label: 'Éditeur visuel', fn: function (h) { h.close(true); P.openEditor(); } });
+    buttons.push({ label: 'Continuer sur GitHub', primary: true, keep: true, fn: function (h) {
+      var fen = prefill ? prefill.fen : fenIn.value;
+      var solRaw = prefill ? prefill.solution.join(' ') : solIn.value;
+      var msg = validatePuzzle(fen, solRaw);
+      if (msg) { err.textContent = msg; return; }
+      err.textContent = '';
+      U.store.set('puzzleAuthor', authorIn.value);
+      h.close(true);
+      openGithubIssue(fen, solRaw, titleIn.value, authorIn.value);
+    } });
     U.dialog({
       title: 'Proposer un problème',
       text: 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). Une vérification automatique l’ajoute à la liste publique si tout est valide — visible de tout le monde en moins d’une minute.',
       node: node,
-      buttons: [
-        { label: 'Annuler' },
-        { label: 'Continuer sur GitHub', primary: true, keep: true, fn: function (h) {
-          var msg = validatePuzzle(fenIn.value, solIn.value);
-          if (msg) { err.textContent = msg; return; }
-          err.textContent = '';
-          U.store.set('puzzleAuthor', authorIn.value);
-          h.close(true);
-          openGithubIssue(fenIn.value, solIn.value, titleIn.value, authorIn.value);
-        } }
-      ]
+      buttons: buttons
     });
   }
 
   P.initScreen = function () {
-    U.on(U.$('pz-propose'), 'click', proposeDialog);
+    U.on(U.$('pz-propose'), 'click', function () { P.openEditor(); });
     U.on(U.$('pzs-back'), 'click', function () { stopTimers(); App.show('puzzles'); });
     U.on(U.$('pzs-hint'), 'click', hint);
     U.on(U.$('pzs-sol'), 'click', revealSolution);
     U.on(U.$('pzs-retry'), 'click', retry);
     U.on(U.$('pzs-next'), 'click', next);
+
+    U.on(U.$('pze-back'), 'click', function () { App.show('puzzles'); });
+    U.on(U.$('pze-reset-start'), 'click', function () { if (!ed) return; ed.board = startBoard(); ed.turn = 'w'; if (turnSeg) turnSeg.set('w'); U.$('pze-err1').textContent = ''; renderEditor(); });
+    U.on(U.$('pze-clear'), 'click', function () { if (!ed) return; ed.board = emptyBoard(); U.$('pze-err1').textContent = ''; renderEditor(); });
+    U.on(U.$('pze-next'), 'click', toPhase2);
+    U.on(U.$('pze-text-mode'), 'click', function () { proposeDialog(null); });
+    U.on(U.$('pze-back1'), 'click', backToPhase1);
+    U.on(U.$('pze-undo'), 'click', editorUndo);
+    U.on(U.$('pze-done2'), 'click', finishEditorToSubmit);
+    turnSeg = U.segmented(U.$('pze-turn'), [{ v: 'w', label: 'Trait aux Blancs' }, { v: 'b', label: 'Trait aux Noirs' }], 'w', function (v) { if (ed) ed.turn = v; });
   };
 
   window.Puzzles = P;

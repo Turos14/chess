@@ -205,3 +205,9 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .elo-startfield { -webkit-flex: 1; flex: 1; min-width: 0; width: 190px; margin: 8px 0 4px; }
 .elo-startfield .num { width: 100%; text-align: left; padding-left: 12px; }
 .fieldrow .elo-startfield:first-child { margin-right: 8px; }
+
+/* Éditeur de problème : palette de pièces */
+.pzbtn { display: inline-block; position: relative; width: 38px; height: 38px; margin: 3px; padding: 0; border: 0; border-radius: 8px; background: #363a45; vertical-align: top; }
+.pzbtn.on { background: #3d7eff; }
+.pzbtn.erase { color: #fff; font-size: 16px; line-height: 38px; }
+.pze-phase h3:first-child { margin-top: 4px; }

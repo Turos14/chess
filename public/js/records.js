@@ -328,9 +328,12 @@
 
   function askEditPromotion(color, from, to) {
     var node = U.el('div', 'promo');
+    var size = Math.max(48, Math.min(72, Math.floor(U.viewport().w / 5)));
     ['Q', 'R', 'B', 'N'].forEach(function (t) {
       var b = U.el('button', 'pbtn');
       b.type = 'button';
+      b.style.fontSize = Math.round(size * 0.8) + 'px';
+      b.style.width = size + 'px'; b.style.height = size + 'px';
       b.appendChild(U.el('div', 'pc pc-' + color + t));
       U.on(b, 'click', function () { U.closeDialog(); playEditMove(from, to, t.toLowerCase()); });
       node.appendChild(b);

@@ -87,6 +87,12 @@ if (diff.status !== 0) {
   sh('git commit -m ' + JSON.stringify('Ajoute le problème #' + num + (safeTitle ? ' (' + safeTitle + ')' : '')));
   sh('git push');
   console.log('Publié : problème #' + num);
+  // Un push effectué avec le GITHUB_TOKEN par défaut ne redéclenche pas les autres workflows déclenchés sur
+  // "push" (limitation volontaire de GitHub, anti-boucle) : .github/workflows/deploy.yml ne se relancerait
+  // donc jamais tout seul après l'ajout d'un problème. On le déclenche explicitement (il a un trigger
+  // workflow_dispatch prévu pour ça).
+  try { sh('gh workflow run deploy.yml --ref main'); console.log('Déploiement Pages déclenché.'); }
+  catch (e) { console.log('Avertissement : déclenchement du déploiement impossible (' + e.message + ').'); }
 } else {
   console.log('Rien à committer (identique à la version précédente).');
 }
