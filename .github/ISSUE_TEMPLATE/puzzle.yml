@@ -1,0 +1,42 @@
+name: "Problème d'échecs"
+description: "Proposer un problème pour la liste publique du site (visible par tout le monde)"
+title: "[Problème] "
+labels: ["puzzle"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Les deux premiers champs sont pré-remplis si tu es arrivé ici via le bouton
+        « Proposer un problème » du site. Une vérification automatique (le même moteur
+        d'échecs que le site) ajoute le problème à la liste publique si tout est valide,
+        et ferme ce ticket — sinon elle laisse un commentaire expliquant l'erreur ; modifie
+        alors ce ticket, il sera revérifié automatiquement.
+  - type: input
+    id: fen
+    attributes:
+      label: FEN de départ
+      description: Position de départ. Le trait doit être au camp qui doit trouver le coup.
+      placeholder: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    validations:
+      required: true
+  - type: input
+    id: solution
+    attributes:
+      label: Solution
+      description: >-
+        Coups séparés par des espaces, format UCI (ex : e2e4, ou e7e8q pour une promotion).
+        Le 1er coup est celui à trouver ; les suivants alternent avec les réponses forcées
+        de l'adversaire (rejouées automatiquement sur le site).
+      placeholder: "d1h5 g7g6 h5f7"
+    validations:
+      required: true
+  - type: input
+    id: puzzle_title
+    attributes:
+      label: Titre (optionnel)
+      placeholder: "Mat en 2"
+  - type: input
+    id: author
+    attributes:
+      label: Pseudo (optionnel)
+      placeholder: "Affiché avec le problème sur le site"

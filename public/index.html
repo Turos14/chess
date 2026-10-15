@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=6">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=6">
-<link rel="icon" href="icons/icon-192.png?v=6">
-<link rel="stylesheet" href="css/style.css?v=6">
-<link rel="stylesheet" href="css/pieces.css?v=6">
+<link rel="manifest" href="manifest.json?v=7">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=7">
+<link rel="icon" href="icons/icon-192.png?v=7">
+<link rel="stylesheet" href="css/style.css?v=7">
+<link rel="stylesheet" href="css/pieces.css?v=7">
 </head>
 <body>
 
@@ -34,6 +34,7 @@
     <button class="btn big" data-go="online">Partie en ligne</button>
     <button class="btn big" data-go="records">Parties enregistrées <span id="rec-count" class="badge"></span></button>
     <button class="btn big" data-go="elo">Classement Elo</button>
+    <button class="btn big" data-go="puzzles">Problèmes</button>
     <p class="hint center">Pour le plein écran sur iPhone / iPad : Partager → « Sur l’écran d’accueil ».</p>
   </div>
 </div>
@@ -151,6 +152,37 @@
   </div>
 </div>
 
+<!-- Problèmes : liste -->
+<div id="scr-puzzles" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Problèmes</h1></div>
+  <div class="content">
+    <p class="hint">Ajoutés par tout le monde, visibles par tout le monde (publiés via un ticket GitHub, vérifié puis
+      intégré automatiquement). <button id="pz-propose" class="btn small" type="button">Proposer un problème</button></p>
+    <div id="pz-status" class="hint center"></div>
+    <div id="pz-list"></div>
+  </div>
+</div>
+
+<!-- Problèmes : résolution -->
+<div id="scr-puzzle-solve" class="screen page">
+  <div class="topbar"><button id="pzs-back" class="back">‹ Liste</button><h1 id="pzs-title">Problème</h1></div>
+  <div class="replay">
+    <div class="rv-left">
+      <div id="pzs-board"></div>
+    </div>
+    <div class="rv-right">
+      <div id="pzs-info" class="hint"></div>
+      <div id="pzs-status" class="hint center"></div>
+      <div class="btnrow">
+        <button id="pzs-hint" class="btn">Indice</button>
+        <button id="pzs-sol" class="btn">Voir la solution</button>
+        <button id="pzs-retry" class="btn">Recommencer</button>
+      </div>
+      <button id="pzs-next" class="btn primary big">Problème suivant</button>
+    </div>
+  </div>
+</div>
+
 <!-- Revue -->
 <div id="scr-replay" class="screen page">
   <div class="topbar"><button id="rv-back" class="back">‹ Liste</button><h1 id="rv-title"></h1></div>
@@ -189,23 +221,24 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=6"></script>
-<script src="js/util.js?v=6"></script>
-<script src="js/clock.js?v=6"></script>
-<script src="js/board.js?v=6"></script>
-<script src="js/elo.js?v=6"></script>
-<script src="js/eloChart.js?v=6"></script>
-<script src="js/eloview.js?v=6"></script>
-<script src="js/records.js?v=6"></script>
-<script src="js/gameview.js?v=6"></script>
-<script src="js/pendule.js?v=6"></script>
-<script src="js/local.js?v=6"></script>
-<script src="js/engineStrength.js?v=6"></script>
-<script src="js/engine.js?v=6"></script>
-<script src="js/ai.js?v=6"></script>
-<script src="js/room.js?v=6"></script>
-<script src="js/net.js?v=6"></script>
-<script src="js/online.js?v=6"></script>
-<script src="js/app.js?v=6"></script>
+<script src="js/chess.js?v=7"></script>
+<script src="js/util.js?v=7"></script>
+<script src="js/clock.js?v=7"></script>
+<script src="js/board.js?v=7"></script>
+<script src="js/elo.js?v=7"></script>
+<script src="js/eloChart.js?v=7"></script>
+<script src="js/eloview.js?v=7"></script>
+<script src="js/records.js?v=7"></script>
+<script src="js/puzzles.js?v=7"></script>
+<script src="js/gameview.js?v=7"></script>
+<script src="js/pendule.js?v=7"></script>
+<script src="js/local.js?v=7"></script>
+<script src="js/engineStrength.js?v=7"></script>
+<script src="js/engine.js?v=7"></script>
+<script src="js/ai.js?v=7"></script>
+<script src="js/room.js?v=7"></script>
+<script src="js/net.js?v=7"></script>
+<script src="js/online.js?v=7"></script>
+<script src="js/app.js?v=7"></script>
 </body>
 </html>

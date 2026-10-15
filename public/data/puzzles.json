@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "fen": "6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1",
+    "solution": ["a1a8"],
+    "title": "Mat du couloir",
+    "author": "Turos14",
+    "addedAt": 1760000000000
+  },
+  {
+    "id": 2,
+    "fen": "7k/8/6K1/8/8/8/8/3Q4 w - - 0 1",
+    "solution": ["d1d8"],
+    "title": "Mat en 1 à la dame",
+    "author": "Turos14",
+    "addedAt": 1760000000001
+  },
+  {
+    "id": 3,
+    "fen": "r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1",
+    "solution": ["d5c7"],
+    "title": "Fourchette royale",
+    "author": "Turos14",
+    "addedAt": 1760000000002
+  },
+  {
+    "id": 4,
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+    "solution": ["h5f7"],
+    "title": "Le mat du berger",
+    "author": "Turos14",
+    "addedAt": 1760000000003
+  }
+]

@@ -39,6 +39,13 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   classement, sinon 1200) — jusqu'à décocher, la fin de partie, ou « Terminer ». Restriction volontaire : pas de
   branche depuis une autre branche (pas de sous-arbre).
 - **Score matériel** affiché dans le bandeau du joueur en avance (ex. « +3 »), recalculé à chaque coup.
+- **Problèmes** (onglet dédié) : liste **publique, partagée entre tous les visiteurs** (contrairement au reste de
+  l'appli, qui est propre à chaque appareil). Résolution sur l'échiquier, indice, « Voir la solution », suivi
+  « résolu » local (coche ✓). Bouton **« Proposer un problème »** : ouvre un ticket GitHub pré-rempli (FEN +
+  solution en UCI) — un compte GitHub gratuit suffit, pas de compte sur le site. Une Action GitHub revérifie la
+  proposition avec le même moteur d'échecs que le site, puis l'ajoute automatiquement à la liste publique et ferme
+  le ticket (ou commente l'erreur si la FEN/solution est invalide). Voir « Comment marche l'ajout de problèmes »
+  ci-dessous.
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
@@ -55,6 +62,9 @@ npm test             # moteur (perft) + logique de salle (sièges, pendule, basc
 
 L'app est **100 % statique** : copier le dossier `public/` sur n'importe quel hébergement de fichiers (nginx, Web Station…),
 **aucun serveur Node** n'est nécessaire. Servir en **HTTPS** (verrou d'écran, presse-papiers, WebRTC sur certains navigateurs).
+
+Aussi hébergée automatiquement par **GitHub Pages** via `.github/workflows/deploy.yml` (publie `public/` à chaque
+push sur `main`) : **https://turos14.github.io/chess/**. Une deuxième copie, indépendante du NAS.
 
 ## Mises à jour et cache
 
@@ -110,6 +120,28 @@ fonctionnalité entière (comme le classement Elo) peut sembler ne pas marcher a
 - Serveur PeerJS personnel (facultatif) : définir `window.PEER_CONFIG = { host: '…', port: 443, path: '/', secure: true }`
   avant les scripts (ex. `<script>` dans `index.html`), ou tester avec `?peer=hote:9000` dans l'URL.
 
+## Comment marche l'ajout de problèmes
+
+L'appli reste 100 % statique côté client ; pas de backend à nous pour autant. Le flux :
+
+1. Dans l'appli, **« Proposer un problème »** valide la FEN/solution localement (même moteur `chess.js`), puis ouvre
+   un **ticket GitHub pré-rempli** (`.github/ISSUE_TEMPLATE/puzzle.yml`) dans un nouvel onglet — il faut un compte
+   GitHub gratuit pour le soumettre, pas de compte sur le site.
+2. À l'ouverture (ou modification) d'un ticket étiqueté `puzzle`, l'Action `.github/workflows/puzzle-intake.yml`
+   lance `scripts/puzzle-intake.js` (Node) : relit le corps du ticket, **revalide** la FEN et chaque coup de la
+   solution avec `public/js/chess.js` (ne fait jamais confiance au client).
+3. Si c'est valide : ajoute/maj le problème dans `public/data/puzzles.json`, commit + push sur `main` (ce qui
+   republie aussi le site via `deploy.yml`), commente et ferme le ticket. Sinon : commente l'erreur précise et
+   laisse le ticket ouvert — le corriger relance la vérification.
+4. Visible par tout le monde dans l'onglet **Problèmes** à la republication (~1 min), la liste étant rechargée à
+   chaque ouverture de l'écran (anti-cache par horodatage, pas seulement `?v=N` : la liste change sans déploiement).
+
+Limites assumées : pas de modération a priori (seulement une vérification de légalité des coups) — un problème légal
+mais malvenu (mauvais goût, titre offensant…) reste possible ; à surveiller/retirer manuellement (modifier
+`public/data/puzzles.json` et pousser, ou rouvrir le ticket correspondant pour le corriger). Le suivi « résolu »
+(✓) est **local à l'appareil** (`localStorage`), comme le reste de l'appli — ce n'est que la liste des problèmes
+elle-même qui est partagée.
+
 ## Pièces
 
 Les pièces sont des SVG dans `public/pieces/` (jeu « Cburnett », licence dans `LICENSE.txt`), branchés par **`public/css/pieces.css`**.
@@ -131,8 +163,13 @@ public/js/ai.js      mode de jeu « contre l'IA »
 public/js/eloChart.js courbe Elo (SVG, sans dépendance)
 public/js/eloview.js écran « Classement » et stockage du classement (navigateur)
 public/js/net.js     réseau pair-à-pair, bascule d'hôte
+public/js/puzzles.js écran « Problèmes » (liste publique, résolution, proposition via ticket GitHub)
+public/data/puzzles.json  liste publique des problèmes (modifiée uniquement par l'Action GitHub)
 public/js/           util, clock, board, gameview, pendule, local, online, app
 public/vendor/       PeerJS (MIT) et Stockfish.js 10 (GPL-3.0)
 public/css/          style.css, pieces.css
-test/                tests du moteur et de la salle
+test/                tests du moteur, de la salle et des problèmes de départ
+scripts/puzzle-intake.js  validation + intégration d'un problème proposé (lancé par l'Action GitHub)
+.github/workflows/   déploiement GitHub Pages, intégration des problèmes proposés
+.github/ISSUE_TEMPLATE/puzzle.yml  formulaire du ticket « Proposer un problème »
 ```

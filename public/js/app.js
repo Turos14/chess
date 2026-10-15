@@ -19,6 +19,7 @@
     } else if (name === 'records') Rec.renderList();
     else if (name === 'online') Online.refresh();
     else if (name === 'elo') EloView.render();
+    else if (name === 'puzzles') Puzzles.renderList();
     if (!newEl) return;
 
     clearTimeout(pendingTimer);
@@ -77,6 +78,7 @@
     Online.init();
     Rec.initReplay();
     EloView.initScreen();
+    Puzzles.initScreen();
     App.show('home');
   }
 
