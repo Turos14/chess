@@ -69,9 +69,12 @@ for (var j = 0; j < moves.length; j++) {
 var dataPath = path.join(__dirname, '..', 'public', 'data', 'puzzles.json');
 var list = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 var num = parseInt(issueNumber, 10);
-var puzzle = { id: num, fen: fen, solution: uci, title: title, author: author, addedAt: Date.now() };
+// Préfixé pour ne jamais entrer en collision avec les id des problèmes du jeu de départ (public/data/puzzles.json),
+// ni avec rien d'autre : les numéros de ticket GitHub sont uniques et strictement croissants pour ce dépôt.
+var id = 'gh-' + num;
+var puzzle = { id: id, fen: fen, solution: uci, title: title, author: author, addedAt: Date.now() };
 var idx = -1;
-for (var k = 0; k < list.length; k++) if (list[k].id === num) idx = k;
+for (var k = 0; k < list.length; k++) if (list[k].id === id) idx = k;
 if (idx >= 0) list[idx] = puzzle; else list.push(puzzle);
 fs.writeFileSync(dataPath, JSON.stringify(list, null, 2) + '\n');
 
