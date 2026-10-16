@@ -76,5 +76,30 @@
     "title": "Coup du berger",
     "author": "Turos14",
     "addedAt": 1792130189323
+  },
+  {
+    "id": "gh-6",
+    "fen": "8/4k3/rqnbbn1r/8/8/RQNBBN1R/4K3/8 w - - 0 1",
+    "solution": [
+      "a3a1",
+      "a6a8",
+      "c3b1",
+      "c6b8",
+      "e3c1",
+      "e6c8",
+      "b3d1",
+      "b6d8",
+      "e2e1",
+      "e7e8",
+      "d3f1",
+      "d6f8",
+      "f3g1",
+      "f6g8",
+      "h3h1",
+      "h6h8"
+    ],
+    "title": "Placement majeur",
+    "author": "Turos14",
+    "addedAt": 1792173603890
   }
 ]
