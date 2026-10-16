@@ -60,5 +60,21 @@
     "title": "Mat du couloir (les Noirs jouent)",
     "author": "Turos14",
     "addedAt": 1792074366458
+  },
+  {
+    "id": "gh-5",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1",
+    "solution": [
+      "e2e3",
+      "b8a6",
+      "d1f3",
+      "a6b8",
+      "f1c4",
+      "b8c6",
+      "f3f7"
+    ],
+    "title": "Coup du berger",
+    "author": "Turos14",
+    "addedAt": 1792130189323
   }
 ]
