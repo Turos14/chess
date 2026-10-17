@@ -4,15 +4,20 @@
  * GitHub qui valide (avec ce même moteur chess.js) et publie en committant le JSON — visible de tout le
  * monde après republication du site (~1 min), sans backend à nous.
  *
- * Format d'un problème : {id, fen, solution:[coups UCI...], title, author, addedAt}. `fen` est la position
- * où le joueur qui doit trouver le coup a le trait. `solution` alterne : le coup à trouver, puis la réponse
- * forcée de l'adversaire (rejouée automatiquement), etc. — ex: ["d1h5","g7g6","h5f7"] (1 coup à trouver,
- * 1 réponse, 1 coup à trouver). Un problème peut aussi n'avoir qu'un seul coup (mat en 1, ou simple tactique). */
+ * Format d'un problème : {id, fen, solution:[coups UCI...], title, author, category, difficulty, addedAt}. `fen`
+ * est la position où le joueur qui doit trouver le coup a le trait. `solution` alterne : le coup à trouver, puis
+ * la réponse forcée de l'adversaire (rejouée automatiquement), etc. — ex: ["d1h5","g7g6","h5f7"] (1 coup à
+ * trouver, 1 réponse, 1 coup à trouver). Un problème peut aussi n'avoir qu'un seul coup (mat en 1, ou simple
+ * tactique). `category` (optionnel, texte libre choisi par le créateur) et `difficulty` (optionnel, un de
+ * DIFFICULTIES) servent uniquement de filtres côté client — aucune incidence sur la résolution. */
 (function () {
   'use strict';
   var P = {};
   var REPO = 'https://github.com/Turos14/chess';
-  var allPuzzles = null;
+  var DIFFICULTIES = ['facile', 'moyen', 'difficile'];
+  var DIFF_LABEL = { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile' };
+  var allPuzzles = null, visiblePuzzles = null;
+  var filterCategory = 'all', filterDifficulty = 'all', diffFilterSeg = null;
 
   function solvedIds() { return U.store.get('puzzlesSolved', []); }
   function markSolved(id) {
@@ -53,7 +58,90 @@
     });
   }
 
-  /* ---------- Écran liste ---------- */
+  /* ---------- Écran liste (avec onglets de catégorie + filtre de niveau) ---------- */
+  function normCategory(p) { return (p.category || '').replace(/^\s+|\s+$/g, ''); }
+
+  // Catégories distinctes présentes dans la liste, triées, dédupliquées insensible à la casse (garde la 1ère
+  // casse rencontrée pour l'affichage) — ce sont elles qui deviennent les onglets, aucune liste figée à l'avance.
+  function computeCategories(list) {
+    var seen = {}, out = [];
+    list.forEach(function (p) {
+      var c = normCategory(p);
+      if (!c) return;
+      var key = c.toLowerCase();
+      if (!seen[key]) { seen[key] = true; out.push(c); }
+    });
+    out.sort(function (a, b) { return a.localeCompare ? a.localeCompare(b, 'fr') : (a < b ? -1 : a > b ? 1 : 0); });
+    return out;
+  }
+
+  function applyFilters() {
+    visiblePuzzles = (allPuzzles || []).filter(function (p) {
+      if (filterCategory !== 'all' && normCategory(p).toLowerCase() !== filterCategory) return false;
+      if (filterDifficulty !== 'all' && (p.difficulty || '') !== filterDifficulty) return false;
+      return true;
+    });
+  }
+
+  function renderFilterBar() {
+    var catBox = U.$('pz-categories');
+    U.clear(catBox);
+    var cats = computeCategories(allPuzzles || []);
+    // Si la catégorie actuellement filtrée a disparu (ses problèmes ont tous été supprimés), repart de "Tous"
+    // plutôt que de rester bloqué sur une liste vide sans onglet pour en sortir.
+    if (filterCategory !== 'all' && cats.map(function (c) { return c.toLowerCase(); }).indexOf(filterCategory) < 0) {
+      filterCategory = 'all';
+    }
+    catBox.style.display = cats.length ? '' : 'none';
+    function catBtn(label, key) {
+      var b = U.button(label, 'chip' + (filterCategory === key ? ' on' : ''), function () {
+        filterCategory = key;
+        renderFilterBar();
+        applyFilters();
+        renderItems();
+      });
+      return b;
+    }
+    if (cats.length) catBox.appendChild(catBtn('Tous', 'all'));
+    cats.forEach(function (c) { catBox.appendChild(catBtn(c, c.toLowerCase())); });
+
+    var diffOptions = [{ v: 'all', label: 'Tous niveaux' }];
+    DIFFICULTIES.forEach(function (d) { diffOptions.push({ v: d, label: DIFF_LABEL[d] }); });
+    diffFilterSeg = U.segmented(U.$('pz-difficulty'), diffOptions, filterDifficulty, function (v) {
+      filterDifficulty = v;
+      applyFilters();
+      renderItems();
+    });
+  }
+
+  function renderItems() {
+    var box = U.$('pz-list');
+    U.clear(box);
+    if (!allPuzzles.length) {
+      box.appendChild(U.el('p', 'hint center', 'Aucun problème pour l’instant. Sois le premier à en proposer un !'));
+      return;
+    }
+    if (!visiblePuzzles.length) {
+      box.appendChild(U.el('p', 'hint center', 'Aucun problème ne correspond à ces filtres.'));
+      return;
+    }
+    var solved = solvedIds();
+    visiblePuzzles.forEach(function (p) {
+      var item = U.el('div', 'item');
+      var main = U.el('div', 'main');
+      main.appendChild(U.el('div', 'ititle', (solved.indexOf(p.id) >= 0 ? '✓ ' : '') + (p.title || ('Problème #' + p.id))));
+      var nMoves = p.solution ? p.solution.length : 0;
+      var bits = [(p.author ? 'par ' + p.author : 'anonyme'), nMoves + ' coup' + (nMoves > 1 ? 's' : '') + ' à trouver'];
+      if (p.difficulty) bits.push(DIFF_LABEL[p.difficulty]);
+      if (normCategory(p)) bits.push(normCategory(p));
+      main.appendChild(U.el('div', 'isub', bits.join(' · ')));
+      U.on(main, 'click', function () { P.open(p); });
+      item.appendChild(main);
+      item.appendChild(U.button('Suppr.', 'btn small danger', function () { requestDeletion(p); }));
+      box.appendChild(item);
+    });
+  }
+
   P.renderList = function () {
     var box = U.$('pz-list'), status = U.$('pz-status');
     U.clear(box);
@@ -63,27 +151,14 @@
       if (err) { status.textContent = 'Impossible de charger les problèmes (' + err.message + ').'; return; }
       status.textContent = '';
       allPuzzles = list;
-      if (!list.length) {
-        box.appendChild(U.el('p', 'hint center', 'Aucun problème pour l’instant. Sois le premier à en proposer un !'));
-        return;
-      }
-      var solved = solvedIds();
-      list.forEach(function (p, i) {
-        var item = U.el('div', 'item');
-        var main = U.el('div', 'main');
-        main.appendChild(U.el('div', 'ititle', (solved.indexOf(p.id) >= 0 ? '✓ ' : '') + (p.title || ('Problème #' + p.id))));
-        var nMoves = p.solution ? p.solution.length : 0;
-        main.appendChild(U.el('div', 'isub', (p.author ? 'par ' + p.author : 'anonyme') + ' · ' + nMoves + ' coup' + (nMoves > 1 ? 's' : '') + ' à trouver'));
-        U.on(main, 'click', function () { P.open(i); });
-        item.appendChild(main);
-        item.appendChild(U.button('Suppr.', 'btn small danger', function () { requestDeletion(p); }));
-        box.appendChild(item);
-      });
+      renderFilterBar();
+      applyFilters();
+      renderItems();
     });
   };
 
   /* ---------- Écran résolution ---------- */
-  // sv : {idx (index dans allPuzzles), puzzle, game, sel, solIdx (prochain coup attendu), state, orient}
+  // sv : {puzzle, game, sel, solIdx (prochain coup attendu), state, orient}
   var sv = null, boardInst = null;
   var revealTimer = null, flashTimer = null;
 
@@ -92,22 +167,24 @@
     clearTimeout(flashTimer); flashTimer = null;
   }
 
-  function openAt(idx) {
+  function openPuzzle(p) {
     stopTimers();
-    var p = allPuzzles[idx];
-    sv = { idx: idx, puzzle: p, game: Chess.replay(p.fen, []), sel: -1, solIdx: 0, state: 'playing', orient: null };
+    sv = { puzzle: p, game: Chess.replay(p.fen, []), sel: -1, solIdx: 0, state: 'playing', orient: null };
     if (!sv.game) { U.toast('Problème illisible.'); return; }
     sv.orient = sv.game.turn();
     if (!boardInst) { boardInst = new Board(U.$('pzs-board')); boardInst.onSquare = onSolveSquare; }
     sv.board = boardInst;
     U.$('pzs-title').textContent = p.title || ('Problème #' + p.id);
-    U.$('pzs-info').textContent = (p.author ? 'Proposé par ' + p.author : 'Anonyme') + ' · trouve le coup des ' + (sv.orient === 'w' ? 'Blancs' : 'Noirs') + '.';
+    var infoBits = [(p.author ? 'Proposé par ' + p.author : 'Anonyme'), 'trouve le coup des ' + (sv.orient === 'w' ? 'Blancs' : 'Noirs') + '.'];
+    if (p.difficulty) infoBits.push(DIFF_LABEL[p.difficulty]);
+    if (normCategory(p)) infoBits.push(normCategory(p));
+    U.$('pzs-info').textContent = infoBits.join(' · ');
     App.show('puzzle-solve');
     layoutSolve();
     renderSolve();
   }
 
-  P.open = function (idx) { openAt(idx); };
+  P.open = function (p) { openPuzzle(p); };
 
   function expectedMove() { return parseUci(sv.puzzle.solution[sv.solIdx]); }
 
@@ -237,9 +314,10 @@
   }
 
   function next() {
-    if (!sv || !allPuzzles || !allPuzzles.length) return;
-    var n = (sv.idx + 1) % allPuzzles.length;
-    openAt(n);
+    if (!sv || !visiblePuzzles || !visiblePuzzles.length) return;
+    var cur = -1, i;
+    for (i = 0; i < visiblePuzzles.length; i++) if (visiblePuzzles[i].id === sv.puzzle.id) { cur = i; break; }
+    openPuzzle(visiblePuzzles[(cur + 1) % visiblePuzzles.length]);
   }
 
   P.layoutSolve = layoutSolve;
@@ -477,7 +555,7 @@
   }
 
   /* ---------- Proposer un problème ---------- */
-  function openGithubIssue(fen, solutionRaw, title, author) {
+  function openGithubIssue(fen, solutionRaw, title, author, category, difficulty) {
     var uci = solutionRaw.replace(/^\s+|\s+$/g, '').split(/\s+/).join(' ');
     var issueTitle = '[Problème] ' + (title ? title : 'sans titre');
     var url = REPO + '/issues/new?template=puzzle.yml'
@@ -485,7 +563,9 @@
       + '&fen=' + encodeURIComponent(fen)
       + '&solution=' + encodeURIComponent(uci)
       + '&puzzle_title=' + encodeURIComponent(title || '')
-      + '&author=' + encodeURIComponent(author || '');
+      + '&author=' + encodeURIComponent(author || '')
+      + '&category=' + encodeURIComponent(category || '')
+      + (difficulty ? '&difficulty=' + encodeURIComponent(DIFF_LABEL[difficulty]) : '');
     window.open(url, '_blank');
   }
 
@@ -509,6 +589,17 @@
     authorIn.value = U.store.get('puzzleAuthor', '');
     row.appendChild(titleIn); row.appendChild(authorIn);
     node.appendChild(row);
+    var categoryIn = U.el('input', 'txt');
+    categoryIn.placeholder = 'Catégorie (optionnel, ex : Ouvertures, Mats, Tactique)';
+    categoryIn.setAttribute('autocomplete', 'off');
+    categoryIn.value = U.store.get('puzzleCategory', '');
+    node.appendChild(categoryIn);
+    node.appendChild(U.el('p', 'hint', 'Niveau de difficulté (optionnel) :'));
+    var diffBox = U.el('div');
+    node.appendChild(diffBox);
+    var diffOptions = [{ v: '', label: 'Non précisé' }];
+    DIFFICULTIES.forEach(function (d) { diffOptions.push({ v: d, label: DIFF_LABEL[d] }); });
+    var diffSeg = U.segmented(diffBox, diffOptions, '', null);
     if (!prefill) node.appendChild(U.el('p', 'hint', 'Le coup à trouver, puis en alternance les réponses forcées de l’adversaire. Format UCI : « e2e4 », ou « e7e8q » pour une promotion.'));
     var err = U.el('div', 'error');
     node.appendChild(err);
@@ -521,8 +612,9 @@
       if (msg) { err.textContent = msg; return; }
       err.textContent = '';
       U.store.set('puzzleAuthor', authorIn.value);
+      U.store.set('puzzleCategory', categoryIn.value);
       h.close(true);
-      openGithubIssue(fen, solRaw, titleIn.value, authorIn.value);
+      openGithubIssue(fen, solRaw, titleIn.value, authorIn.value, categoryIn.value, diffSeg.get());
     } });
     U.dialog({
       title: 'Proposer un problème',

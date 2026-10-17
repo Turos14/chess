@@ -40,3 +40,22 @@ body:
     attributes:
       label: Pseudo (optionnel)
       placeholder: "Affiché avec le problème sur le site"
+  - type: input
+    id: category
+    attributes:
+      label: Catégorie (optionnel)
+      description: >-
+        Classe le problème dans un onglet du site (ex : Ouvertures, Mats, Tactique…). Un nouvel onglet est créé
+        automatiquement la première fois qu'une catégorie est utilisée.
+      placeholder: "Ouvertures"
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Niveau de difficulté (optionnel)
+      description: Permet aux joueurs de filtrer les problèmes par niveau sur le site.
+      options:
+        - Facile
+        - Moyen
+        - Difficile
+    validations:
+      required: false

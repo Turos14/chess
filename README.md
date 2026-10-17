@@ -50,7 +50,10 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   la liste publique et ferme le ticket (ou commente l'erreur précise sinon). Voir « Comment marche l'ajout de
   problèmes » ci-dessous. Bouton **« Suppr. »** sur chaque problème : ouvre de la même façon un ticket de
   suppression pré-rempli, mais il faut le bon mot de passe pour qu'il aboutisse (voir « Comment marche la
-  suppression de problèmes »).
+  suppression de problèmes »). **Catégorie** et **niveau de difficulté** (optionnels, choisis par le créateur à la
+  proposition) : la liste publique affiche un onglet par catégorie utilisée (créé automatiquement, aucune liste
+  figée à l'avance) et un filtre par niveau (Facile / Moyen / Difficile), pour que chaque joueur choisisse ce qu'il
+  veut résoudre.
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
@@ -143,7 +146,10 @@ L'appli reste 100 % statique côté client ; pas de backend à nous pour autant.
    et ferme le ticket. Un push fait avec le jeton par défaut de l'Action ne redéclenche pas les autres workflows sur
    push (anti-boucle, limitation volontaire de GitHub) : le déploiement Pages est donc **déclenché explicitement**
    (`gh workflow run deploy.yml`) après ce push. Si la FEN/solution est invalide : commente l'erreur précise et
-   laisse le ticket ouvert — le corriger relance la vérification.
+   laisse le ticket ouvert — le corriger relance la vérification. La **catégorie** (texte libre) et le **niveau de
+   difficulté** (liste déroulante Facile/Moyen/Difficile) du ticket sont repris tels quels, les deux étant optionnels
+   (un niveau qui ne correspondrait à aucune des trois valeurs attendues — ticket modifié à la main par exemple —
+   est rejeté comme une FEN invalide).
 4. Visible par tout le monde dans l'onglet **Problèmes** à la republication (~1 min), la liste étant rechargée à
    chaque ouverture de l'écran (anti-cache par horodatage, pas seulement `?v=N` : la liste change sans déploiement).
 

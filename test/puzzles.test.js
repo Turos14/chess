@@ -8,12 +8,16 @@ var Chess = require('../public/js/chess.js');
 var list = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'data', 'puzzles.json'), 'utf8'));
 assert(Array.isArray(list) && list.length > 0, 'la liste de problèmes de départ ne doit pas être vide');
 
+var VALID_DIFFICULTIES = { facile: true, moyen: true, difficile: true };
+
 var ids = {};
 list.forEach(function (p) {
   assert(!ids[p.id], 'id de problème en double : ' + p.id);
   ids[p.id] = true;
   assert(typeof p.fen === 'string' && p.fen, 'FEN manquante pour #' + p.id);
   assert(Array.isArray(p.solution) && p.solution.length > 0, 'solution manquante pour #' + p.id);
+  if (p.difficulty != null) assert(VALID_DIFFICULTIES[p.difficulty], 'niveau de difficulté invalide pour #' + p.id + ' (' + p.difficulty + ')');
+  if (p.category != null) assert(typeof p.category === 'string' && p.category.replace(/^\s+|\s+$/g, ''), 'catégorie invalide pour #' + p.id);
 
   var g = new Chess.Game(p.fen);   // doit analyser sans exception
   p.solution.forEach(function (u, i) {

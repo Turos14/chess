@@ -44,9 +44,14 @@ var fen = field('FEN de départ');
 var solutionRaw = field('Solution');
 var title = field('Titre (optionnel)') || null;
 var author = field('Pseudo (optionnel)') || login;
+var category = field('Catégorie (optionnel)') || null;
+var difficultyLabel = field('Niveau de difficulté (optionnel)');
+var DIFFICULTY_MAP = { 'Facile': 'facile', 'Moyen': 'moyen', 'Difficile': 'difficile' };
+var difficulty = difficultyLabel ? DIFFICULTY_MAP[difficultyLabel] : null;
 
 if (!fen) fail('FEN manquante (ou champ illisible).');
 if (!solutionRaw) fail('Solution manquante.');
+if (difficultyLabel && !difficulty) fail('Niveau de difficulté invalide : « ' + difficultyLabel + ' » (attendu : Facile, Moyen ou Difficile).');
 
 var uci = solutionRaw.replace(/^\s+|\s+$/g, '').split(/\s+/).filter(function (s) { return s; });
 if (!uci.length) fail('Solution manquante.');
@@ -72,7 +77,7 @@ var num = parseInt(issueNumber, 10);
 // Préfixé pour ne jamais entrer en collision avec les id des problèmes du jeu de départ (public/data/puzzles.json),
 // ni avec rien d'autre : les numéros de ticket GitHub sont uniques et strictement croissants pour ce dépôt.
 var id = 'gh-' + num;
-var puzzle = { id: id, fen: fen, solution: uci, title: title, author: author, addedAt: Date.now() };
+var puzzle = { id: id, fen: fen, solution: uci, title: title, author: author, category: category, difficulty: difficulty, addedAt: Date.now() };
 var idx = -1;
 for (var k = 0; k < list.length; k++) if (list[k].id === id) idx = k;
 if (idx >= 0) list[idx] = puzzle; else list.push(puzzle);
