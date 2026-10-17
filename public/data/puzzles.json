@@ -197,5 +197,15 @@
     "title": "Meilleur coup",
     "author": "Turos14",
     "addedAt": 1792216276895
+  },
+  {
+    "id": "gh-13",
+    "fen": "5k1q/8/8/8/8/8/PPP5/K7 b - - 0 1",
+    "solution": [
+      "h8h1"
+    ],
+    "title": "Mat du couloir",
+    "author": "Turos14",
+    "addedAt": 1792217080467
   }
 ]
