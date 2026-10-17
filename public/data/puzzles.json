@@ -126,36 +126,6 @@
     "addedAt": 1792174250345
   },
   {
-    "id": "gh-8",
-    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1",
-    "solution": [
-      "d2d4",
-      "d7d5",
-      "b1c3",
-      "b8c6",
-      "c1f4",
-      "c8f5"
-    ],
-    "title": "Espagnole",
-    "author": "Turos14",
-    "addedAt": 1792174433761
-  },
-  {
-    "id": "gh-9",
-    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1",
-    "solution": [
-      "e2e4",
-      "e7e5",
-      "g1f3",
-      "g8f6",
-      "f1b5",
-      "f8b4"
-    ],
-    "title": "Espagnol",
-    "author": "Turos14",
-    "addedAt": 1792179954893
-  },
-  {
     "id": "gh-10",
     "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1",
     "solution": [
