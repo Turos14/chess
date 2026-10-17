@@ -1,17 +1,5 @@
 [
   {
-    "id": "gh-3",
-    "fen": "r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1",
-    "solution": [
-      "d5c7",
-      "e8d8",
-      "c7a8"
-    ],
-    "title": "Fourchette et gain de la tour",
-    "author": "Turos14",
-    "addedAt": 1792074175227
-  },
-  {
     "id": "gh-12",
     "fen": "3R4/p3P3/1p1n4/2p1kP2/8/1P6/8/1r1K4 w - - 0 1",
     "solution": [
