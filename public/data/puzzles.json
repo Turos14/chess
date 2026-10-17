@@ -308,5 +308,17 @@
     "category": "Mat",
     "difficulty": null,
     "addedAt": 1792236774618
+  },
+  {
+    "id": "gh-40",
+    "fen": "7k/8/6K1/8/8/8/8/3Q4 w - - 0 1",
+    "solution": [
+      "d1d8"
+    ],
+    "title": "Mat en 1",
+    "author": "Turos14",
+    "category": "Mat",
+    "difficulty": null,
+    "addedAt": 1792236874985
   }
 ]
