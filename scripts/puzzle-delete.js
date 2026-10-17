@@ -1,24 +1,22 @@
 #!/usr/bin/env node
 /* Lancé par .github/workflows/puzzle-delete.yml à chaque ouverture/modification d'un ticket "delete-puzzle" :
- * n'agit que si le ticket a été ouvert par Turos14 (seul autorisé à faire supprimer un problème — contrairement
- * à l'ajout, rien dans le contenu d'une demande de suppression ne peut être validé automatiquement, donc le
- * contrôle se fait sur l'identité de l'auteur du ticket). Si l'auteur n'est pas Turos14 : commente le refus et
- * ferme le ticket (il n'y a rien à corriger en le modifiant, donc pas d'intérêt à le laisser ouvert, contrairement
- * à scripts/puzzle-intake.js). Si l'auteur est Turos14 : retire les identifiants demandés de
- * public/data/puzzles.json, commit + push (republie le site via le workflow de déploiement Pages), commente le
- * résultat et ferme le ticket. */
+ * n'agit que si le bon mot de passe (secret du dépôt PUZZLE_DELETE_PASSWORD) est fourni dans le ticket —
+ * contrairement à l'ajout, rien dans le contenu d'une demande de suppression ne peut être validé automatiquement,
+ * donc le contrôle se fait sur un secret partagé plutôt que sur l'identité de l'auteur du ticket.
+ * Le champ "Mot de passe" est effacé du corps du ticket juste après lecture (succès ou échec) : un ticket est
+ * public, donc ce mot de passe ne reste pas vraiment secret une fois utilisé (le retrait limite l'exposition
+ * sans l'annuler complètement — l'historique de modification d'un ticket public reste accessible). Si le mot de
+ * passe est incorrect : commente l'erreur et laisse le ticket ouvert (le corriger relance la vérification). Si
+ * correct : retire les identifiants demandés de public/data/puzzles.json, commit + push (republie le site via le
+ * workflow de déploiement Pages), commente le résultat et ferme le ticket. */
 'use strict';
 var path = require('path');
 var fs = require('fs');
 var cp = require('child_process');
-var Chess = require(path.join(__dirname, '..', 'public', 'js', 'chess.js'));
-void Chess; // non utilisé ici (pas de validation de contenu pour une suppression), gardé pour clarté d'intention
-
-var ALLOWED_LOGIN = 'turos14';
 
 var issueNumber = process.env.ISSUE_NUMBER;
 var body = process.env.ISSUE_BODY || '';
-var login = process.env.ISSUE_LOGIN || '';
+var expectedPassword = process.env.DELETE_PASSWORD || '';
 
 function sh(cmd) { return cp.execSync(cmd, { stdio: 'pipe', encoding: 'utf8' }); }
 
@@ -38,11 +36,30 @@ function comment(msg) {
   sh('gh issue comment ' + issueNumber + ' --body-file ' + JSON.stringify(f));
 }
 
-function closeIssue() { sh('gh issue close ' + issueNumber); }
+// Retire la valeur du champ "Mot de passe" du corps public du ticket, que la vérification ait réussi ou non.
+function redactPassword() {
+  var re = /(### Mot de passe\s*\n+)([^\n]*)/;
+  if (!re.test(body)) return;
+  var redacted = body.replace(re, '$1(effacé automatiquement après lecture)');
+  var f = path.join(require('os').tmpdir(), 'puzzle-delete-body.md');
+  fs.writeFileSync(f, redacted);
+  try { sh('gh issue edit ' + issueNumber + ' --body-file ' + JSON.stringify(f)); }
+  catch (e) { console.log('Avertissement : effacement du mot de passe impossible (' + e.message + ').'); }
+}
 
-if (login.toLowerCase() !== ALLOWED_LOGIN) {
-  comment('❌ Seul **Turos14** peut demander la suppression d’un problème. Ce ticket a été ouvert par @' + login + ', il est donc refusé.');
-  closeIssue();
+var password = field('Mot de passe');
+redactPassword();
+
+if (!expectedPassword) {
+  comment('❌ Suppression désactivée : aucun mot de passe n’est configuré côté dépôt (secret `PUZZLE_DELETE_PASSWORD` manquant).');
+  sh('gh issue close ' + issueNumber);
+  console.log('Rejeté : secret PUZZLE_DELETE_PASSWORD manquant.');
+  process.exit(0);
+}
+
+if (!password || password !== expectedPassword) {
+  comment('❌ Mot de passe incorrect (ou manquant). Modifie ce ticket avec le bon mot de passe : il sera revérifié automatiquement à l’enregistrement.');
+  console.log('Rejeté : mot de passe incorrect.');
   process.exit(0);
 }
 
@@ -83,4 +100,4 @@ if (removed.length) msg += '✅ Supprimé(s) : ' + removed.map(function (i) { re
 if (notFound.length) msg += (msg ? '\n' : '') + '⚠️ Introuvable(s) (déjà supprimé ou identifiant invalide) : ' + notFound.map(function (i) { return '`' + i + '`'; }).join(', ') + '.\n';
 if (removed.length) msg += '\nVisible sur le site d’ici une minute (le temps que la page se republie).';
 comment(msg);
-closeIssue();
+sh('gh issue close ' + issueNumber);

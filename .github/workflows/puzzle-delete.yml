@@ -24,10 +24,10 @@ jobs:
         with:
           node-version: 20
 
-      - name: Vérifie l'auteur et supprime le(s) problème(s)
+      - name: Vérifie le mot de passe et supprime le(s) problème(s)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-          ISSUE_LOGIN: ${{ github.event.issue.user.login }}
+          DELETE_PASSWORD: ${{ secrets.PUZZLE_DELETE_PASSWORD }}
         run: node scripts/puzzle-delete.js

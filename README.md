@@ -49,8 +49,8 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   Action GitHub revérifie la proposition avec le même moteur d'échecs que le site, puis l'ajoute automatiquement à
   la liste publique et ferme le ticket (ou commente l'erreur précise sinon). Voir « Comment marche l'ajout de
   problèmes » ci-dessous. Bouton **« Suppr. »** sur chaque problème : ouvre de la même façon un ticket de
-  suppression pré-rempli, mais seul Turos14 peut le faire aboutir (voir « Comment marche la suppression de
-  problèmes »).
+  suppression pré-rempli, mais il faut le bon mot de passe pour qu'il aboutisse (voir « Comment marche la
+  suppression de problèmes »).
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
@@ -154,19 +154,22 @@ l'appli — ce n'est que la liste des problèmes elle-même qui est partagée.
 
 ## Comment marche la suppression de problèmes
 
-Même principe que l'ajout, mais l'auteur du ticket fait foi : seul **Turos14** peut faire supprimer un problème
-(rien dans le contenu d'une demande de suppression ne peut être validé automatiquement, contrairement à une FEN/
-solution).
+Même principe que l'ajout, mais un **mot de passe** fait foi plutôt qu'une FEN/solution (rien dans le contenu
+d'une demande de suppression ne peut être validé automatiquement) : stocké comme secret du dépôt
+(`PUZZLE_DELETE_PASSWORD`), jamais dans le code.
 
 1. Chaque problème de la liste publique a un bouton **« Suppr. »** qui ouvre un ticket GitHub pré-rempli
    (`.github/ISSUE_TEMPLATE/delete-puzzle.yml`, étiquette `delete-puzzle`) avec son identifiant — visible et
-   cliquable par tout le monde, mais sans effet si ce n'est pas Turos14 qui l'envoie (voir ci-dessous). On peut
-   aussi y indiquer plusieurs identifiants à la fois (séparés par des espaces).
+   cliquable par tout le monde, mais sans effet sans le bon mot de passe (voir ci-dessous). On peut aussi y
+   indiquer plusieurs identifiants à la fois (séparés par des espaces).
 2. À l'ouverture (ou modification) d'un ticket étiqueté `delete-puzzle`, l'Action
-   `.github/workflows/puzzle-delete.yml` lance `scripts/puzzle-delete.js` : si le ticket n'a pas été ouvert par
-   **Turos14**, il commente le refus et ferme directement (inutile de laisser ouvert : modifier le ticket ne change
-   pas qui l'a ouvert).
-3. Sinon : retire le(s) identifiant(s) demandé(s) de `public/data/puzzles.json`, commit + push sur `main`
+   `.github/workflows/puzzle-delete.yml` lance `scripts/puzzle-delete.js` : il compare le champ « Mot de passe »
+   au secret `PUZZLE_DELETE_PASSWORD`, **puis efface ce champ du ticket dans tous les cas** (succès ou échec) —
+   un ticket GitHub est public, ce mot de passe ne doit donc pas être réutilisé ailleurs et n'est plus vraiment
+   secret une fois utilisé une première fois (l'effacement limite l'exposition sans l'annuler complètement :
+   l'historique de modification d'un ticket public reste accessible). Si le mot de passe est incorrect : commente
+   l'erreur et laisse le ticket ouvert — le corriger (avec le bon mot de passe) relance la vérification.
+3. Si correct : retire le(s) identifiant(s) demandé(s) de `public/data/puzzles.json`, commit + push sur `main`
    (et déclenche le déploiement Pages, comme pour l'ajout), commente le résultat (supprimés / introuvables) et
    ferme le ticket.
 
@@ -198,7 +201,7 @@ public/vendor/       PeerJS (MIT) et Stockfish.js 10 (GPL-3.0)
 public/css/          style.css, pieces.css
 test/                tests du moteur, de la salle et des problèmes de départ
 scripts/puzzle-intake.js  validation + intégration d'un problème proposé (lancé par l'Action GitHub)
-scripts/puzzle-delete.js  suppression d'un problème, réservée à Turos14 (lancé par l'Action GitHub)
+scripts/puzzle-delete.js  suppression d'un problème, protégée par mot de passe (lancé par l'Action GitHub)
 .github/workflows/   déploiement GitHub Pages, intégration et suppression des problèmes
 .github/ISSUE_TEMPLATE/puzzle.yml  formulaire du ticket « Proposer un problème »
 .github/ISSUE_TEMPLATE/delete-puzzle.yml  formulaire du ticket « Supprimer un problème »

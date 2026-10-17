@@ -1,13 +1,21 @@
 name: "Supprimer un problème"
-description: "Demander la suppression d'un ou plusieurs problèmes de la liste publique (réservé à Turos14)"
+description: "Demander la suppression d'un ou plusieurs problèmes de la liste publique (mot de passe requis)"
 title: "[Suppression] "
 labels: ["delete-puzzle"]
 body:
   - type: markdown
     attributes:
       value: |
-        Une vérification automatique n'accepte cette demande que si ce ticket est ouvert par **Turos14**
-        (identifiant GitHub). Pour toute autre personne, il est automatiquement refusé et fermé.
+        Une vérification automatique n'accepte cette demande que si le bon **mot de passe** est fourni ci-dessous.
+        Sinon elle est automatiquement refusée et ce ticket est fermé. ⚠️ Ce ticket est **public** : n'importe qui
+        peut lire ce que tu écris ici (le mot de passe est effacé du ticket par l'automatisation juste après
+        lecture, mais reste visible un court instant, et potentiellement dans l'historique de modification).
+  - type: input
+    id: password
+    attributes:
+      label: Mot de passe
+    validations:
+      required: true
   - type: input
     id: ids
     attributes:
