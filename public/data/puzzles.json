@@ -191,5 +191,19 @@
     "title": "système de Londres",
     "author": "Turos14",
     "addedAt": 1792224970079
+  },
+  {
+    "id": "gh-28",
+    "fen": "2k3r1/pp2pbr1/q1p4p/4RPn1/3P4/PNB1Q3/1PP3BP/5R1K b - - 0 1",
+    "solution": [
+      "a6f1",
+      "g2f1",
+      "g5f3",
+      "e3f3",
+      "g7g1"
+    ],
+    "title": "mat en 3",
+    "author": "Turos14",
+    "addedAt": 1792225613705
   }
 ]
