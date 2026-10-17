@@ -249,5 +249,17 @@
     "title": "clouage absolu",
     "author": "Turos14",
     "addedAt": 1792226311243
+  },
+  {
+    "id": "gh-33",
+    "fen": "8/8/8/8/6Q1/8/4K2k/8 w - - 0 1",
+    "solution": [
+      "e2f2",
+      "h2h1",
+      "g4g2"
+    ],
+    "title": "Mat en 2",
+    "author": "Turos14",
+    "addedAt": 1792227745751
   }
 ]
