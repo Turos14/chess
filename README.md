@@ -48,7 +48,9 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   suffit, pas de compte sur le site (un lien permet aussi de saisir directement une FEN/solution en texte). Une
   Action GitHub revérifie la proposition avec le même moteur d'échecs que le site, puis l'ajoute automatiquement à
   la liste publique et ferme le ticket (ou commente l'erreur précise sinon). Voir « Comment marche l'ajout de
-  problèmes » ci-dessous.
+  problèmes » ci-dessous. Bouton **« Suppr. »** sur chaque problème : ouvre de la même façon un ticket de
+  suppression pré-rempli, mais seul Turos14 peut le faire aboutir (voir « Comment marche la suppression de
+  problèmes »).
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
@@ -146,10 +148,27 @@ L'appli reste 100 % statique côté client ; pas de backend à nous pour autant.
    chaque ouverture de l'écran (anti-cache par horodatage, pas seulement `?v=N` : la liste change sans déploiement).
 
 Limites assumées : pas de modération a priori (seulement une vérification de légalité des coups) — un problème légal
-mais malvenu (mauvais goût, titre offensant…) reste possible ; à surveiller/retirer manuellement (modifier
-`public/data/puzzles.json` et pousser, ou rouvrir le ticket correspondant pour le corriger). Le suivi « résolu »
-(✓) est **local à l'appareil** (`localStorage`), comme le reste de l'appli — ce n'est que la liste des problèmes
-elle-même qui est partagée.
+mais malvenu (mauvais goût, titre offensant…) reste possible ; voir « Comment marche la suppression de problèmes »
+ci-dessous pour le retirer. Le suivi « résolu » (✓) est **local à l'appareil** (`localStorage`), comme le reste de
+l'appli — ce n'est que la liste des problèmes elle-même qui est partagée.
+
+## Comment marche la suppression de problèmes
+
+Même principe que l'ajout, mais l'auteur du ticket fait foi : seul **Turos14** peut faire supprimer un problème
+(rien dans le contenu d'une demande de suppression ne peut être validé automatiquement, contrairement à une FEN/
+solution).
+
+1. Chaque problème de la liste publique a un bouton **« Suppr. »** qui ouvre un ticket GitHub pré-rempli
+   (`.github/ISSUE_TEMPLATE/delete-puzzle.yml`, étiquette `delete-puzzle`) avec son identifiant — visible et
+   cliquable par tout le monde, mais sans effet si ce n'est pas Turos14 qui l'envoie (voir ci-dessous). On peut
+   aussi y indiquer plusieurs identifiants à la fois (séparés par des espaces).
+2. À l'ouverture (ou modification) d'un ticket étiqueté `delete-puzzle`, l'Action
+   `.github/workflows/puzzle-delete.yml` lance `scripts/puzzle-delete.js` : si le ticket n'a pas été ouvert par
+   **Turos14**, il commente le refus et ferme directement (inutile de laisser ouvert : modifier le ticket ne change
+   pas qui l'a ouvert).
+3. Sinon : retire le(s) identifiant(s) demandé(s) de `public/data/puzzles.json`, commit + push sur `main`
+   (et déclenche le déploiement Pages, comme pour l'ajout), commente le résultat (supprimés / introuvables) et
+   ferme le ticket.
 
 ## Pièces
 
@@ -179,6 +198,8 @@ public/vendor/       PeerJS (MIT) et Stockfish.js 10 (GPL-3.0)
 public/css/          style.css, pieces.css
 test/                tests du moteur, de la salle et des problèmes de départ
 scripts/puzzle-intake.js  validation + intégration d'un problème proposé (lancé par l'Action GitHub)
-.github/workflows/   déploiement GitHub Pages, intégration des problèmes proposés
+scripts/puzzle-delete.js  suppression d'un problème, réservée à Turos14 (lancé par l'Action GitHub)
+.github/workflows/   déploiement GitHub Pages, intégration et suppression des problèmes
 .github/ISSUE_TEMPLATE/puzzle.yml  formulaire du ticket « Proposer un problème »
+.github/ISSUE_TEMPLATE/delete-puzzle.yml  formulaire du ticket « Supprimer un problème »
 ```

@@ -76,6 +76,7 @@
         main.appendChild(U.el('div', 'isub', (p.author ? 'par ' + p.author : 'anonyme') + ' · ' + nMoves + ' coup' + (nMoves > 1 ? 's' : '') + ' à trouver'));
         U.on(main, 'click', function () { P.open(i); });
         item.appendChild(main);
+        item.appendChild(U.button('Suppr.', 'btn small danger', function () { requestDeletion(p); }));
         box.appendChild(item);
       });
     });
@@ -262,6 +263,18 @@
   function emptyBoard() { var b = [], i; for (i = 0; i < 64; i++) b.push(null); return b; }
   function startBoard() { return Chess.parseFen(Chess.START).board; }
 
+  // Droits de roque déduits de la position : autorisé dès que le roi et la tour concernés sont
+  // chacun sur leur case de départ (même convention que les éditeurs de position habituels — on ne
+  // peut pas savoir, à partir d'un simple placement de pièces, si le roi/la tour ont déjà bougé).
+  function castlingRights(board) {
+    var cs = '';
+    if (board[Chess.sqIndex('e1')] === 'wK' && board[Chess.sqIndex('h1')] === 'wR') cs += 'K';
+    if (board[Chess.sqIndex('e1')] === 'wK' && board[Chess.sqIndex('a1')] === 'wR') cs += 'Q';
+    if (board[Chess.sqIndex('e8')] === 'bK' && board[Chess.sqIndex('h8')] === 'bR') cs += 'k';
+    if (board[Chess.sqIndex('e8')] === 'bK' && board[Chess.sqIndex('a8')] === 'bR') cs += 'q';
+    return cs || '-';
+  }
+
   function boardToFen(board, turn) {
     var rows = [], r, f, s, p, row, empty;
     for (r = 0; r < 8; r++) {
@@ -275,7 +288,7 @@
       if (empty) row += empty;
       rows.push(row);
     }
-    return rows.join('/') + ' ' + turn + ' - - 0 1';
+    return rows.join('/') + ' ' + turn + ' ' + castlingRights(board) + ' - 0 1';
   }
 
   function buildPalette() {
@@ -449,6 +462,18 @@
   function finishEditorToSubmit() {
     if (!ed || !ed.moves.length) return;
     proposeDialog({ fen: ed.fen, solution: ed.moves.slice() });
+  }
+
+  /* ---------- Demander la suppression d'un problème ---------- */
+  // Ouvre un ticket GitHub pré-rempli vers le template "delete-puzzle" (voir .github/ISSUE_TEMPLATE/delete-puzzle.yml).
+  // N'a d'effet que si le ticket est ouvert par Turos14 (voir .github/workflows/puzzle-delete.yml) : affiché à
+  // tout le monde quand même, le lien étant inoffensif pour qui n'est pas Turos14 (la demande sera refusée).
+  function requestDeletion(p) {
+    var issueTitle = '[Suppression] ' + (p.title || ('Problème #' + p.id));
+    var url = REPO + '/issues/new?template=delete-puzzle.yml'
+      + '&title=' + encodeURIComponent(issueTitle)
+      + '&ids=' + encodeURIComponent(p.id);
+    window.open(url, '_blank');
   }
 
   /* ---------- Proposer un problème ---------- */

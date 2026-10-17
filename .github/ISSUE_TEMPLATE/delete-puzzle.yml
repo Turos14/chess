@@ -1,0 +1,23 @@
+name: "Supprimer un problème"
+description: "Demander la suppression d'un ou plusieurs problèmes de la liste publique (réservé à Turos14)"
+title: "[Suppression] "
+labels: ["delete-puzzle"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Une vérification automatique n'accepte cette demande que si ce ticket est ouvert par **Turos14**
+        (identifiant GitHub). Pour toute autre personne, il est automatiquement refusé et fermé.
+  - type: input
+    id: ids
+    attributes:
+      label: Identifiant(s) du/des problème(s)
+      description: "Un ou plusieurs identifiants (ex : gh-42), séparés par des espaces."
+      placeholder: "gh-42 gh-57"
+    validations:
+      required: true
+  - type: input
+    id: reason
+    attributes:
+      label: Raison (optionnel)
+      placeholder: "Doublon, solution invalide, contenu inapproprié…"
