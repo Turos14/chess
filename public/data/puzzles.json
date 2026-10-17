@@ -207,5 +207,17 @@
     "title": "Mat du couloir",
     "author": "Turos14",
     "addedAt": 1792217080467
+  },
+  {
+    "id": "gh-14",
+    "fen": "r3r2k/pppn1Qb1/2n2qPp/4p3/6P1/2PBP3/PP3P2/R3K2R w - - 0 1",
+    "solution": [
+      "h1h6",
+      "g7h6",
+      "f7h7"
+    ],
+    "title": "Mat en 2",
+    "author": "Turos14",
+    "addedAt": 1792221748562
   }
 ]
