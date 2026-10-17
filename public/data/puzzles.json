@@ -225,5 +225,15 @@
     "title": "mat à l'étouffé",
     "author": "Turos14",
     "addedAt": 1792225934763
+  },
+  {
+    "id": "gh-31",
+    "fen": "4k3/R7/7R/8/8/3q1p2/8/4K3 w - - 0 1",
+    "solution": [
+      "h6h8"
+    ],
+    "title": "mat de l'escalier",
+    "author": "Turos14",
+    "addedAt": 1792226041892
   }
 ]
