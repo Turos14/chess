@@ -215,5 +215,15 @@
     "title": "mat en 1",
     "author": "Turos14",
     "addedAt": 1792225823053
+  },
+  {
+    "id": "gh-30",
+    "fen": "6rk/3K2pp/8/4N3/8/8/8/8 w - - 0 1",
+    "solution": [
+      "e5f7"
+    ],
+    "title": "mat à l'étouffé",
+    "author": "Turos14",
+    "addedAt": 1792225934763
   }
 ]
