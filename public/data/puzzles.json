@@ -286,5 +286,15 @@
     "title": "meilleur coup",
     "author": "Turos14",
     "addedAt": 1792229734735
+  },
+  {
+    "id": "gh-36",
+    "fen": "1r2k1qr/p2p1p2/2p3p1/4N3/2P3P1/B3QP1P/6K1/R2R4 w k - 0 1",
+    "solution": [
+      "e5c6"
+    ],
+    "title": "mat en 1",
+    "author": "Turos14",
+    "addedAt": 1792232222873
   }
 ]
