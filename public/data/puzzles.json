@@ -288,5 +288,19 @@
     "category": "meilleur coup",
     "difficulty": "moyen",
     "addedAt": 1792262936646
+  },
+  {
+    "id": "gh-67",
+    "fen": "r3r2k/pppn1Qb1/2n2qPp/4p3/6P1/2PBP3/PP3P2/R3K2R w KQ - 0 1",
+    "solution": [
+      "h1h6",
+      "g7h6",
+      "f7h7"
+    ],
+    "title": "Mat en 2",
+    "author": "Arthur",
+    "category": "mat en 2",
+    "difficulty": "moyen",
+    "addedAt": 1792263323903
   }
 ]
