@@ -20,16 +20,6 @@
     "addedAt": 1760000000001
   },
   {
-    "id": "seed-3",
-    "fen": "r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1",
-    "solution": [
-      "d5c7"
-    ],
-    "title": "Fourchette royale",
-    "author": "Turos14",
-    "addedAt": 1760000000002
-  },
-  {
     "id": "seed-4",
     "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
     "solution": [
