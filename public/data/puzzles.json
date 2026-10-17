@@ -296,17 +296,5 @@
     "title": "mat en 1",
     "author": "Turos14",
     "addedAt": 1792232222873
-  },
-  {
-    "id": "gh-45",
-    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    "solution": [
-      "d2d4"
-    ],
-    "title": "supr",
-    "author": "Turos14",
-    "category": "mat",
-    "difficulty": "moyen",
-    "addedAt": 1792237709912
   }
 ]
