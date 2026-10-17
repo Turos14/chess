@@ -189,17 +189,5 @@
     "title": "Mat en 2",
     "author": "Turos14",
     "addedAt": 1792221748562
-  },
-  {
-    "id": "gh-20",
-    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    "solution": [
-      "d2d4",
-      "e7e5",
-      "d4e5"
-    ],
-    "title": "supr",
-    "author": "Turos14",
-    "addedAt": 1792224402629
   }
 ]
