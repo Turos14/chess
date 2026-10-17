@@ -1,15 +1,5 @@
 [
   {
-    "id": "seed-1",
-    "fen": "6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1",
-    "solution": [
-      "a1a8"
-    ],
-    "title": "Mat du couloir",
-    "author": "Turos14",
-    "addedAt": 1760000000000
-  },
-  {
     "id": "seed-2",
     "fen": "7k/8/6K1/8/8/8/8/3Q4 w - - 0 1",
     "solution": [
