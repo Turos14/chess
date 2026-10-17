@@ -272,5 +272,21 @@
     "category": "mat en 3",
     "difficulty": "moyen",
     "addedAt": 1792239381331
+  },
+  {
+    "id": "gh-65",
+    "fen": "3R4/p3P3/1p1n4/2p1kP2/8/1P6/8/1r1K4 w - - 0 1",
+    "solution": [
+      "d1c2",
+      "b1f1",
+      "d8d6",
+      "e5d6",
+      "e7e8q"
+    ],
+    "title": "Meilleur coup",
+    "author": "Arthur",
+    "category": "meilleur coup",
+    "difficulty": "moyen",
+    "addedAt": 1792262936646
   }
 ]
