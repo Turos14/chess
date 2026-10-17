@@ -103,29 +103,6 @@
     "addedAt": 1792173603890
   },
   {
-    "id": "gh-7",
-    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1",
-    "solution": [
-      "d2d4",
-      "d7d5",
-      "g1f3",
-      "g8f6",
-      "c1f4",
-      "c8f5",
-      "e2e3",
-      "e7e6",
-      "f1d3",
-      "f8d6",
-      "c2c3",
-      "c7c6",
-      "b1d2",
-      "b8d7"
-    ],
-    "title": "Système de Londres",
-    "author": "Turos14",
-    "addedAt": 1792174250345
-  },
-  {
     "id": "gh-11",
     "fen": "r6k/pp2rpp1/3p4/2pP4/n1P1B3/P2Q4/1q1N1PPP/3K3R w - - 0 1",
     "solution": [
