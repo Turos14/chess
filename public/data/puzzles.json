@@ -169,16 +169,6 @@
     "addedAt": 1792216276895
   },
   {
-    "id": "gh-13",
-    "fen": "5k1q/8/8/8/8/8/PPP5/K7 b - - 0 1",
-    "solution": [
-      "h8h1"
-    ],
-    "title": "Mat du couloir",
-    "author": "Turos14",
-    "addedAt": 1792217080467
-  },
-  {
     "id": "gh-14",
     "fen": "r3r2k/pppn1Qb1/2n2qPp/4p3/6P1/2PBP3/PP3P2/R3K2R w - - 0 1",
     "solution": [
