@@ -298,18 +298,6 @@
     "addedAt": 1792232222873
   },
   {
-    "id": "gh-40",
-    "fen": "7k/8/6K1/8/8/8/8/3Q4 w - - 0 1",
-    "solution": [
-      "d1d8"
-    ],
-    "title": "Mat en 1",
-    "author": "Turos14",
-    "category": "Mat",
-    "difficulty": null,
-    "addedAt": 1792236874985
-  },
-  {
     "id": "gh-41",
     "fen": "rnbqkbnr/pppp1ppp/2n2n2/4p2Q/2B5/4P3/PPPP1PPP/RNB1K1NR w KQkq - 0 1",
     "solution": [
