@@ -205,5 +205,15 @@
     "title": "mat en 3",
     "author": "Turos14",
     "addedAt": 1792225613705
+  },
+  {
+    "id": "gh-29",
+    "fen": "7k/6pp/8/8/8/8/8/5R1K w - - 0 1",
+    "solution": [
+      "f1f8"
+    ],
+    "title": "mat en 1",
+    "author": "Turos14",
+    "addedAt": 1792225823053
   }
 ]
