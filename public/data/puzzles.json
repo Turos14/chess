@@ -276,5 +276,17 @@
     "title": "mat en 1",
     "author": "Turos14",
     "addedAt": 1792232222873
+  },
+  {
+    "id": "gh-49",
+    "fen": "6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1",
+    "solution": [
+      "a1a8"
+    ],
+    "title": "mat du couloir",
+    "author": "arthur",
+    "category": "mat en 1",
+    "difficulty": "facile",
+    "addedAt": 1792238017831
   }
 ]
