@@ -296,17 +296,5 @@
     "title": "mat en 1",
     "author": "Turos14",
     "addedAt": 1792232222873
-  },
-  {
-    "id": "gh-41",
-    "fen": "rnbqkbnr/pppp1ppp/2n2n2/4p2Q/2B5/4P3/PPPP1PPP/RNB1K1NR w KQkq - 0 1",
-    "solution": [
-      "h5f7"
-    ],
-    "title": "mat du berger",
-    "author": "Turos14",
-    "category": "mat",
-    "difficulty": "moyen",
-    "addedAt": 1792237516281
   }
 ]
