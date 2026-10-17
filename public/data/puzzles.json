@@ -189,5 +189,15 @@
     "title": "Mat en 2",
     "author": "Turos14",
     "addedAt": 1792221748562
+  },
+  {
+    "id": "gh-22",
+    "fen": "4k3/8/8/8/8/8/8/4K2R w K - 0 1",
+    "solution": [
+      "e1g1"
+    ],
+    "title": "roque",
+    "author": "Turos14",
+    "addedAt": 1792224637121
   }
 ]
