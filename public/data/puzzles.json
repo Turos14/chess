@@ -261,5 +261,17 @@
     "title": "Mat en 2",
     "author": "Turos14",
     "addedAt": 1792227745751
+  },
+  {
+    "id": "gh-34",
+    "fen": "k1b5/pppN4/1R6/8/Q6K/8/8/8 w - - 0 1",
+    "solution": [
+      "a4a6",
+      "b7a6",
+      "b6b8"
+    ],
+    "title": "mat en 2",
+    "author": "Turos14",
+    "addedAt": 1792229569811
   }
 ]
