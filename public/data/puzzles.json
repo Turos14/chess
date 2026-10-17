@@ -273,5 +273,18 @@
     "title": "mat en 2",
     "author": "Turos14",
     "addedAt": 1792229569811
+  },
+  {
+    "id": "gh-35",
+    "fen": "8/1p4kP/p1p3P1/P2p1K2/1P1P1B2/8/8/6r1 w - - 0 1",
+    "solution": [
+      "f4e5",
+      "g7f8",
+      "h7h8q",
+      "f8e7"
+    ],
+    "title": "meilleur coup",
+    "author": "Turos14",
+    "addedAt": 1792229734735
   }
 ]
