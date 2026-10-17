@@ -300,5 +300,17 @@
     "category": "mat en 1",
     "difficulty": "facile",
     "addedAt": 1792238214682
+  },
+  {
+    "id": "gh-51",
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1",
+    "solution": [
+      "h5f7"
+    ],
+    "title": "mat du berger",
+    "author": "arthur",
+    "category": "mat en 1",
+    "difficulty": "moyen",
+    "addedAt": 1792238351610
   }
 ]
