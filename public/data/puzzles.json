@@ -296,5 +296,17 @@
     "title": "mat en 1",
     "author": "Turos14",
     "addedAt": 1792232222873
+  },
+  {
+    "id": "gh-37",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "solution": [
+      "e2e4"
+    ],
+    "title": "TEST catégorie/difficulté (à supprimer)",
+    "author": "Turos14",
+    "category": "Ouvertures",
+    "difficulty": "moyen",
+    "addedAt": 1792232937471
   }
 ]
