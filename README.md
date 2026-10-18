@@ -49,7 +49,7 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   Action GitHub revérifie la proposition avec le même moteur d'échecs que le site, puis l'ajoute automatiquement à
   la liste publique et ferme le ticket (ou commente l'erreur précise sinon). Voir « Comment marche l'ajout de
   problèmes » ci-dessous. Bouton **« Suppr. »** sur chaque problème : ouvre de la même façon un ticket de
-  suppression pré-rempli, mais il faut le bon mot de passe pour qu'il aboutisse (voir « Comment marche la
+  suppression pré-rempli, mais il ne sera traité que si Turos14 l'approuve manuellement (voir « Comment marche la
   suppression de problèmes »). **Catégorie** et **niveau de difficulté** (optionnels, choisis par le créateur à la
   proposition) : la liste publique affiche un onglet par catégorie utilisée (créé automatiquement, aucune liste
   figée à l'avance) et un filtre par niveau (Facile / Moyen / Difficile), pour que chaque joueur choisisse ce qu'il
@@ -160,24 +160,21 @@ l'appli — ce n'est que la liste des problèmes elle-même qui est partagée.
 
 ## Comment marche la suppression de problèmes
 
-Même principe que l'ajout, mais un **mot de passe** fait foi plutôt qu'une FEN/solution (rien dans le contenu
-d'une demande de suppression ne peut être validé automatiquement) : stocké comme secret du dépôt
-(`PUZZLE_DELETE_PASSWORD`), jamais dans le code.
+Contrairement à l'ajout, rien dans le contenu d'une demande de suppression ne peut être validé automatiquement
+(pas de FEN/solution à vérifier) : le contrôle se fait donc par **validation manuelle**, via une 2ᵉ étiquette que
+seul Turos14 peut poser.
 
 1. Chaque problème de la liste publique a un bouton **« Suppr. »** qui ouvre un ticket GitHub pré-rempli
-   (`.github/ISSUE_TEMPLATE/delete-puzzle.yml`, étiquette `delete-puzzle`) avec son identifiant — visible et
-   cliquable par tout le monde, mais sans effet sans le bon mot de passe (voir ci-dessous). On peut aussi y
-   indiquer plusieurs identifiants à la fois (séparés par des espaces).
-2. À l'ouverture (ou modification) d'un ticket étiqueté `delete-puzzle`, l'Action
-   `.github/workflows/puzzle-delete.yml` lance `scripts/puzzle-delete.js` : il compare le champ « Mot de passe »
-   au secret `PUZZLE_DELETE_PASSWORD`, **puis efface ce champ du ticket dans tous les cas** (succès ou échec) —
-   un ticket GitHub est public, ce mot de passe ne doit donc pas être réutilisé ailleurs et n'est plus vraiment
-   secret une fois utilisé une première fois (l'effacement limite l'exposition sans l'annuler complètement :
-   l'historique de modification d'un ticket public reste accessible). Si le mot de passe est incorrect : commente
-   l'erreur et laisse le ticket ouvert — le corriger (avec le bon mot de passe) relance la vérification.
-3. Si correct : retire le(s) identifiant(s) demandé(s) de `public/data/puzzles.json`, commit + push sur `main`
-   (et déclenche le déploiement Pages, comme pour l'ajout), commente le résultat (supprimés / introuvables) et
-   ferme le ticket.
+   (`.github/ISSUE_TEMPLATE/delete-puzzle.yml`) avec son identifiant — n'importe qui peut l'ouvrir, l'étiquette
+   `delete-puzzle` étant posée automatiquement par le template. On peut aussi y indiquer plusieurs identifiants à
+   la fois (séparés par des espaces).
+2. Ce ticket **ne déclenche rien tout seul**. `.github/workflows/puzzle-delete.yml` ne lance
+   `scripts/puzzle-delete.js` que si le ticket porte **à la fois** `delete-puzzle` **et** `delete-approved` — la
+   2ᵉ étiquette n'existe que pour que Turos14 la pose à la main depuis l'interface GitHub (section « Labels » du
+   ticket) une fois la demande vérifiée ; poser cette étiquette déclenche l'Action (événement `labeled`).
+3. Une fois approuvé : retire le(s) identifiant(s) demandé(s) de `public/data/puzzles.json`, commit + push sur
+   `main` (et déclenche le déploiement Pages, comme pour l'ajout), commente le résultat (supprimés / introuvables)
+   et ferme le ticket.
 
 ## Pièces
 
@@ -207,7 +204,7 @@ public/vendor/       PeerJS (MIT) et Stockfish.js 10 (GPL-3.0)
 public/css/          style.css, pieces.css
 test/                tests du moteur, de la salle et des problèmes de départ
 scripts/puzzle-intake.js  validation + intégration d'un problème proposé (lancé par l'Action GitHub)
-scripts/puzzle-delete.js  suppression d'un problème, protégée par mot de passe (lancé par l'Action GitHub)
+scripts/puzzle-delete.js  suppression d'un problème, déclenchée par l'étiquette delete-approved (Action GitHub)
 .github/workflows/   déploiement GitHub Pages, intégration et suppression des problèmes
 .github/ISSUE_TEMPLATE/puzzle.yml  formulaire du ticket « Proposer un problème »
 .github/ISSUE_TEMPLATE/delete-puzzle.yml  formulaire du ticket « Supprimer un problème »

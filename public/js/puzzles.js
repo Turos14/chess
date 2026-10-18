@@ -544,8 +544,9 @@
 
   /* ---------- Demander la suppression d'un problème ---------- */
   // Ouvre un ticket GitHub pré-rempli vers le template "delete-puzzle" (voir .github/ISSUE_TEMPLATE/delete-puzzle.yml).
-  // N'a d'effet que si le bon mot de passe y est renseigné (voir .github/workflows/puzzle-delete.yml) : affiché à
-  // tout le monde quand même, le lien étant inoffensif sans le mot de passe (la demande sera refusée).
+  // N'importe qui peut l'ouvrir, mais il ne sera traité que si Turos14 ajoute ensuite l'étiquette `delete-approved`
+  // à la main (voir .github/workflows/puzzle-delete.yml) : affiché à tout le monde, le ticket restant sans effet
+  // tant que ce n'est pas fait.
   function requestDeletion(p) {
     var issueTitle = '[Suppression] ' + (p.title || ('Problème #' + p.id));
     var url = REPO + '/issues/new?template=delete-puzzle.yml'

@@ -2,7 +2,7 @@ name: Suppression d'un problème (via Issue)
 
 on:
   issues:
-    types: [opened, edited]
+    types: [opened, edited, labeled]
 
 permissions:
   contents: write
@@ -15,7 +15,11 @@ concurrency:
 
 jobs:
   delete:
-    if: contains(github.event.issue.labels.*.name, 'delete-puzzle')
+    # N'importe qui peut ouvrir un ticket "delete-puzzle" (étiquette automatique du template), mais il ne suffit
+    # pas : il faut aussi "delete-approved", ajoutée à la main par Turos14 depuis l'interface GitHub une fois la
+    # demande vérifiée. Tant que cette 2e étiquette manque, ce job ne tourne jamais (ni à l'ouverture, ni à une
+    # modification) — c'est elle qui déclenche réellement le traitement (événement "labeled").
+    if: contains(github.event.issue.labels.*.name, 'delete-puzzle') && contains(github.event.issue.labels.*.name, 'delete-approved')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,10 +28,9 @@ jobs:
         with:
           node-version: 20
 
-      - name: Vérifie le mot de passe et supprime le(s) problème(s)
+      - name: Supprime le(s) problème(s)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-          DELETE_PASSWORD: ${{ secrets.PUZZLE_DELETE_PASSWORD }}
         run: node scripts/puzzle-delete.js

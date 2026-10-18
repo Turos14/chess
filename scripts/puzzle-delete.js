@@ -1,14 +1,12 @@
 #!/usr/bin/env node
-/* Lancé par .github/workflows/puzzle-delete.yml à chaque ouverture/modification d'un ticket "delete-puzzle" :
- * n'agit que si le bon mot de passe (secret du dépôt PUZZLE_DELETE_PASSWORD) est fourni dans le ticket —
- * contrairement à l'ajout, rien dans le contenu d'une demande de suppression ne peut être validé automatiquement,
- * donc le contrôle se fait sur un secret partagé plutôt que sur l'identité de l'auteur du ticket.
- * Le champ "Mot de passe" est effacé du corps du ticket juste après lecture (succès ou échec) : un ticket est
- * public, donc ce mot de passe ne reste pas vraiment secret une fois utilisé (le retrait limite l'exposition
- * sans l'annuler complètement — l'historique de modification d'un ticket public reste accessible). Si le mot de
- * passe est incorrect : commente l'erreur et laisse le ticket ouvert (le corriger relance la vérification). Si
- * correct : retire les identifiants demandés de public/data/puzzles.json, commit + push (republie le site via le
- * workflow de déploiement Pages), commente le résultat et ferme le ticket. */
+/* Lancé par .github/workflows/puzzle-delete.yml à chaque ouverture/modification/étiquetage d'un ticket
+ * "delete-puzzle" — mais le job ne tourne (voir le `if` du workflow) que si l'étiquette `delete-approved` est
+ * présente en plus de `delete-puzzle`. N'importe qui peut ouvrir un tel ticket (la 1ère étiquette est automatique,
+ * posée par le template) ; seul Turos14 peut faire aboutir une suppression, en ajoutant `delete-approved` à la
+ * main depuis GitHub une fois la demande vérifiée — ce script n'a donc plus de vérification à faire lui-même,
+ * l'approbation a déjà eu lieu avant qu'il ne s'exécute. Retire les identifiants demandés de
+ * public/data/puzzles.json, commit + push (republie le site via le workflow de déploiement Pages), commente le
+ * résultat et ferme le ticket. */
 'use strict';
 var path = require('path');
 var fs = require('fs');
@@ -16,7 +14,6 @@ var cp = require('child_process');
 
 var issueNumber = process.env.ISSUE_NUMBER;
 var body = process.env.ISSUE_BODY || '';
-var expectedPassword = process.env.DELETE_PASSWORD || '';
 
 function sh(cmd) { return cp.execSync(cmd, { stdio: 'pipe', encoding: 'utf8' }); }
 
@@ -36,36 +33,9 @@ function comment(msg) {
   sh('gh issue comment ' + issueNumber + ' --body-file ' + JSON.stringify(f));
 }
 
-// Retire la valeur du champ "Mot de passe" du corps public du ticket, que la vérification ait réussi ou non.
-function redactPassword() {
-  var re = /(### Mot de passe\s*\n+)([^\n]*)/;
-  if (!re.test(body)) return;
-  var redacted = body.replace(re, '$1(effacé automatiquement après lecture)');
-  var f = path.join(require('os').tmpdir(), 'puzzle-delete-body.md');
-  fs.writeFileSync(f, redacted);
-  try { sh('gh issue edit ' + issueNumber + ' --body-file ' + JSON.stringify(f)); }
-  catch (e) { console.log('Avertissement : effacement du mot de passe impossible (' + e.message + ').'); }
-}
-
-var password = field('Mot de passe');
-redactPassword();
-
-if (!expectedPassword) {
-  comment('❌ Suppression désactivée : aucun mot de passe n’est configuré côté dépôt (secret `PUZZLE_DELETE_PASSWORD` manquant).');
-  sh('gh issue close ' + issueNumber);
-  console.log('Rejeté : secret PUZZLE_DELETE_PASSWORD manquant.');
-  process.exit(0);
-}
-
-if (!password || password !== expectedPassword) {
-  comment('❌ Mot de passe incorrect (ou manquant). Modifie ce ticket avec le bon mot de passe : il sera revérifié automatiquement à l’enregistrement.');
-  console.log('Rejeté : mot de passe incorrect.');
-  process.exit(0);
-}
-
 var idsRaw = field('Identifiant(s) du/des problème(s)');
 if (!idsRaw) {
-  comment('❌ Aucun identifiant fourni (ou champ illisible). Modifie ce ticket pour en indiquer au moins un : il sera revérifié automatiquement à l’enregistrement.');
+  comment('❌ Aucun identifiant fourni (ou champ illisible). Modifie ce ticket pour en indiquer au moins un.');
   console.log('Rejeté : identifiants manquants.');
   process.exit(0);
 }
