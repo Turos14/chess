@@ -1,15 +1,5 @@
 [
   {
-    "id": "gh-22",
-    "fen": "4k3/8/8/8/8/8/8/4K2R w K - 0 1",
-    "solution": [
-      "e1g1"
-    ],
-    "title": "roque",
-    "author": "Turos14",
-    "addedAt": 1792224637121
-  },
-  {
     "id": "gh-24",
     "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     "solution": [
