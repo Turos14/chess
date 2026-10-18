@@ -325,5 +325,30 @@
     "category": "ouverture",
     "difficulty": "moyen",
     "addedAt": 1792333138606
+  },
+  {
+    "id": "gh-73",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "solution": [
+      "d2d4",
+      "d7d5",
+      "g1f3",
+      "g8f6",
+      "c1f4",
+      "c8f5",
+      "e2e3",
+      "e7e6",
+      "f1d3",
+      "f8d6",
+      "c2c3",
+      "c7c6",
+      "e1g1",
+      "e8g8"
+    ],
+    "title": "système de Londres",
+    "author": "arthur",
+    "category": "ouverture",
+    "difficulty": "difficile",
+    "addedAt": 1792333221530
   }
 ]
