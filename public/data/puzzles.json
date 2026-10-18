@@ -1,22 +1,5 @@
 [
   {
-    "id": "gh-24",
-    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    "solution": [
-      "e2e4",
-      "e7e5",
-      "g1f3",
-      "g8f6",
-      "f1b5",
-      "f8b4",
-      "e1g1",
-      "e8g8"
-    ],
-    "title": "espagnol",
-    "author": "Turos14",
-    "addedAt": 1792224783804
-  },
-  {
     "id": "gh-27",
     "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     "solution": [
