@@ -294,5 +294,17 @@
     "category": "meilleur coup",
     "difficulty": "difficile",
     "addedAt": 1792308109975
+  },
+  {
+    "id": "gh-71",
+    "fen": "4k3/8/8/8/8/8/8/4K2R w K - 0 1",
+    "solution": [
+      "e1g1"
+    ],
+    "title": "roque",
+    "author": "arthur",
+    "category": "apprentissage",
+    "difficulty": "facile",
+    "addedAt": 1792333079827
   }
 ]
