@@ -1,19 +1,5 @@
 [
   {
-    "id": "gh-12",
-    "fen": "3R4/p3P3/1p1n4/2p1kP2/8/1P6/8/1r1K4 w - - 0 1",
-    "solution": [
-      "d1c2",
-      "b1f1",
-      "d8d6",
-      "e5d6",
-      "e7e8q"
-    ],
-    "title": "Meilleur coup",
-    "author": "Turos14",
-    "addedAt": 1792216276895
-  },
-  {
     "id": "gh-14",
     "fen": "r3r2k/pppn1Qb1/2n2qPp/4p3/6P1/2PBP3/PP3P2/R3K2R w - - 0 1",
     "solution": [
