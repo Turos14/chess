@@ -302,5 +302,17 @@
     "category": "mat en 3",
     "difficulty": "moyen",
     "addedAt": 1792333642953
+  },
+  {
+    "id": "gh-82",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "solution": [
+      "e2e4"
+    ],
+    "title": "TEST validation manuelle (à supprimer)",
+    "author": "Turos14",
+    "category": null,
+    "difficulty": null,
+    "addedAt": 1792335094194
   }
 ]
