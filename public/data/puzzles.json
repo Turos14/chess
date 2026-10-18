@@ -302,5 +302,23 @@
     "category": "mat en 2",
     "difficulty": "moyen",
     "addedAt": 1792263323903
+  },
+  {
+    "id": "gh-68",
+    "fen": "r1bqk2r/4bpp1/7p/p3p3/1p2P3/3Bn2P/PPPQN1P1/1K1R3R w kq - 0 1",
+    "solution": [
+      "d3b5",
+      "e8f8",
+      "d2d8",
+      "e7d8",
+      "d1d8",
+      "f8e7",
+      "d8h8"
+    ],
+    "title": "Meilleur coup",
+    "author": "Arthur",
+    "category": "meilleur coup",
+    "difficulty": "difficile",
+    "addedAt": 1792308109975
   }
 ]
