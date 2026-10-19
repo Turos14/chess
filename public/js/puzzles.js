@@ -4,7 +4,8 @@
  * GitHub qui valide (avec ce même moteur chess.js) et publie en committant le JSON — visible de tout le
  * monde après republication du site (~1 min), sans backend à nous.
  *
- * Format d'un problème : {id, fen, solution:[coups UCI...], title, author, category, difficulty, addedAt}. `fen`
+ * Format d'un problème : {id, fen, solution:[coups UCI...], title, author, category, difficulty, description,
+ * addedAt, editedAt}. `fen`
  * est la position où le joueur qui doit trouver le coup a le trait. `solution` alterne : le coup à trouver, puis
  * la réponse forcée de l'adversaire (rejouée automatiquement), etc. — ex: ["d1h5","g7g6","h5f7"] (1 coup à
  * trouver, 1 réponse, 1 coup à trouver). Un problème peut aussi n'avoir qu'un seul coup (mat en 1, ou simple
@@ -15,6 +16,7 @@
   'use strict';
   var P = {};
   var REPO = 'https://github.com/Turos14/chess';
+  var DESCRIPTION_MAX = 1000;   // même limite que scripts/puzzle-common.js
   var DIFFICULTIES = ['facile', 'moyen', 'difficile'];
   var DIFF_LABEL = { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile' };
   var allPuzzles = null, visiblePuzzles = null;
@@ -82,7 +84,7 @@
   function matchesSearch(p) {
     var words = fold(searchText).split(/\s+/).filter(function (w) { return w; });
     if (!words.length) return true;
-    var hay = fold([p.title || '', p.author || '', p.id || '', p.difficulty ? DIFF_LABEL[p.difficulty] : ''].concat(categoriesOf(p)).join(' '));
+    var hay = fold([p.title || '', p.author || '', p.id || '', p.difficulty ? DIFF_LABEL[p.difficulty] : '', p.description || ''].concat(categoriesOf(p)).join(' '));
     for (var i = 0; i < words.length; i++) if (hay.indexOf(words[i]) < 0) return false;
     return true;
   }
@@ -176,6 +178,7 @@
       main.appendChild(U.el('div', 'isub', bits.join(' · ')));
       U.on(main, 'click', function () { P.open(p); });
       item.appendChild(main);
+      item.appendChild(U.button('Modif.', 'btn small', function () { P.openEditor(p); }));
       item.appendChild(U.button('Suppr.', 'btn small danger', function () { requestDeletion(p); }));
       box.appendChild(item);
     });
@@ -218,6 +221,9 @@
     if (p.difficulty) infoBits.push(DIFF_LABEL[p.difficulty]);
     if (categoriesOf(p).length) infoBits.push(categoriesOf(p).join(', '));
     U.$('pzs-info').textContent = infoBits.join(' · ');
+    var desc = U.$('pzs-desc');
+    desc.textContent = p.description || '';
+    desc.style.display = p.description ? '' : 'none';
     App.show('puzzle-solve');
     layoutSolve();
     renderSolve();
@@ -433,16 +439,33 @@
     for (k in paletteBtns) if (paletteBtns.hasOwnProperty(k)) U.toggleClass(paletteBtns[k], 'on', !!ed && ed.tool === k);
   }
 
-  P.openEditor = function () {
-    ed = { phase: 1, board: startBoard(), turn: 'w', tool: null, fen: null, game: null, sel: -1, moves: [], sanList: [] };
+  // editing : problème existant à modifier (bouton « Modif. ») — l'éditeur s'ouvre alors directement sur ses coups
+  // de solution, rejoués depuis sa position (« ‹ Échiquier » pour changer la position elle-même).
+  P.openEditor = function (editing) {
+    ed = { phase: 1, board: startBoard(), turn: 'w', tool: null, fen: null, game: null, sel: -1, moves: [], sanList: [], editing: editing || null };
     if (!editorBoard) { editorBoard = new Board(U.$('pze-board')); editorBoard.onSquare = onEditorSquare; }
     if (!paletteBtns) buildPalette();
-    if (turnSeg) turnSeg.set('w');
+    if (editing) loadIntoEditor(editing);
+    if (turnSeg) turnSeg.set(ed.turn);
     U.$('pze-err1').textContent = '';
+    U.$('pze-heading').textContent = editing ? 'Modifier un problème' : 'Proposer un problème';
     App.show('puzzle-editor');
     layoutEditor();
     renderEditor();
   };
+
+  function loadIntoEditor(p) {
+    var pos, g;
+    try { pos = Chess.parseFen(p.fen); g = new Chess.Game(p.fen); } catch (e) { return; }
+    ed.board = pos.board.slice(); ed.turn = pos.turn;
+    ed.fen = p.fen; ed.game = g; ed.phase = 2;
+    for (var i = 0; i < p.solution.length; i++) {
+      var m = parseUci(p.solution[i]), rec = g.move(m.from, m.to, m.promo);
+      if (!rec) break;
+      ed.moves.push(rec.from + rec.to + (rec.promo || ''));
+      ed.sanList.push(rec.san);
+    }
+  }
 
   function onEditorSquare(idx) {
     if (!ed) return;
@@ -578,7 +601,7 @@
 
   function finishEditorToSubmit() {
     if (!ed || !ed.moves.length) return;
-    proposeDialog({ fen: ed.fen, solution: ed.moves.slice() });
+    proposeDialog({ fen: ed.fen, solution: ed.moves.slice() }, ed.editing);
   }
 
   /* ---------- Demander la suppression d'un problème ---------- */
@@ -595,70 +618,94 @@
   }
 
   /* ---------- Proposer un problème ---------- */
-  function openGithubIssue(fen, solutionRaw, title, author, category, difficulty) {
-    var uci = solutionRaw.replace(/^\s+|\s+$/g, '').split(/\s+/).join(' ');
-    var issueTitle = '[Problème] ' + (title ? title : 'sans titre');
-    var url = REPO + '/issues/new?template=puzzle.yml'
-      + '&title=' + encodeURIComponent(issueTitle)
-      + '&fen=' + encodeURIComponent(fen)
+  // d : {fen, solutionRaw, title, author, category, difficulty, description}. editing : problème modifié (ticket
+  // "edit-puzzle", traité seulement après approbation manuelle — voir .github/workflows/puzzle-edit.yml), sinon
+  // nouvelle proposition (ticket "puzzle").
+  function openGithubIssue(d, editing) {
+    var uci = d.solutionRaw.replace(/^\s+|\s+$/g, '').split(/\s+/).join(' ');
+    var url = REPO + '/issues/new?template=' + (editing ? 'edit-puzzle.yml' : 'puzzle.yml')
+      + '&title=' + encodeURIComponent(editing
+        ? '[Modification] ' + (editing.title || ('Problème #' + editing.id)) + ' (' + editing.id + ')'
+        : '[Problème] ' + (d.title ? d.title : 'sans titre'))
+      + (editing ? '&puzzle_id=' + encodeURIComponent(editing.id) : '&author=' + encodeURIComponent(d.author || ''))
+      + '&fen=' + encodeURIComponent(d.fen)
       + '&solution=' + encodeURIComponent(uci)
-      + '&puzzle_title=' + encodeURIComponent(title || '')
-      + '&author=' + encodeURIComponent(author || '')
-      + '&category=' + encodeURIComponent(category || '')
-      + (difficulty ? '&difficulty=' + encodeURIComponent(DIFF_LABEL[difficulty]) : '');
+      + '&puzzle_title=' + encodeURIComponent(d.title || '')
+      + '&category=' + encodeURIComponent(d.category || '')
+      + (d.difficulty ? '&difficulty=' + encodeURIComponent(DIFF_LABEL[d.difficulty]) : '')
+      + (d.description ? '&description=' + encodeURIComponent(d.description) : '');
     window.open(url, '_blank');
   }
 
   // prefill : {fen, solution:[uci...]} si on vient de l'éditeur visuel (champs FEN/solution masqués, déjà
   // valides par construction — revérifiés quand même avant d'ouvrir GitHub) ; sinon saisie texte libre.
-  function proposeDialog(prefill) {
+  // editing : problème existant (bouton « Modif. ») dont les champs pré-remplissent le formulaire.
+  function proposeDialog(prefill, editing) {
     var node = U.el('div');
     var fenIn = null, solIn = null;
     if (prefill) {
       var n = prefill.solution.length;
       node.appendChild(U.el('p', 'hint', 'Position et solution construites avec l’éditeur (' + n + ' coup' + (n > 1 ? 's' : '') + ').'));
     } else {
-      fenIn = U.el('input', 'txt'); fenIn.placeholder = 'FEN de départ'; fenIn.value = Chess.START; fenIn.setAttribute('autocomplete', 'off');
+      fenIn = U.el('input', 'txt'); fenIn.placeholder = 'FEN de départ'; fenIn.value = editing ? editing.fen : Chess.START; fenIn.setAttribute('autocomplete', 'off');
       node.appendChild(fenIn);
       solIn = U.el('input', 'txt'); solIn.placeholder = 'Solution, coups UCI séparés par des espaces (ex: d1h5 g7g6 h5f7)'; solIn.setAttribute('autocomplete', 'off');
+      if (editing) solIn.value = editing.solution.join(' ');
       node.appendChild(solIn);
     }
     var row = U.el('div', 'fieldrow');
     var titleIn = U.el('input', 'txt'); titleIn.placeholder = 'Titre (optionnel)'; titleIn.setAttribute('autocomplete', 'off');
     var authorIn = U.el('input', 'txt'); authorIn.placeholder = 'Ton pseudo (optionnel)'; authorIn.setAttribute('autocomplete', 'off');
     authorIn.value = U.store.get('puzzleAuthor', '');
-    row.appendChild(titleIn); row.appendChild(authorIn);
+    row.appendChild(titleIn);
+    if (!editing) row.appendChild(authorIn);   // une modification garde l'auteur d'origine
     node.appendChild(row);
     var categoryIn = U.el('input', 'txt');
     categoryIn.placeholder = 'Catégories (optionnel, séparées par des virgules : Mats, Tactique)';
     categoryIn.setAttribute('autocomplete', 'off');
     categoryIn.value = U.store.get('puzzleCategory', '');
     node.appendChild(categoryIn);
+    var descIn = U.el('textarea', 'txt pz-desc-in');
+    descIn.placeholder = 'Description (optionnel) : contexte, thème, consigne…';
+    descIn.setAttribute('maxlength', String(DESCRIPTION_MAX));
+    descIn.rows = 3;
+    node.appendChild(descIn);
+    if (editing) {
+      titleIn.value = editing.title || '';
+      categoryIn.value = categoriesOf(editing).join(', ');
+      descIn.value = editing.description || '';
+    }
     node.appendChild(U.el('p', 'hint', 'Niveau de difficulté (optionnel) :'));
     var diffBox = U.el('div');
     node.appendChild(diffBox);
     var diffOptions = [{ v: '', label: 'Non précisé' }];
     DIFFICULTIES.forEach(function (d) { diffOptions.push({ v: d, label: DIFF_LABEL[d] }); });
-    var diffSeg = U.segmented(diffBox, diffOptions, '', null);
+    var diffSeg = U.segmented(diffBox, diffOptions, editing && editing.difficulty ? editing.difficulty : '', null);
     if (!prefill) node.appendChild(U.el('p', 'hint', 'Le coup à trouver, puis en alternance les réponses forcées de l’adversaire. Format UCI : « e2e4 », ou « e7e8q » pour une promotion.'));
     var err = U.el('div', 'error');
     node.appendChild(err);
     var buttons = [{ label: 'Annuler' }];
-    if (!prefill) buttons.push({ label: 'Éditeur visuel', fn: function (h) { h.close(true); P.openEditor(); } });
+    if (!prefill) buttons.push({ label: 'Éditeur visuel', fn: function (h) { h.close(true); P.openEditor(editing); } });
     buttons.push({ label: 'Continuer sur GitHub', primary: true, keep: true, fn: function (h) {
       var fen = prefill ? prefill.fen : fenIn.value;
       var solRaw = prefill ? prefill.solution.join(' ') : solIn.value;
       var msg = validatePuzzle(fen, solRaw);
+      var description = descIn.value.replace(/^\s+|\s+$/g, '');
+      if (!msg && description.length > DESCRIPTION_MAX) msg = 'Description trop longue (' + DESCRIPTION_MAX + ' caractères maximum).';
       if (msg) { err.textContent = msg; return; }
       err.textContent = '';
-      U.store.set('puzzleAuthor', authorIn.value);
-      U.store.set('puzzleCategory', categoryIn.value);
+      if (!editing) {
+        U.store.set('puzzleAuthor', authorIn.value);
+        U.store.set('puzzleCategory', categoryIn.value);
+      }
       h.close(true);
-      openGithubIssue(fen, solRaw, titleIn.value, authorIn.value, categoryIn.value, diffSeg.get());
+      openGithubIssue({ fen: fen, solutionRaw: solRaw, title: titleIn.value, author: authorIn.value, category: categoryIn.value, difficulty: diffSeg.get(), description: description }, editing);
     } });
     U.dialog({
-      title: 'Proposer un problème',
-      text: 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). Une vérification automatique l’ajoute à la liste publique si tout est valide — visible de tout le monde en moins d’une minute.',
+      title: editing ? 'Modifier le problème' : 'Proposer un problème',
+      text: editing
+        ? 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). La modification n’est appliquée qu’après validation manuelle par Turos14.'
+        : 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). Une vérification automatique l’ajoute à la liste publique si tout est valide — visible de tout le monde en moins d’une minute.',
       node: node,
       buttons: buttons
     });
@@ -676,7 +723,7 @@
     U.on(U.$('pze-reset-start'), 'click', function () { if (!ed) return; ed.board = startBoard(); ed.turn = 'w'; if (turnSeg) turnSeg.set('w'); U.$('pze-err1').textContent = ''; renderEditor(); });
     U.on(U.$('pze-clear'), 'click', function () { if (!ed) return; ed.board = emptyBoard(); U.$('pze-err1').textContent = ''; renderEditor(); });
     U.on(U.$('pze-next'), 'click', toPhase2);
-    U.on(U.$('pze-text-mode'), 'click', function () { proposeDialog(null); });
+    U.on(U.$('pze-text-mode'), 'click', function () { proposeDialog(null, ed && ed.editing); });
     U.on(U.$('pze-back1'), 'click', backToPhase1);
     U.on(U.$('pze-undo'), 'click', editorUndo);
     U.on(U.$('pze-done2'), 'click', finishEditorToSubmit);

@@ -24,6 +24,8 @@ list.forEach(function (p) {
     cats.forEach(function (c) { assert(typeof c === 'string' && c.replace(/^\s+|\s+$/g, ''), 'catégorie invalide pour #' + p.id); });
   }
 
+  if (p.description != null) assert(typeof p.description === 'string' && p.description.length <= 1000, 'description invalide pour #' + p.id);
+
   var g = new Chess.Game(p.fen);   // doit analyser sans exception
   p.solution.forEach(function (u, i) {
     var m = /^([a-h][1-8])([a-h][1-8])([qrbn])?$/i.exec(u);

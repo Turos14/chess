@@ -125,6 +125,8 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .tbtn.recon { background: #9b2f2f; }
 .settings .txt { margin: 4px 0; }
 #pz-search { margin: 8px 0 4px; }
+.pz-desc { margin: 8px 0; padding: 10px 12px; border-radius: 10px; background: #2a2d35; white-space: pre-wrap; word-wrap: break-word; line-height: 1.4; }
+.pz-desc-in { margin: 4px 0; resize: vertical; font-family: inherit; }
 
 /* Pendule */
 .pzone { position: absolute; left: 0; right: 0; cursor: pointer; overflow: hidden; }

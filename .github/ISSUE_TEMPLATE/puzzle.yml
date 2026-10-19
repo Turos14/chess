@@ -60,3 +60,10 @@ body:
         - Difficile
     validations:
       required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Description (optionnel)
+      description: >-
+        Texte affiché avec le problème sur le site (contexte, thème, consigne…). 1000 caractères maximum.
+      placeholder: "Les Blancs jouent et matent en 2. Pense au sacrifice de dame !"
