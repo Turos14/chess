@@ -332,5 +332,22 @@
     "category": "mat en 3",
     "difficulty": "facile",
     "addedAt": 1792407935864
+  },
+  {
+    "id": "gh-93",
+    "fen": "7N/5pkP/5p2/7K/7P/3p4/8/8 w - - 0 1",
+    "solution": [
+      "h8f7",
+      "g7h7",
+      "f7h6",
+      "d3d2",
+      "h6g4",
+      "d2d1q"
+    ],
+    "title": "pat en 3",
+    "author": "arthur",
+    "category": "pat",
+    "difficulty": "difficile",
+    "addedAt": 1792420623995
   }
 ]
