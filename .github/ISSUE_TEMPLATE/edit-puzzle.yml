@@ -1,0 +1,65 @@
+name: "Modifier un problème"
+description: "Proposer une modification d'un problème de la liste publique"
+title: "[Modification] "
+labels: ["edit-puzzle"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        N'importe qui peut ouvrir ce ticket, mais il n'est **pas traité automatiquement** : seul Turos14 peut le
+        faire aboutir, en ajoutant manuellement l'étiquette `edit-approved` une fois la demande vérifiée.
+        Les champs ci-dessous décrivent le problème **tel qu'il doit devenir** (pré-remplis avec ses valeurs
+        actuelles si tu viens du bouton « Modif. » du site) : un champ optionnel laissé vide sera effacé.
+  - type: input
+    id: puzzle_id
+    attributes:
+      label: Identifiant du problème
+      description: "Ex : gh-42 (affiché dans la liste du site)."
+      placeholder: "gh-42"
+    validations:
+      required: true
+  - type: input
+    id: fen
+    attributes:
+      label: FEN de départ
+      description: Position de départ. Le trait doit être au camp qui doit trouver le coup.
+    validations:
+      required: true
+  - type: input
+    id: solution
+    attributes:
+      label: Solution
+      description: >-
+        Coups séparés par des espaces, format UCI (ex : e2e4, ou e7e8q pour une promotion).
+        Le 1er coup est celui à trouver ; les suivants alternent avec les réponses forcées de l'adversaire.
+    validations:
+      required: true
+  - type: input
+    id: puzzle_title
+    attributes:
+      label: Titre (optionnel)
+  - type: input
+    id: category
+    attributes:
+      label: Catégorie (optionnel)
+      description: Plusieurs catégories possibles, séparées par des virgules.
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Niveau de difficulté (optionnel)
+      options:
+        - Facile
+        - Moyen
+        - Difficile
+    validations:
+      required: false
+  - type: input
+    id: reason
+    attributes:
+      label: Raison de la modification (optionnel)
+      placeholder: "Solution plus courte, faute dans le titre…"
+  - type: textarea
+    id: description
+    attributes:
+      label: Description (optionnel)
+      description: Texte affiché avec le problème sur le site. 1000 caractères maximum.
