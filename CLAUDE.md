@@ -23,7 +23,8 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 - L'appli est **100 % statique** : `server.js` ne sert qu'au dev local. Production = **GitHub Pages**
   (https://turos14.github.io/chess/), publiée automatiquement depuis `public/` par
   `.github/workflows/deploy.yml` à **chaque push sur `main`**. Un push sur `main` est donc une mise en
-  production : ne jamais pousser sur `main` sans demande explicite.
+  production. L'utilisateur teste sur le site en ligne : une fois un changement terminé et `npm test` vert,
+  fusionner `origin/main` dans la branche de travail puis pousser sur `main` sans attendre de confirmation.
 - **Cache-busting manuel** : toute modification de `public/js` ou `public/css` doit incrémenter le `?v=N`
   partout dans `public/index.html` **et** dans `public/js/net.js` (chargement de `peerjs.min.js`).
 - Toutes les données utilisateur (parties, classement Elo, problèmes résolus) sont en `localStorage`, propres
