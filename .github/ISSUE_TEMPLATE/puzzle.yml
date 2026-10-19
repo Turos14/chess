@@ -45,7 +45,8 @@ body:
     attributes:
       label: Catégorie (optionnel)
       description: >-
-        Classe le problème dans un onglet du site (ex : Ouvertures, Mats, Tactique…). Un nouvel onglet est créé
+        Classe le problème dans un onglet du site (ex : Ouvertures, Mats, Tactique…). Plusieurs catégories possibles,
+        séparées par des virgules (le problème apparaît alors dans chaque onglet). Un nouvel onglet est créé
         automatiquement la première fois qu'une catégorie est utilisée.
       placeholder: "Ouvertures"
   - type: dropdown

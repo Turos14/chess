@@ -44,7 +44,10 @@ var fen = field('FEN de départ');
 var solutionRaw = field('Solution');
 var title = field('Titre (optionnel)') || null;
 var author = field('Pseudo (optionnel)') || login;
-var category = field('Catégorie (optionnel)') || null;
+// Plusieurs catégories possibles, séparées par des virgules : stockées en liste (un onglet par catégorie sur le
+// site), ou en simple texte s'il n'y en a qu'une (format historique).
+var categories = (field('Catégorie (optionnel)') || '').split(',').map(function (c) { return c.replace(/^\s+|\s+$/g, ''); }).filter(function (c) { return c; });
+var category = categories.length > 1 ? categories : (categories[0] || null);
 var difficultyLabel = field('Niveau de difficulté (optionnel)');
 var DIFFICULTY_MAP = { 'Facile': 'facile', 'Moyen': 'moyen', 'Difficile': 'difficile' };
 var difficulty = difficultyLabel ? DIFFICULTY_MAP[difficultyLabel] : null;
