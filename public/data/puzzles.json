@@ -292,5 +292,17 @@
     "category": "mat en 3",
     "difficulty": "moyen",
     "addedAt": 1792333642953
+  },
+  {
+    "id": "gh-88",
+    "fen": "6rk/6pp/2b5/4N3/8/3N4/PPP5/K4Q1Q w - - 0 1",
+    "solution": [
+      "e5f7"
+    ],
+    "title": "Mat a l’étouffée",
+    "author": "Arthur",
+    "category": "mat en 1",
+    "difficulty": "moyen",
+    "addedAt": 1792393972628
   }
 ]
