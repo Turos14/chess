@@ -198,8 +198,9 @@ Même principe que la suppression : n'importe qui peut demander, seul Turos14 va
    push, déclenche le déploiement, commente et ferme le ticket. En cas d'erreur, il commente et laisse le ticket
    ouvert.
 
-Les étiquettes `edit-puzzle` et `edit-approved` doivent exister dans le dépôt (GitHub ignore une étiquette
-inexistante dans un template).
+Les étiquettes doivent exister dans le dépôt (GitHub ignore une étiquette inexistante dans un template) : elles
+sont créées par `.github/workflows/labels.yml`, lancé à chaque modification de ce fichier sur `main` (ou à la main
+depuis l'onglet Actions).
 
 ## Pièces
 

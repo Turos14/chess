@@ -1,0 +1,28 @@
+name: Étiquettes des tickets
+
+# Crée (ou met à jour) les étiquettes utilisées par les templates et workflows des problèmes. Les étiquettes ne
+# font pas partie du code : seul l'API GitHub peut les créer, ce que fait ici le GITHUB_TOKEN de l'Action.
+# Se lance quand ce fichier change sur main, ou à la main (onglet Actions → « Run workflow »).
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/labels.yml]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crée les étiquettes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh label create puzzle          --force --color 0e8a16 --description "Proposition d'un problème (traitée automatiquement)"
+          gh label create delete-puzzle   --force --color d93f0b --description "Demande de suppression d'un problème"
+          gh label create delete-approved --force --color b60205 --description "Suppression approuvée par Turos14 (déclenche le bot)"
+          gh label create edit-puzzle     --force --color 1d76db --description "Demande de modification d'un problème"
+          gh label create edit-approved   --force --color 0052cc --description "Modification approuvée par Turos14 (déclenche le bot)"
