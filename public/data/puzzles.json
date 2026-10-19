@@ -371,19 +371,5 @@
     "category": "problème du jour",
     "difficulty": "difficile",
     "addedAt": 1792421337285
-  },
-  {
-    "id": "gh-96",
-    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    "solution": [
-      "d2d4"
-    ],
-    "title": "mdf pas 2mm",
-    "author": "arthur",
-    "category": "problème du jour",
-    "difficulty": null,
-    "description": "Test azerty",
-    "addedAt": 1792422215830,
-    "editedAt": 1792422471113
   }
 ]
