@@ -53,7 +53,9 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   suppression de problèmes »). **Catégorie** et **niveau de difficulté** (optionnels, choisis par le créateur à la
   proposition) : la liste publique affiche un onglet par catégorie utilisée (créé automatiquement, aucune liste
   figée à l'avance) et un filtre par niveau (Facile / Moyen / Difficile), pour que chaque joueur choisisse ce qu'il
-  veut résoudre.
+  veut résoudre. Un problème peut avoir **plusieurs catégories** (séparées par des virgules à la proposition, liste
+  dans `puzzles.json`) : il apparaît alors dans chaque onglet. Un champ **Rechercher** filtre la liste par titre,
+  auteur, catégorie ou niveau (sans tenir compte des majuscules ni des accents).
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
