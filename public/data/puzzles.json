@@ -349,5 +349,27 @@
     "category": "pat",
     "difficulty": "difficile",
     "addedAt": 1792420623995
+  },
+  {
+    "id": "gh-95",
+    "fen": "1b5N/7k/6R1/8/8/8/8/4K3 w - - 0 1",
+    "solution": [
+      "g6e6",
+      "b8g3",
+      "e1e2",
+      "h7h8",
+      "e2f3",
+      "g3c7",
+      "e6e8",
+      "h8g7",
+      "e8e7",
+      "g7f8",
+      "e7c7"
+    ],
+    "title": "problème du 19/10/2026",
+    "author": "arthur",
+    "category": "problème du jour",
+    "difficulty": "difficile",
+    "addedAt": 1792421337285
   }
 ]
