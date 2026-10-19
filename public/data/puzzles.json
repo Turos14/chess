@@ -371,5 +371,26 @@
     "category": "problème du jour",
     "difficulty": "difficile",
     "addedAt": 1792421337285
+  },
+  {
+    "id": "gh-99",
+    "fen": "8/2K5/1Pp5/2B5/8/p2k4/6b1/8 w - - 0 1",
+    "solution": [
+      "b6b7",
+      "a3a2",
+      "c5d4",
+      "d3d4",
+      "b7b8q",
+      "a2a1q",
+      "b8h8",
+      "d4d3",
+      "h8a1"
+    ],
+    "title": "Meilleur coup",
+    "author": "Arthur",
+    "category": "meilleur coup",
+    "difficulty": "difficile",
+    "description": "Un duel tendu sous le soleil entre deux fous de couleurs opposées : voici le problème que le compositeur d’études français Henri Rinck (1870-1952) nous propose de résoudre cet été. Le pion blanc passé en b6 est prêt à aller faire dame mais le pion noir passé en a3 est tout autant prêt à atteindre la rangée opposée synonyme de promotion. Les fous se tiennent en embuscade des deux côtés, prêts à faire feu tels des shérifs dans un western spaghetti. Question pour toi : quelle est la meilleure manière d’utiliser la munition blanche en b6 ?",
+    "addedAt": 1792430333852
   }
 ]
