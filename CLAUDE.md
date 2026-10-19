@@ -20,9 +20,10 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 
 - **ES5 uniquement** dans `public/js/` (anciens iOS / Android) : `var`, `function`, pas de `let/const`,
   flèches, classes, template strings, `Promise`/`fetch` non garantis. Aucun framework, aucune étape de build.
-- L'appli est **100 % statique** : `server.js` ne sert qu'au dev local. Production = `public/` copié tel quel
-  (NAS de l'utilisateur, et GitHub Pages via `.github/workflows/deploy.yml` à chaque push sur `main`).
-  Ne jamais déployer/héberger soi-même : l'utilisateur s'en charge.
+- L'appli est **100 % statique** : `server.js` ne sert qu'au dev local. Production = **GitHub Pages**
+  (https://turos14.github.io/chess/), publiée automatiquement depuis `public/` par
+  `.github/workflows/deploy.yml` à **chaque push sur `main`**. Un push sur `main` est donc une mise en
+  production : ne jamais pousser sur `main` sans demande explicite.
 - **Cache-busting manuel** : toute modification de `public/js` ou `public/css` doit incrémenter le `?v=N`
   partout dans `public/index.html` **et** dans `public/js/net.js` (chargement de `peerjs.min.js`).
 - Toutes les données utilisateur (parties, classement Elo, problèmes résolus) sont en `localStorage`, propres
