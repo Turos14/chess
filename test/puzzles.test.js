@@ -17,7 +17,12 @@ list.forEach(function (p) {
   assert(typeof p.fen === 'string' && p.fen, 'FEN manquante pour #' + p.id);
   assert(Array.isArray(p.solution) && p.solution.length > 0, 'solution manquante pour #' + p.id);
   if (p.difficulty != null) assert(VALID_DIFFICULTIES[p.difficulty], 'niveau de difficulté invalide pour #' + p.id + ' (' + p.difficulty + ')');
-  if (p.category != null) assert(typeof p.category === 'string' && p.category.replace(/^\s+|\s+$/g, ''), 'catégorie invalide pour #' + p.id);
+  if (p.category != null) {
+    // Un texte, ou une liste non vide de textes (problème classé dans plusieurs onglets).
+    var cats = Array.isArray(p.category) ? p.category : [p.category];
+    assert(cats.length > 0, 'catégorie invalide pour #' + p.id);
+    cats.forEach(function (c) { assert(typeof c === 'string' && c.replace(/^\s+|\s+$/g, ''), 'catégorie invalide pour #' + p.id); });
+  }
 
   var g = new Chess.Game(p.fen);   // doit analyser sans exception
   p.solution.forEach(function (u, i) {

@@ -8,8 +8,9 @@
  * est la position où le joueur qui doit trouver le coup a le trait. `solution` alterne : le coup à trouver, puis
  * la réponse forcée de l'adversaire (rejouée automatiquement), etc. — ex: ["d1h5","g7g6","h5f7"] (1 coup à
  * trouver, 1 réponse, 1 coup à trouver). Un problème peut aussi n'avoir qu'un seul coup (mat en 1, ou simple
- * tactique). `category` (optionnel, texte libre choisi par le créateur) et `difficulty` (optionnel, un de
- * DIFFICULTIES) servent uniquement de filtres côté client — aucune incidence sur la résolution. */
+ * tactique). `category` (optionnel : texte libre choisi par le créateur, ou liste de textes pour classer un
+ * problème dans plusieurs onglets) et `difficulty` (optionnel, un de DIFFICULTIES) servent uniquement de filtres
+ * côté client — aucune incidence sur la résolution. */
 (function () {
   'use strict';
   var P = {};
@@ -17,7 +18,7 @@
   var DIFFICULTIES = ['facile', 'moyen', 'difficile'];
   var DIFF_LABEL = { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile' };
   var allPuzzles = null, visiblePuzzles = null;
-  var filterCategory = 'all', filterDifficulty = 'all', diffFilterSeg = null;
+  var filterCategory = 'all', filterDifficulty = 'all', diffFilterSeg = null, searchText = '', searchIn = null;
 
   function solvedIds() { return U.store.get('puzzlesSolved', []); }
   function markSolved(id) {
@@ -59,17 +60,42 @@
   }
 
   /* ---------- Écran liste (avec onglets de catégorie + filtre de niveau) ---------- */
-  function normCategory(p) { return (p.category || '').replace(/^\s+|\s+$/g, ''); }
+  // Catégories d'un problème, nettoyées : `category` peut être un texte ou une liste de textes.
+  function categoriesOf(p) {
+    var raw = p.category == null ? [] : (Object.prototype.toString.call(p.category) === '[object Array]' ? p.category : [p.category]);
+    var out = [];
+    raw.forEach(function (c) {
+      c = String(c == null ? '' : c).replace(/^\s+|\s+$/g, '');
+      if (c) out.push(c);
+    });
+    return out;
+  }
+
+  // Texte comparable pour la recherche : minuscules, sans accents (normalize absent des vieux navigateurs :
+  // on se contente alors des minuscules).
+  function fold(s) {
+    s = String(s || '').toLowerCase();
+    if (s.normalize) s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return s;
+  }
+
+  function matchesSearch(p) {
+    var words = fold(searchText).split(/\s+/).filter(function (w) { return w; });
+    if (!words.length) return true;
+    var hay = fold([p.title || '', p.author || '', p.id || '', p.difficulty ? DIFF_LABEL[p.difficulty] : ''].concat(categoriesOf(p)).join(' '));
+    for (var i = 0; i < words.length; i++) if (hay.indexOf(words[i]) < 0) return false;
+    return true;
+  }
 
   // Catégories distinctes présentes dans la liste, triées, dédupliquées insensible à la casse (garde la 1ère
   // casse rencontrée pour l'affichage) — ce sont elles qui deviennent les onglets, aucune liste figée à l'avance.
   function computeCategories(list) {
     var seen = {}, out = [];
     list.forEach(function (p) {
-      var c = normCategory(p);
-      if (!c) return;
-      var key = c.toLowerCase();
-      if (!seen[key]) { seen[key] = true; out.push(c); }
+      categoriesOf(p).forEach(function (c) {
+        var key = c.toLowerCase();
+        if (!seen[key]) { seen[key] = true; out.push(c); }
+      });
     });
     out.sort(function (a, b) { return a.localeCompare ? a.localeCompare(b, 'fr') : (a < b ? -1 : a > b ? 1 : 0); });
     return out;
@@ -77,9 +103,9 @@
 
   function applyFilters() {
     visiblePuzzles = (allPuzzles || []).filter(function (p) {
-      if (filterCategory !== 'all' && normCategory(p).toLowerCase() !== filterCategory) return false;
+      if (filterCategory !== 'all' && categoriesOf(p).map(function (c) { return c.toLowerCase(); }).indexOf(filterCategory) < 0) return false;
       if (filterDifficulty !== 'all' && (p.difficulty || '') !== filterDifficulty) return false;
-      return true;
+      return matchesSearch(p);
     });
   }
 
@@ -112,6 +138,19 @@
       applyFilters();
       renderItems();
     });
+
+    if (!searchIn) {
+      searchIn = U.$('pz-search');
+      var onSearch = function () {
+        if (searchIn.value === searchText) return;
+        searchText = searchIn.value;
+        applyFilters();
+        renderItems();
+      };
+      U.on(searchIn, 'input', onSearch);
+      U.on(searchIn, 'keyup', onSearch);   // anciens navigateurs sans évènement « input » fiable
+    }
+    searchIn.value = searchText;
   }
 
   function renderItems() {
@@ -122,7 +161,7 @@
       return;
     }
     if (!visiblePuzzles.length) {
-      box.appendChild(U.el('p', 'hint center', 'Aucun problème ne correspond à ces filtres.'));
+      box.appendChild(U.el('p', 'hint center', searchText.replace(/\s+/g, '') ? 'Aucun problème ne correspond à cette recherche.' : 'Aucun problème ne correspond à ces filtres.'));
       return;
     }
     var solved = solvedIds();
@@ -133,7 +172,7 @@
       var nMoves = p.solution ? p.solution.length : 0;
       var bits = [(p.author ? 'par ' + p.author : 'anonyme'), nMoves + ' coup' + (nMoves > 1 ? 's' : '') + ' à trouver'];
       if (p.difficulty) bits.push(DIFF_LABEL[p.difficulty]);
-      if (normCategory(p)) bits.push(normCategory(p));
+      if (categoriesOf(p).length) bits.push(categoriesOf(p).join(', '));
       main.appendChild(U.el('div', 'isub', bits.join(' · ')));
       U.on(main, 'click', function () { P.open(p); });
       item.appendChild(main);
@@ -177,7 +216,7 @@
     U.$('pzs-title').textContent = p.title || ('Problème #' + p.id);
     var infoBits = [(p.author ? 'Proposé par ' + p.author : 'Anonyme'), 'trouve le coup des ' + (sv.orient === 'w' ? 'Blancs' : 'Noirs') + '.'];
     if (p.difficulty) infoBits.push(DIFF_LABEL[p.difficulty]);
-    if (normCategory(p)) infoBits.push(normCategory(p));
+    if (categoriesOf(p).length) infoBits.push(categoriesOf(p).join(', '));
     U.$('pzs-info').textContent = infoBits.join(' · ');
     App.show('puzzle-solve');
     layoutSolve();
@@ -591,7 +630,7 @@
     row.appendChild(titleIn); row.appendChild(authorIn);
     node.appendChild(row);
     var categoryIn = U.el('input', 'txt');
-    categoryIn.placeholder = 'Catégorie (optionnel, ex : Ouvertures, Mats, Tactique)';
+    categoryIn.placeholder = 'Catégories (optionnel, séparées par des virgules : Mats, Tactique)';
     categoryIn.setAttribute('autocomplete', 'off');
     categoryIn.value = U.store.get('puzzleCategory', '');
     node.appendChild(categoryIn);
