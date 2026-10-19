@@ -55,7 +55,11 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   figée à l'avance) et un filtre par niveau (Facile / Moyen / Difficile), pour que chaque joueur choisisse ce qu'il
   veut résoudre. Un problème peut avoir **plusieurs catégories** (séparées par des virgules à la proposition, liste
   dans `puzzles.json`) : il apparaît alors dans chaque onglet. Un champ **Rechercher** filtre la liste par titre,
-  auteur, catégorie ou niveau (sans tenir compte des majuscules ni des accents).
+  auteur, catégorie, niveau ou description (sans tenir compte des majuscules ni des accents). Le créateur peut
+  ajouter une **description** (texte libre, 1000 caractères max.) affichée sous le problème. Bouton **« Modif. »**
+  sur chaque problème : rouvre l'éditeur avec sa position et sa solution, puis un ticket de modification
+  pré-rempli — appliqué seulement après validation manuelle de Turos14 (voir « Comment marche la modification de
+  problèmes »).
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
@@ -178,6 +182,25 @@ seul Turos14 peut poser.
    `main` (et déclenche le déploiement Pages, comme pour l'ajout), commente le résultat (supprimés / introuvables)
    et ferme le ticket.
 
+## Comment marche la modification de problèmes
+
+Même principe que la suppression : n'importe qui peut demander, seul Turos14 valide.
+
+1. Le bouton **« Modif. »** d'un problème rouvre l'éditeur visuel directement sur ses coups de solution (« ‹ Échiquier »
+   pour changer la position), puis le formulaire pré-rempli avec son titre, ses catégories, son niveau et sa
+   description. « Continuer sur GitHub » ouvre un ticket `edit-puzzle` (`.github/ISSUE_TEMPLATE/edit-puzzle.yml`)
+   qui décrit le problème **tel qu'il doit devenir** : un champ optionnel vidé est effacé.
+2. Ce ticket **ne déclenche rien tout seul**. `.github/workflows/puzzle-edit.yml` ne lance `scripts/puzzle-edit.js`
+   qu'au moment où Turos14 **ajoute l'étiquette `edit-approved`** (évènement `labeled` uniquement : modifier le
+   ticket après approbation ne relance rien, il faut retirer puis remettre l'étiquette).
+3. Le script revérifie FEN et solution avec `public/js/chess.js`, remplace le problème dans
+   `public/data/puzzles.json` (l'id, l'auteur et la date d'ajout sont conservés, `editedAt` est ajouté), commit +
+   push, déclenche le déploiement, commente et ferme le ticket. En cas d'erreur, il commente et laisse le ticket
+   ouvert.
+
+Les étiquettes `edit-puzzle` et `edit-approved` doivent exister dans le dépôt (GitHub ignore une étiquette
+inexistante dans un template).
+
 ## Pièces
 
 Les pièces sont des SVG dans `public/pieces/` (jeu « Cburnett », licence dans `LICENSE.txt`), branchés par **`public/css/pieces.css`**.
@@ -206,8 +229,11 @@ public/vendor/       PeerJS (MIT) et Stockfish.js 10 (GPL-3.0)
 public/css/          style.css, pieces.css
 test/                tests du moteur, de la salle et des problèmes de départ
 scripts/puzzle-intake.js  validation + intégration d'un problème proposé (lancé par l'Action GitHub)
+scripts/puzzle-common.js  lecture/validation des tickets et publication, partagé par intake et edit
+scripts/puzzle-edit.js    modification d'un problème, déclenchée par l'étiquette edit-approved (Action GitHub)
 scripts/puzzle-delete.js  suppression d'un problème, déclenchée par l'étiquette delete-approved (Action GitHub)
 .github/workflows/   déploiement GitHub Pages, intégration et suppression des problèmes
 .github/ISSUE_TEMPLATE/puzzle.yml  formulaire du ticket « Proposer un problème »
 .github/ISSUE_TEMPLATE/delete-puzzle.yml  formulaire du ticket « Supprimer un problème »
+.github/ISSUE_TEMPLATE/edit-puzzle.yml    formulaire du ticket « Modifier un problème »
 ```

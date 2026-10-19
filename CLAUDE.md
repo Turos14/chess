@@ -53,11 +53,15 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 - **Elo** : calcul pur dans `elo.js`, stockage/écrans dans `eloview.js` ; appelé par `gameview.js` en fin de partie.
 - **Navigation** : `app.js` (`App.show`) gère les écrans et transitions ; robuste aux clics rapides, ne pas
   contourner.
-- **Problèmes (puzzles)** : la liste publique `public/data/puzzles.json` n'est modifiée que par les Actions
-  GitHub. Proposition/suppression via tickets pré-remplis (`.github/ISSUE_TEMPLATE/`), traités par
-  `scripts/puzzle-intake.js` / `scripts/puzzle-delete.js` (revalidation avec `chess.js`, commit sur `main`,
-  puis déclenchement explicite de `deploy.yml` car un push fait par `GITHUB_TOKEN` ne relance pas les
-  workflows). La suppression exige l'étiquette `delete-approved` posée à la main par Turos14. Les ids sont
+- **Problèmes (puzzles)** : la liste publique `public/data/puzzles.json` est modifiée par les Actions GitHub
+  (et parfois à la main par l'utilisateur). Proposition / modification / suppression via tickets pré-remplis
+  (`.github/ISSUE_TEMPLATE/`), traités par `scripts/puzzle-intake.js`, `puzzle-edit.js`, `puzzle-delete.js`
+  (lecture des champs, revalidation avec `chess.js` et publication partagées dans `scripts/puzzle-common.js` ;
+  commit sur `main` puis déclenchement explicite de `deploy.yml`, car un push fait par `GITHUB_TOKEN` ne relance
+  pas les workflows). Modification et suppression exigent une étiquette posée à la main par Turos14
+  (`edit-approved` / `delete-approved`). Les libellés des champs des templates (`### <Label>` dans le corps du
+  ticket) et les paramètres d'URL de pré-remplissage (`id` des champs) doivent rester synchronisés avec
+  `puzzle-common.js` et `openGithubIssue` dans `puzzles.js`. `category` est un texte ou une liste de textes. Les ids sont
   `gh-<n° de ticket>` (et `seed-N` pour les problèmes de départ). `test/puzzles.test.js` valide ce fichier :
   si l'Action change le format d'un champ, le test doit suivre.
 - **Pièces** : SVG Cburnett dans `public/pieces/`, branchés par `public/css/pieces.css`
