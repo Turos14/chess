@@ -392,5 +392,24 @@
     "difficulty": "difficile",
     "description": "Un duel tendu sous le soleil entre deux fous de couleurs opposées : voici le problème que le compositeur d’études français Henri Rinck (1870-1952) nous propose de résoudre cet été. Le pion blanc passé en b6 est prêt à aller faire dame mais le pion noir passé en a3 est tout autant prêt à atteindre la rangée opposée synonyme de promotion. Les fous se tiennent en embuscade des deux côtés, prêts à faire feu tels des shérifs dans un western spaghetti. Question pour toi : quelle est la meilleure manière d’utiliser la munition blanche en b6 ?",
     "addedAt": 1792430333852
+  },
+  {
+    "id": "gh-101",
+    "fen": "8/3p3p/3k1PpP/8/6r1/1P2B3/5P2/5K2 w - - 0 1",
+    "solution": [
+      "f2f3",
+      "g4b4",
+      "f6f7",
+      "b4b8",
+      "e3f4",
+      "d6e7",
+      "f4b8"
+    ],
+    "title": "meilleur coup à",
+    "author": "Arthur",
+    "category": "meilleur coup",
+    "difficulty": "difficile",
+    "description": "Le compositeur d’études russe Leonid Kubbel (1891-1942) nous propose la lutte classique d’un fou contre une tour cette semaine. Les blancs n’ont qu’un petit pion de plus pour la qualité de moins et cela ne paraît pas suffisant pour les tirer de l’embarras. Les difficultés blanches sont d’autant plus grandes que le roi noir est très actif au centre de l’échiquier alors que le monarque blanc est encore à la bande et loin de l’action. Alors vite, trouve une bonne idée pour les blancs !",
+    "addedAt": 1792433811915
   }
 ]
