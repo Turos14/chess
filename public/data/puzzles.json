@@ -304,5 +304,23 @@
     "category": "mat en 1",
     "difficulty": "moyen",
     "addedAt": 1792393972628
+  },
+  {
+    "id": "gh-90",
+    "fen": "8/8/8/4k3/1R6/Q7/8/2K5 w - - 0 1",
+    "solution": [
+      "a3a5",
+      "e5e6",
+      "b4b6",
+      "e6e7",
+      "a5a7",
+      "e7e8",
+      "b6b8"
+    ],
+    "title": "Mat de l’escalier",
+    "author": "Arthur",
+    "category": "mat",
+    "difficulty": null,
+    "addedAt": 1792394112920
   }
 ]
