@@ -20,7 +20,7 @@
     return { base: base, inc: inc };
   }
 
-  // opts : { code, tc, send(cid, msg), now(), restore: {state, frozen:{w,b}} }
+  // opts : { code, tc, startFen (Fischer 960, sinon position classique), send(cid, msg), now(), restore: {state, frozen:{w,b}} }
   function Room(opts) {
     this.code = opts.code;
     this.send = opts.send;
@@ -29,7 +29,7 @@
     this.seats = { w: null, b: null };      // {name, cid|null}
     this.spectators = {};                   // cid -> {name}
     this.conns = {};                        // cid -> true (connecté)
-    this.game = new Chess.Game();
+    this.game = new Chess.Game(opts.startFen || null);
     this.clock = { w: this.tc ? this.tc.base : 0, b: this.tc ? this.tc.base : 0, turn: 'w', since: 0, running: false };
     this.result = null;
     this.drawOffer = null;
@@ -42,7 +42,7 @@
 
   // Reprise après changement d'hôte : on repart du dernier état reçu par ce client.
   Room.prototype._restore = function (s, frozen) {
-    var g = Chess.replay(Chess.START, s.moves || []);
+    var g = Chess.replay(s.startFen || Chess.START, s.moves || []);
     if (g) this.game = g;
     this.tc = normalizeTc(s.tc);
     this.seats.w = s.players.w ? { name: s.players.w, cid: null, eloStart: s.eloStart && s.eloStart.w } : null;
@@ -86,6 +86,7 @@
       spectators: spectators,
       tc: this.tc,
       clock: this.tc ? { w: rem.w, b: rem.b, turn: this.clock.turn, running: this.clock.running, serverTime: this.now() } : null,
+      startFen: this.game.startFen,
       moves: this.game.history.map(function (m) { return { from: m.from, to: m.to, promo: m.promo, san: m.san }; }),
       turn: this.game.turn(),
       // Elo de départ auto-déclaré par chaque joueur (utilisé seulement si son nom n'a jamais été suivi) : transite

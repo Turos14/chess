@@ -5,7 +5,7 @@ function mk(opts) {
   var inbox = {};
   var t = { now: 1000000 };
   var room = new Room({
-    code: 'ABCDE', tc: opts && opts.tc, restore: opts && opts.restore,
+    code: 'ABCDE', tc: opts && opts.tc, restore: opts && opts.restore, startFen: opts && opts.startFen,
     now: function () { return t.now; },
     send: function (cid, msg) { (inbox[cid] = inbox[cid] || []).push(msg); }
   });
@@ -16,6 +16,21 @@ function mk(opts) {
   }
   return { room: room, t: t, inbox: inbox, last: last, state: function (cid) { return last(cid).state; } };
 }
+// --- Fischer 960 : la position de départ est diffusée et survit à une bascule d'hôte
+(function () {
+  var fen = 'rk5r/pppppppp/8/8/8/8/PPPPPPPP/RK5R w HAha - 0 1';
+  var x = mk({ startFen: fen });
+  x.room.hello('A', { name: 'Alice', role: 'player', color: 'w' });
+  x.room.hello('B', { name: 'Bob', role: 'player' });
+  assert.strictEqual(x.state('A').startFen, fen);
+  x.room.handle('A', { t: 'move', from: 'b1', to: 'h1' });   // petit roque 960 (roi sur tour)
+  var s = x.state('B');
+  assert.strictEqual(s.moves[0].san, 'O-O');
+  var y = mk({ restore: { state: s } });
+  assert.strictEqual(y.room.game.startFen, fen);
+  assert.strictEqual(y.room.game.fen(), x.room.game.fen());
+})();
+
 // --- Création, sièges, coups, mat
 var r = mk({ tc: { base: 60000, inc: 1000 } });
 assert(r.room.hello('A', { name: 'Alice', role: 'player', color: 'w' }));

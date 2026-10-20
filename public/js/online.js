@@ -2,7 +2,7 @@
  * Réseau : net.js (WebRTC/PeerJS, l'hôte peut être remplacé), règles et pendule : room.js (côté hôte). */
 (function () {
   'use strict';
-  var form, colorSeg, eloStart, active = null;
+  var form, colorSeg, eloStart, c960Box, active = null;
 
   function setError(msg) { U.$('on-error').textContent = msg || ''; }
   function myName() { return U.$('on-name').value.replace(/^\s+|\s+$/g, ''); }
@@ -17,6 +17,8 @@
     colorSeg = U.segmented(U.$('on-color'), [
       { v: 'w', label: 'Blancs' }, { v: 'b', label: 'Noirs' }, { v: 'r', label: 'Au hasard' }
     ], U.store.get('online-color', 'r'));
+    c960Box = U.checkbox(Chess.LABEL_960, !!U.store.get('online-960', false));
+    U.$('on-960').appendChild(c960Box);
     form = new TimeForm(U.$('on-tf'), { key: 'tc-online', allowNone: true, defaults: { on: true, wMin: 10 } });
     var eloBox = U.checkbox('Enregistrer mes parties pour le classement Elo (noms différents requis)', U.store.get('online-elo', true), function (v) { U.store.set('online-elo', v); });
     U.$('on-elo').appendChild(eloBox);
@@ -59,7 +61,8 @@
     saveName();
     var tc = form.get();
     U.store.set('online-color', colorSeg.get());
-    begin({ code: Net.newCode(), name: myName() || 'Joueur', role: 'player', color: colorSeg.get(), tc: tc.enabled ? { base: tc.w.base, inc: tc.w.inc } : null, startElo: eloStart.get() }, 'create');
+    U.store.set('online-960', c960Box.input.checked);
+    begin({ code: Net.newCode(), name: myName() || 'Joueur', role: 'player', color: colorSeg.get(), tc: tc.enabled ? { base: tc.w.base, inc: tc.w.inc } : null, startElo: eloStart.get(), startFen: c960Box.input.checked ? Chess.start960() : null }, 'create');
   }
 
   function join(role) {
@@ -132,6 +135,7 @@
         if (st) {
           if (!st.players.w || !st.players.b) s += ' · en attente d’un adversaire';
           else if (st.tc) s += ' · ' + TimeForm.describe({ w: st.tc, b: st.tc });
+          if (ctrl.game.chess960) s += ' · Fischer 960';
           if (st.spectators) s += ' · ' + st.spectators + ' spectateur' + (st.spectators > 1 ? 's' : '');
           if (st.drawOffer && st.drawOffer === myColor) s += ' · nulle proposée';
         }
@@ -178,7 +182,7 @@
 
     function rebuild() {
       if (!st) return;
-      var g = Chess.replay(Chess.START, st.moves);
+      var g = Chess.replay(st.startFen || Chess.START, st.moves);
       if (g) ctrl.game = g;
       GameView.refresh();
     }
@@ -211,8 +215,9 @@
       connErr = null;
       ensureOpen();
       var oldN = ctrl.game.history.length, i;
-      if (!sameMoves(s.moves)) {
-        var g = Chess.replay(Chess.START, s.moves);
+      // La position de départ (Fischer 960) n'est connue qu'avec le 1er état reçu de l'hôte.
+      if (!sameMoves(s.moves) || ctrl.game.startFen !== new Chess.Game(s.startFen || null).startFen) {
+        var g = Chess.replay(s.startFen || Chess.START, s.moves);
         if (g) ctrl.game = g;
       } else {
         for (i = ctrl.game.history.length; i < s.moves.length; i++) ctrl.game.move(s.moves[i].from, s.moves[i].to, s.moves[i].promo);

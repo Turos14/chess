@@ -47,7 +47,7 @@
     if (libState === 1) return;
     libState = 1;
     var s = document.createElement('script');
-    s.src = 'vendor/peerjs.min.js?v=12';
+    s.src = 'vendor/peerjs.min.js?v=13';
     s.onload = function () {
       var list = libWaiters; libWaiters = []; libState = 0;
       list.forEach(function (f) { f(window.Peer ? null : new Error('PeerJS indisponible')); });
@@ -185,7 +185,7 @@
       restore = { state: this.lastState, frozen: this.frozen };
     }
     this.room = new window.Room({
-      code: this.code, tc: o.tc, restore: restore,
+      code: this.code, tc: o.tc, startFen: o.startFen, restore: restore,
       send: function (cid, msg) {
         if (cid === self.cid) { self._deliver(msg); return; }
         var h = self.hostConns[cid];
