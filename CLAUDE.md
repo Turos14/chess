@@ -39,7 +39,10 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   l'**ordre des `<script>` dans `index.html`** — en ajoutant un fichier, l'insérer après ses dépendances.
   Garder la logique testable dans les modules purs.
 - **Moteur de règles** : `chess.js` (cases 0..63, 0 = a8 ; pièces `'wK'`, `'bP'`…). Utilisé partout,
-  y compris par les scripts d'Action GitHub.
+  y compris par les scripts d'Action GitHub. Fischer 960 : détecté uniquement par la notation des droits de roque
+  dans la FEN (colonnes de tour, « Shredder-FEN » `HAha`) — une FEN `KQkq` garde les règles classiques à
+  l'identique. En 960 un coup de roque a `to` = case de la tour (convention UCI) ; `Game.move` accepte aussi la case
+  d'arrivée du roi. Les parties 960 se rejouent depuis leur `startFen` (jamais depuis `Chess.START`).
 - **Écran de partie partagé** : `gameview.js` est piloté par un objet contrôleur (`ctrl`, interface documentée
   en tête du fichier) que fournissent `local.js`, `online.js` et `ai.js` (l'éditeur de branches de `records.js`
   a son propre rendu).
