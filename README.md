@@ -39,8 +39,9 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   classement, sinon 1200) — jusqu'à décocher, la fin de partie, ou « Terminer ». Restriction volontaire : pas de
   branche depuis une autre branche (pas de sous-arbre).
 - **Échecs aléatoires Fischer (960)** : case à cocher dans les réglages des parties locale, en ligne et contre
-  l'IA. Les pièces de la 1re rangée sont tirées au hasard parmi les 960 positions officielles (fous de couleurs
-  opposées, roi entre les deux tours), les Noirs en miroir des Blancs. **Roque** : touche le roi puis **sa tour**
+  l'IA. Les pièces de la 1re rangée sont tirées au hasard parmi les 960 placements possibles (fous de couleurs
+  opposées, roi entre les deux tours), **indépendamment pour chaque camp** : Blancs et Noirs n'ont en général pas
+  le même placement (chacun roque avec ses propres tours). **Roque** : touche le roi puis **sa tour**
   (ou la case d'arrivée du roi, g1/c1) — le roi arrive toujours en g1/c1 et la tour en f1/d1, comme aux échecs
   classiques. Fonctionne aussi en ligne (position transmise par l'hôte, conservée en cas de bascule), dans les
   parties enregistrées et l'export PGN (`[Variant "Chess960"]`).

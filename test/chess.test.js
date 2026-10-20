@@ -45,12 +45,12 @@ assert.strictEqual(m1.w, 39); assert.strictEqual(m1.b, 38); assert.strictEqual(m
 assert.strictEqual(Chess.perft('bqnb1rkr/pp3ppp/3ppn2/2p5/5P2/P2P4/NPP1P1PP/BQ1BNRKR w HFhf - 2 9', 3), 12189);
 assert.strictEqual(Chess.perft('2nnrbkr/p1qppppp/8/1ppb4/6PP/3PP3/PPP2P2/BQNNRBKR w HEhe - 1 9', 3), 18002);
 // La position n° 518 est la position classique ; les 960 positions sont toutes distinctes et conformes.
-assert.strictEqual(Chess.start960(518), 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w HAha - 0 1');
+assert.strictEqual(Chess.start960(518, 518), 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w HAha - 0 1');
 var seen960 = {};
 for (var n = 0; n < 960; n++) {
-  var f = Chess.start960(n), back = f.split('/')[7].split(' ')[0];
+  var f = Chess.start960(n, 959 - n), back = f.split('/')[7].split(' ')[0];
   assert(!seen960[back], 'position 960 en double : ' + n); seen960[back] = 1;
-  assert.strictEqual(f.split('/')[0], back.toLowerCase());
+  assert.strictEqual(f.split('/')[0].toUpperCase(), Chess.start960(959 - n, 0).split('/')[7].split(' ')[0], 'rangée noire indépendante : ' + n);
   var bs = [back.indexOf('B'), back.lastIndexOf('B')];
   assert((bs[0] + bs[1]) % 2 === 1, 'fous de même couleur : ' + n);
   var k = back.indexOf('K');
@@ -60,6 +60,13 @@ for (var n = 0; n < 960; n++) {
 // Une FEN classique reste classique (KQkq), une FEN 960 garde sa notation.
 assert(!new Chess.Game().chess960 && new Chess.Game().fen().split(' ')[2] === 'KQkq');
 assert(Chess.is960(Chess.start960(0)) && !Chess.is960(Chess.START));
+// Placements différents par camp : chaque camp garde ses propres colonnes de tours pour le roque.
+var asym = Chess.start960(0, 959);   // Blancs : BBQNNRKR, Noirs : RKRNNQBB
+assert.strictEqual(asym, 'rkrnnqbb/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w HFca - 0 1');
+assert.strictEqual(new Chess.Game(asym).fen().split(' ')[2], 'HFca');
+var differents = 0;
+for (var tq = 0; tq < 50; tq++) { var ff = Chess.start960().split('/'); if (ff[0].toUpperCase() !== ff[7].split(' ')[0]) differents++; }
+assert(differents > 40, 'tirages indépendants pour les deux camps');
 // Roque 960 : roi b1, tour a1 (grand roque) et tour h1 (petit roque) -> roi en c1/g1, tour en d1/f1.
 var g960 = new Chess.Game('rk5r/pppppppp/8/8/8/8/PPPPPPPP/RK5R w HAha - 0 1');
 var oo = g960.move('b1', 'h1');   // roi sur sa tour (convention UCI 960)

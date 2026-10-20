@@ -515,13 +515,14 @@
     return { w: w, b: b, diff: w - b };
   }
 
-  // Position de départ Fischer n° n (0..959, numérotation de Scharnagl : 518 = position classique) ; n absent =
-  // tirage au hasard. Fous de couleurs opposées, roi entre les deux tours, Noirs en miroir des Blancs.
+  // Rangée arrière Fischer n° n (0..959, numérotation de Scharnagl : 518 = RNBQKBNR), n absent = tirage au
+  // hasard : fous de couleurs opposées, roi entre les deux tours. Retourne { back: 'RNBQKBNR', rooks: [g, d] }
+  // (colonnes de la tour de gauche et de droite).
   var KNIGHTS = [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]];
-  function start960(n) {
+  function backRank960(n) {
     if (n == null) n = Math.floor(Math.random() * 960);
     n = Math.max(0, Math.min(959, Math.floor(n)));
-    var row = [null, null, null, null, null, null, null, null], x = n, i;
+    var row = [null, null, null, null, null, null, null, null], x = n;
     function empties() { var e = []; for (var f = 0; f < 8; f++) if (!row[f]) e.push(f); return e; }
     row[2 * (x % 4) + 1] = 'B'; x = Math.floor(x / 4);
     row[2 * (x % 4)] = 'B'; x = Math.floor(x / 4);
@@ -530,9 +531,17 @@
     row[e[KNIGHTS[x][0]]] = 'N'; row[e[KNIGHTS[x][1]]] = 'N';
     e = empties();
     row[e[0]] = 'R'; row[e[1]] = 'K'; row[e[2]] = 'R';
-    var back = row.join('');
-    var cs = FILES.charAt(e[2]).toUpperCase() + FILES.charAt(e[0]).toUpperCase() + FILES.charAt(e[2]) + FILES.charAt(e[0]);
-    return back.toLowerCase() + '/pppppppp/8/8/8/8/PPPPPPPP/' + back + ' w ' + cs + ' - 0 1';
+    return { back: row.join(''), rooks: [e[0], e[2]] };
+  }
+
+  // Position de départ Fischer : nW = n° de la rangée des Blancs, nB = celle des Noirs, chacune tirée au hasard et
+  // indépendamment si absente (les deux camps n'ont en général pas le même placement) ; start960(518, 518) = position
+  // classique. Les droits de roque sont notés par colonne de tour, propres à chaque camp (ex : HFca).
+  function start960(nW, nB) {
+    var w = backRank960(nW), b = backRank960(nB);
+    var cs = FILES.charAt(w.rooks[1]).toUpperCase() + FILES.charAt(w.rooks[0]).toUpperCase() +
+      FILES.charAt(b.rooks[1]) + FILES.charAt(b.rooks[0]);
+    return b.back.toLowerCase() + '/pppppppp/8/8/8/8/PPPPPPPP/' + w.back + ' w ' + cs + ' - 0 1';
   }
 
   // Une FEN est-elle en notation Chess960 (droits de roque par colonne) ? Sert à régler le moteur.
@@ -540,7 +549,7 @@
 
   return {
     START: START, Game: Game, replay: replay, perft: perft, start960: start960, is960: is960,
-    LABEL_960: 'Échecs aléatoires Fischer (960) : pièces de la 1re rangée placées au hasard, identiques pour les deux camps',
+    LABEL_960: 'Échecs aléatoires Fischer (960) : pièces de la 1re rangée placées au hasard, différemment pour chaque camp',
     sqName: sqName, sqIndex: sqIndex, other: other, parseFen: parseFen, material: material
   };
 });
