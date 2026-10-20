@@ -26,9 +26,11 @@
     ],
     "title": "clouage absolu",
     "author": "Turos14",
-    "category": "mat en 1",
+    "category": "technique",
     "difficulty": "moyen",
-    "addedAt": 1792226311243
+    "description": null,
+    "addedAt": 1792226311243,
+    "editedAt": 1792479766644
   },
   {
     "id": "gh-34",
