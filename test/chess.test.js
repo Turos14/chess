@@ -40,4 +40,48 @@ g = new Chess.Game();
 var m1 = Chess.material(g.board());
 assert.strictEqual(m1.w, 39); assert.strictEqual(m1.b, 38); assert.strictEqual(m1.diff, 1);
 
+// Échecs aléatoires Fischer (Chess960)
+// Perft de référence (suite de positions 960 de Scharnagl, valeurs vérifiées avec chessops de Lichess).
+assert.strictEqual(Chess.perft('bqnb1rkr/pp3ppp/3ppn2/2p5/5P2/P2P4/NPP1P1PP/BQ1BNRKR w HFhf - 2 9', 3), 12189);
+assert.strictEqual(Chess.perft('2nnrbkr/p1qppppp/8/1ppb4/6PP/3PP3/PPP2P2/BQNNRBKR w HEhe - 1 9', 3), 18002);
+// La position n° 518 est la position classique ; les 960 positions sont toutes distinctes et conformes.
+assert.strictEqual(Chess.start960(518), 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w HAha - 0 1');
+var seen960 = {};
+for (var n = 0; n < 960; n++) {
+  var f = Chess.start960(n), back = f.split('/')[7].split(' ')[0];
+  assert(!seen960[back], 'position 960 en double : ' + n); seen960[back] = 1;
+  assert.strictEqual(f.split('/')[0], back.toLowerCase());
+  var bs = [back.indexOf('B'), back.lastIndexOf('B')];
+  assert((bs[0] + bs[1]) % 2 === 1, 'fous de même couleur : ' + n);
+  var k = back.indexOf('K');
+  assert(back.indexOf('R') < k && back.lastIndexOf('R') > k, 'roi hors des tours : ' + n);
+  assert(new Chess.Game(f).legalMoves().length >= 18, 'trop peu de coups : ' + n);
+}
+// Une FEN classique reste classique (KQkq), une FEN 960 garde sa notation.
+assert(!new Chess.Game().chess960 && new Chess.Game().fen().split(' ')[2] === 'KQkq');
+assert(Chess.is960(Chess.start960(0)) && !Chess.is960(Chess.START));
+// Roque 960 : roi b1, tour a1 (grand roque) et tour h1 (petit roque) -> roi en c1/g1, tour en d1/f1.
+var g960 = new Chess.Game('rk5r/pppppppp/8/8/8/8/PPPPPPPP/RK5R w HAha - 0 1');
+var oo = g960.move('b1', 'h1');   // roi sur sa tour (convention UCI 960)
+assert(oo && oo.san === 'O-O' && g960.board()[Chess.sqIndex('g1')] === 'wK' && g960.board()[Chess.sqIndex('f1')] === 'wR');
+assert.strictEqual(g960.fen().split(' ')[2], 'ha');
+var ooo = g960.move('b8', 'c8');  // c8 est aussi une case d'arrivée de roque, mais b8c8 est d'abord un coup de roi normal
+assert(ooo && ooo.san === 'Kc8' && !ooo.castle, 'b8c8 reste un coup de roi normal');
+// Le roi déjà sur sa case d'arrivée : roque avec seulement la tour qui bouge.
+var g2 = new Chess.Game('1r4kr/8/8/8/8/8/8/1R4KR w HBhb - 0 1');
+var c2 = g2.move('g1', 'h1');
+assert(c2 && c2.san === 'O-O' && g2.board()[Chess.sqIndex('g1')] === 'wK' && g2.board()[Chess.sqIndex('f1')] === 'wR');
+assert.strictEqual(g2.move('g8', 'c8'), null);   // le roi traverserait f8, attaquée par la tour f1
+var g3 = new Chess.Game('1r4kr/8/8/8/8/8/8/1R4KR b HBhb - 0 1');
+var c4 = g3.move('g8', 'c8');     // grand roque désigné par la case d'arrivée du roi
+assert(c4 && c4.san === 'O-O-O' && g3.board()[Chess.sqIndex('c8')] === 'bK' && g3.board()[Chess.sqIndex('d8')] === 'bR');
+// Rejouer une partie 960 depuis sa FEN de départ donne la même position ; le PGN porte la variante.
+var rg = Chess.replay(g2.startFen, g2.history);
+assert.strictEqual(rg.fen(), g2.fen());
+assert(/\[Variant "Chess960"\]/.test(g2.pgn()) && /\[FEN "1r4kr/.test(g2.pgn()));
+assert(!/Variant/.test(new Chess.Game().pgn()));
+// Classique : un moteur peut annoncer le roque « roi sur tour » (e1h1), accepté aussi.
+var gs = new Chess.Game('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1');
+assert(gs.move('e1', 'h1').san === 'O-O' && gs.board()[Chess.sqIndex('g1')] === 'wK');
+
 console.log('OK');

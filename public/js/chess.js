@@ -1,6 +1,10 @@
 /* Moteur d'échecs (règles complètes) - ES5, utilisable dans le navigateur et sous Node.
  * Cases : index 0..63, 0 = a8, 63 = h1 (index = ligne*8 + colonne, ligne 0 = rang 8).
  * Pièces : chaîne de 2 caractères, couleur ('w'|'b') + type ('P','N','B','R','Q','K').
+ * Échecs aléatoires Fischer (Chess960) : reconnus à la notation des droits de roque dans la FEN, par colonne de la
+ * tour (« Shredder-FEN », ex : HAha) au lieu de KQkq — une FEN classique garde donc exactement les règles
+ * classiques. En 960, un roque se joue « roi sur sa tour » (convention UCI, comme Stockfish) : from = case du roi,
+ * to = case de la tour ; Game.move accepte aussi la case d'arrivée du roi quand ce n'est pas un coup de roi normal.
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -47,15 +51,34 @@
       if (n !== 8) throw new Error('FEN invalide');
     }
     if (kings.w !== 1 || kings.b !== 1) throw new Error('FEN invalide');
-    var cs = parts[2];
+    var cr = parseCastling(board, parts[2]);
     return {
       board: board,
       turn: parts[1] === 'b' ? 'b' : 'w',
-      castling: { wK: cs.indexOf('K') >= 0, wQ: cs.indexOf('Q') >= 0, bK: cs.indexOf('k') >= 0, bQ: cs.indexOf('q') >= 0 },
+      castling: cr.castling, rooks: cr.rooks, c960: cr.c960,
       ep: parts[3] === '-' ? -1 : sqIndex(parts[3]),
       half: parseInt(parts[4], 10) || 0,
       full: parseInt(parts[5], 10) || 1
     };
+  }
+
+  // Droits de roque : KQkq (classique : roi en e1/e8, tours dans les coins) ou lettres de colonne de la tour
+  // (Chess960, A-H pour les Blancs, a-h pour les Noirs). Un droit incohérent avec la position est ignoré.
+  function parseCastling(board, cs) {
+    var castling = { wK: false, wQ: false, bK: false, bQ: false }, rooks = { wK: -1, wQ: -1, bK: -1, bQ: -1 };
+    var c960 = /[A-Ha-h]/.test(cs), i;
+    for (i = 0; i < cs.length; i++) {
+      var ch = cs.charAt(i), color = ch === ch.toUpperCase() ? 'w' : 'b', row = color === 'w' ? 56 : 0;
+      var k = findKing(board, color), side, rook;
+      if (k < row || k > row + 7) continue;
+      if (ch === 'K' || ch === 'k') { side = 'K'; rook = row + 7; if (k !== row + 4) continue; }
+      else if (ch === 'Q' || ch === 'q') { side = 'Q'; rook = row; if (k !== row + 4) continue; }
+      else if (/[A-Ha-h]/.test(ch)) { rook = row + FILES.indexOf(ch.toLowerCase()); side = rook > k ? 'K' : 'Q'; if (rook === k) continue; }
+      else continue;
+      if (board[rook] !== color + 'R') continue;
+      castling[color + side] = true; rooks[color + side] = rook;
+    }
+    return { castling: castling, rooks: rooks, c960: c960 };
   }
 
   // Case en passant à publier dans le FEN : seulement si une prise est possible.
@@ -81,8 +104,14 @@
       if (e) s += e;
       rows.push(s);
     }
-    var c = pos.castling;
-    var cs = (c.wK ? 'K' : '') + (c.wQ ? 'Q' : '') + (c.bK ? 'k' : '') + (c.bQ ? 'q' : '');
+    var c = pos.castling, cs = '';
+    if (pos.c960) {
+      ['wK', 'wQ', 'bK', 'bQ'].forEach(function (k) {
+        if (!c[k]) return;
+        var l = FILES.charAt(pos.rooks[k] & 7);
+        cs += k.charAt(0) === 'w' ? l.toUpperCase() : l;
+      });
+    } else cs = (c.wK ? 'K' : '') + (c.wQ ? 'Q' : '') + (c.bK ? 'k' : '') + (c.bQ ? 'q' : '');
     var out = rows.join('/') + ' ' + pos.turn + ' ' + (cs || '-') + ' ' + epForFen(pos);
     return noCounters ? out : out + ' ' + pos.half + ' ' + pos.full;
   }
@@ -92,6 +121,7 @@
       board: pos.board.slice(),
       turn: pos.turn,
       castling: { wK: pos.castling.wK, wQ: pos.castling.wQ, bK: pos.castling.bK, bQ: pos.castling.bQ },
+      rooks: { wK: pos.rooks.wK, wQ: pos.rooks.wQ, bK: pos.rooks.bK, bQ: pos.rooks.bQ }, c960: pos.c960,
       ep: pos.ep, half: pos.half, full: pos.full
     };
   }
@@ -180,19 +210,7 @@
           c = b[to];
           if (!c || c.charAt(0) === them) push(s, to, p);
         }
-        if (t === 'K') {
-          var home = us === 'w' ? 60 : 4;
-          if (s === home && !attacked(b, s, them)) {
-            if (pos.castling[us + 'K'] && b[home + 3] === us + 'R' && !b[home + 1] && !b[home + 2] &&
-                !attacked(b, home + 1, them) && !attacked(b, home + 2, them)) {
-              push(s, home + 2, p, { castle: 'K' });
-            }
-            if (pos.castling[us + 'Q'] && b[home - 4] === us + 'R' && !b[home - 1] && !b[home - 2] && !b[home - 3] &&
-                !attacked(b, home - 1, them) && !attacked(b, home - 2, them)) {
-              push(s, home - 2, p, { castle: 'Q' });
-            }
-          }
-        }
+        if (t === 'K') castles(pos, s, push);
       } else {
         var dirs = t === 'B' ? DIAG : t === 'R' ? ORTH : DIAG.concat(ORTH);
         for (i = 0; i < dirs.length; i++) {
@@ -210,24 +228,43 @@
     return out;
   }
 
-  function applyMove(pos, m) {
-    var b = pos.board, us = pos.turn, t = m.piece.charAt(1);
-    b[m.from] = null;
-    b[m.to] = m.promo ? us + m.promo : m.piece;
-    if (m.ep) b[m.to + (us === 'w' ? 8 : -8)] = null;
-    if (m.castle) {
-      var home = us === 'w' ? 60 : 4;
-      if (m.castle === 'K') { b[home + 1] = b[home + 3]; b[home + 3] = null; }
-      else { b[home - 1] = b[home - 4]; b[home - 4] = null; }
+  // Roques possibles du roi en s (règles communes au classique et au 960) : le roi arrive en g/c, la tour en f/d ;
+  // toutes les cases entre roi, tour et leurs arrivées doivent être vides (hors roi et tour eux-mêmes), le roi ne
+  // doit pas être en échec ni traverser/arriver sur une case attaquée.
+  function castles(pos, s, push) {
+    var b = pos.board, us = pos.turn, them = other(us), row = us === 'w' ? 56 : 0, sides = ['K', 'Q'], j, q;
+    if (s < row || s > row + 7) return;
+    for (j = 0; j < 2; j++) {
+      var side = sides[j], key = us + side, r = pos.rooks[key];
+      if (!pos.castling[key] || b[r] !== us + 'R') continue;
+      var kTo = row + (side === 'K' ? 6 : 2), rTo = row + (side === 'K' ? 5 : 3);
+      var lo = Math.min(s, r, kTo, rTo), hi = Math.max(s, r, kTo, rTo), ok = true;
+      for (q = lo; q <= hi && ok; q++) if (q !== s && q !== r && b[q]) ok = false;
+      var step = kTo > s ? 1 : -1;
+      for (q = s; ok; q += step) {
+        if (attacked(b, q, them)) ok = false;
+        if (q === kTo) break;
+      }
+      if (ok) push(s, pos.c960 ? r : kTo, b[s], { castle: side, cap: null, rook: r, kto: kTo });
     }
-    var c = pos.castling;
+  }
+
+  function applyMove(pos, m) {
+    var b = pos.board, us = pos.turn, t = m.piece.charAt(1), c = pos.castling, i;
+    if (m.castle) {
+      var row = us === 'w' ? 56 : 0;
+      b[m.from] = null; b[m.rook] = null;
+      b[row + (m.castle === 'K' ? 6 : 2)] = us + 'K';
+      b[row + (m.castle === 'K' ? 5 : 3)] = us + 'R';
+    } else {
+      b[m.from] = null;
+      b[m.to] = m.promo ? us + m.promo : m.piece;
+      if (m.ep) b[m.to + (us === 'w' ? 8 : -8)] = null;
+    }
     if (t === 'K') { c[us + 'K'] = false; c[us + 'Q'] = false; }
-    var sqs = [m.from, m.to], i;
+    var sqs = [m.from, m.to], keys = ['wK', 'wQ', 'bK', 'bQ'], k;
     for (i = 0; i < 2; i++) {
-      if (sqs[i] === 0) c.bQ = false;
-      else if (sqs[i] === 7) c.bK = false;
-      else if (sqs[i] === 56) c.wQ = false;
-      else if (sqs[i] === 63) c.wK = false;
+      for (k = 0; k < 4; k++) if (c[keys[k]] && pos.rooks[keys[k]] === sqs[i]) c[keys[k]] = false;
     }
     pos.ep = m.dbl ? (m.from + m.to) >> 1 : -1;
     pos.half = (t === 'P' || m.cap) ? 0 : pos.half + 1;
@@ -296,6 +333,7 @@
 
   function Game(fen) {
     this.pos = parseFen(fen || START);
+    this.chess960 = this.pos.c960;
     this.startFen = fenOf(this.pos);
     this.history = [];
     this.fens = [this.startFen];
@@ -323,6 +361,11 @@
         seen[list[i].to] = 1;
         out.push({ to: list[i].to, promo: !!list[i].promo, cap: !!list[i].cap });
       }
+    }
+    // En 960, la case d'arrivée du roi est aussi une cible du roque (en plus de la case de la tour).
+    for (i = 0; i < list.length; i++) {
+      var m = list[i];
+      if (m.from === from && m.castle && m.kto !== from && !seen[m.kto]) { seen[m.kto] = 1; out.push({ to: m.kto, promo: false, cap: false }); }
     }
     return out;
   };
@@ -366,6 +409,11 @@
       var c = list[i];
       if (c.from === fi && c.to === ti && (!c.promo || c.promo === pr)) { m = c; break; }
     }
+    // Roque désigné par la case d'arrivée du roi (960 : « roi sur g1 ») ou par la case de la tour (classique :
+    // « e1h1 », notation 960 d'un moteur) — seulement si ce n'est pas déjà un coup normal.
+    for (i = 0; !m && i < list.length; i++) {
+      if (list[i].castle && list[i].from === fi && (list[i].kto === ti || list[i].rook === ti)) m = list[i];
+    }
     if (!m) return null;
     var san = sanOf(this.pos, m, list);
     this._snaps.push(clonePos(this.pos));
@@ -406,6 +454,7 @@
       ['Black', meta.Black || 'Noirs'],
       ['Result', result]
     ];
+    if (this.chess960) tags.push(['Variant', 'Chess960']);
     if (this.startFen !== START) { tags.push(['SetUp', '1']); tags.push(['FEN', this.startFen]); }
     var head = '', i;
     for (i = 0; i < tags.length; i++) head += '[' + tags[i][0] + ' "' + String(tags[i][1]).replace(/"/g, "'") + '"]\n';
@@ -466,8 +515,31 @@
     return { w: w, b: b, diff: w - b };
   }
 
+  // Position de départ Fischer n° n (0..959, numérotation de Scharnagl : 518 = position classique) ; n absent =
+  // tirage au hasard. Fous de couleurs opposées, roi entre les deux tours, Noirs en miroir des Blancs.
+  var KNIGHTS = [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]];
+  function start960(n) {
+    if (n == null) n = Math.floor(Math.random() * 960);
+    n = Math.max(0, Math.min(959, Math.floor(n)));
+    var row = [null, null, null, null, null, null, null, null], x = n, i;
+    function empties() { var e = []; for (var f = 0; f < 8; f++) if (!row[f]) e.push(f); return e; }
+    row[2 * (x % 4) + 1] = 'B'; x = Math.floor(x / 4);
+    row[2 * (x % 4)] = 'B'; x = Math.floor(x / 4);
+    row[empties()[x % 6]] = 'Q'; x = Math.floor(x / 6);
+    var e = empties();
+    row[e[KNIGHTS[x][0]]] = 'N'; row[e[KNIGHTS[x][1]]] = 'N';
+    e = empties();
+    row[e[0]] = 'R'; row[e[1]] = 'K'; row[e[2]] = 'R';
+    var back = row.join('');
+    var cs = FILES.charAt(e[2]).toUpperCase() + FILES.charAt(e[0]).toUpperCase() + FILES.charAt(e[2]) + FILES.charAt(e[0]);
+    return back.toLowerCase() + '/pppppppp/8/8/8/8/PPPPPPPP/' + back + ' w ' + cs + ' - 0 1';
+  }
+
+  // Une FEN est-elle en notation Chess960 (droits de roque par colonne) ? Sert à régler le moteur.
+  function is960(fen) { var p = String(fen).split(/\s+/); return p.length > 2 && /[A-Ha-h]/.test(p[2]); }
+
   return {
-    START: START, Game: Game, replay: replay, perft: perft,
+    START: START, Game: Game, replay: replay, perft: perft, start960: start960, is960: is960,
     sqName: sqName, sqIndex: sqIndex, other: other, parseFen: parseFen, material: material
   };
 });
