@@ -423,5 +423,23 @@
     "difficulty": "moyen",
     "description": null,
     "addedAt": 1792480138394
+  },
+  {
+    "id": "gh-108",
+    "fen": "2n1N3/1k6/8/K7/B7/8/7p/8 w - - 0 1",
+    "solution": [
+      "a4c2",
+      "h2h1q",
+      "c2e4",
+      "h1e4",
+      "e8d6",
+      "c8d6"
+    ],
+    "title": "Problème du 21/10/2026",
+    "author": "Arthur",
+    "category": "Pat",
+    "difficulty": "difficile",
+    "description": "Les compositeurs d’études raffolent décidément des pions passés dont la promotion semble inéluctable ! Le facétieux problémiste tchèque Ladislav Prokes (1884-1966) a en effet placé dans cette finale de pièces légères un pion noir en h2 qui semble valoir toutes les pièces de l’échiquier à lui tout seul. En effet les pièces blanches semblent totalement impuissantes à arrêter la promotion du pion noir. Trouve une bonne idée avec les blancs et fais-la fonctionner !",
+    "addedAt": 1792514223325
   }
 ]
