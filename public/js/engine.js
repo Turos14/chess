@@ -78,6 +78,9 @@
         cb(mm ? { from: mm[1], to: mm[2], promo: mm[3] || null } : null);
       }
     };
+    // Roques 960 : le moteur doit lire les droits de roque par colonne et annoncer « roi sur tour » (e1h1),
+    // ce que Chess.Game.move accepte. Réglé à chaque coup d'après la FEN (une même poignée peut servir aux deux).
+    this.worker.postMessage('setoption name UCI_Chess960 value ' + (Chess.is960(fen) ? 'true' : 'false'));
     this.worker.postMessage('position fen ' + fen);
     this.worker.postMessage('go movetime ' + p.moveTime);
   };

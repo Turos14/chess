@@ -540,6 +540,7 @@
 
   return {
     START: START, Game: Game, replay: replay, perft: perft, start960: start960, is960: is960,
+    LABEL_960: 'Échecs aléatoires Fischer (960) : pièces de la 1re rangée placées au hasard, identiques pour les deux camps',
     sqName: sqName, sqIndex: sqIndex, other: other, parseFen: parseFen, material: material
   };
 });

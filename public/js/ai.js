@@ -3,7 +3,7 @@
  * seulement à régler la force du moteur, dans un seul sens, elle n'est jamais modifiée par ces parties. */
 (function () {
   'use strict';
-  var form, colorSeg, eloInput, nameInput, cfgSaved;
+  var form, colorSeg, eloInput, nameInput, c960Box, cfgSaved;
 
   function init() {
     cfgSaved = U.store.get('ai-cfg', { name: '', color: 'w' });
@@ -22,6 +22,8 @@
     colorSeg = U.segmented(U.$('ai-color'), [
       { v: 'w', label: 'Blancs' }, { v: 'b', label: 'Noirs' }, { v: 'r', label: 'Au hasard' }
     ], cfgSaved.color || 'w');
+    c960Box = U.checkbox(Chess.LABEL_960, !!cfgSaved.c960);
+    U.$('ai-960').appendChild(c960Box);
     form = new TimeForm(U.$('ai-tf'), { key: 'tc-ai', allowNone: true, defaults: { on: false } });
     U.soundControl(U.$('ai-sound'));
 
@@ -32,14 +34,14 @@
       var elo = Math.round(Number(eloInput.value));
       if (!isFinite(elo)) elo = Elo.DEFAULT_RATING;
       elo = Math.min(Elo.MAX_RATING, Math.max(Elo.MIN_RATING, elo));
-      var cfg = { name: nameInput.value.replace(/^\s+|\s+$/g, '') || 'Vous', elo: elo, color: color, tc: form.get() };
-      U.store.set('ai-cfg', { name: cfg.name, color: colorSeg.get() });
+      var cfg = { name: nameInput.value.replace(/^\s+|\s+$/g, '') || 'Vous', elo: elo, color: color, tc: form.get(), c960: c960Box.input.checked };
+      U.store.set('ai-cfg', { name: cfg.name, color: colorSeg.get(), c960: cfg.c960 });
       start(cfg);
     });
   }
 
   function start(cfg) {
-    var game = new Chess.Game();
+    var game = new Chess.Game(cfg.c960 ? Chess.start960() : null);
     var clock = cfg.tc.enabled ? new ChessClock(cfg.tc) : null;
     var over = null, paused = false, thinking = false, destroyed = false, engineHandle = null;
     var aiColor = Chess.other(cfg.color);
@@ -84,7 +86,7 @@
       },
       trackElo: function () { return false; },
       head: function () {
-        var s = 'Contre l’IA (' + cfg.elo + ') · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
+        var s = 'Contre l’IA (' + cfg.elo + ')' + (game.chess960 ? ' · Fischer 960' : '') + ' · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
         return thinking ? s + ' · l’IA réfléchit…' : s;
       },
       status: function (color) {

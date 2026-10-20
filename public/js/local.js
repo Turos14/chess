@@ -1,7 +1,7 @@
 /* Partie d'échecs locale (deux joueurs, un seul appareil, sans IA). */
 (function () {
   'use strict';
-  var form, viewSeg, faceBox, eloBox, eloStartW, eloStartB, cfgSaved;
+  var form, viewSeg, faceBox, eloBox, eloStartW, eloStartB, c960Box, cfgSaved;
 
   function init() {
     cfgSaved = U.store.get('local-cfg', { w: '', b: '', view: 'white', face: false, elo: true });
@@ -18,20 +18,22 @@
     ], cfgSaved.view);
     faceBox = U.checkbox('Face à face : pièces du joueur du haut inversées (appareil posé à plat entre les joueurs)', cfgSaved.face);
     U.$('lc-face').appendChild(faceBox);
+    c960Box = U.checkbox(Chess.LABEL_960, !!cfgSaved.c960);
+    U.$('lc-960').appendChild(c960Box);
     U.soundControl(U.$('lc-sound'));
     U.on(U.$('lc-start'), 'click', function () {
       var cfg = {
         names: { w: U.$('lc-w').value.replace(/^\s+|\s+$/g, '') || 'Blancs', b: U.$('lc-b').value.replace(/^\s+|\s+$/g, '') || 'Noirs' },
         tc: form.get(), view: viewSeg.get(), face: faceBox.input.checked, elo: eloBox.input.checked,
-        startW: eloStartW.get(), startB: eloStartB.get()
+        startW: eloStartW.get(), startB: eloStartB.get(), c960: c960Box.input.checked
       };
-      U.store.set('local-cfg', { w: U.$('lc-w').value, b: U.$('lc-b').value, view: cfg.view, face: cfg.face, elo: cfg.elo });
+      U.store.set('local-cfg', { w: U.$('lc-w').value, b: U.$('lc-b').value, view: cfg.view, face: cfg.face, elo: cfg.elo, c960: cfg.c960 });
       start(cfg);
     });
   }
 
   function start(cfg) {
-    var game = new Chess.Game();
+    var game = new Chess.Game(cfg.c960 ? Chess.start960() : null);
     var clock = cfg.tc.enabled ? new ChessClock(cfg.tc) : null;
     var over = null, paused = false;
 
@@ -69,7 +71,7 @@
       trackElo: function () { return cfg.elo; },
       eloStart: function () { return { w: cfg.startW, b: cfg.startB }; },
       head: function () {
-        return 'Partie locale · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
+        return 'Partie locale' + (game.chess960 ? ' · Fischer 960' : '') + ' · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
       },
       status: function (color) {
         var res = ctrl.getResult();
