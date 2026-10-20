@@ -313,9 +313,11 @@
     ],
     "title": "Mat de l’escalier",
     "author": "Arthur",
-    "category": "mat",
-    "difficulty": null,
-    "addedAt": 1792394112920
+    "category": "apprentissage de mat",
+    "difficulty": "facile",
+    "description": null,
+    "addedAt": 1792394112920,
+    "editedAt": 1792479637659
   },
   {
     "id": "gh-92",
