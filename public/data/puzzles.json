@@ -403,5 +403,25 @@
     "difficulty": "difficile",
     "description": "La position est particulièrement complexe avec une structure de pion très atypique à l’aile roi. Les noirs disposent d’un fou de plus, de deux pions de plus, et ils sont affublés de curieux pions doublés sur les colonnes g et h. Le problémiste autrichien Alois Wotawa (1896-1970) cherche ainsi à t’embrouiller et à te cacher la solution ! Trouve ton chemin dans l’obscurité et éclaire d’une lumière révélatrice toute la vérité de cette position mystérieuse !",
     "addedAt": 1792443262476
+  },
+  {
+    "id": "gh-107",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "solution": [
+      "e2e4",
+      "e7e5",
+      "g1f3",
+      "g8f6",
+      "f1c4",
+      "f8c5",
+      "e1g1",
+      "e8g8"
+    ],
+    "title": "italienne",
+    "author": "Arthur",
+    "category": "Ouverture",
+    "difficulty": "moyen",
+    "description": null,
+    "addedAt": 1792480138394
   }
 ]
