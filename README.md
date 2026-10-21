@@ -211,6 +211,15 @@ Les étiquettes doivent exister dans le dépôt (GitHub ignore une étiquette in
 sont créées par `.github/workflows/labels.yml`, lancé à chaque modification de ce fichier sur `main` (ou à la main
 depuis l'onglet Actions).
 
+## Relais : proposer sans compte GitHub
+
+Le dossier `relais/` est un **deuxième projet**, hébergé à part (Vercel, adresse séparée) : il reçoit les
+propositions / modifications / suppressions envoyées depuis l'appli sans compte GitHub et crée lui-même les
+tickets (même format, mêmes Actions). Une proposition envoyée ainsi attend l'étiquette `puzzle-approved` de
+Turos14 avant d'être publiée. Mise en ligne et fonctionnement : voir [`relais/README.md`](relais/README.md). Tant
+que l'adresse du relais (`RELAY_URL` dans `public/js/puzzles.js`) est vide, ou si le relais ne répond pas,
+l'appli ouvre un ticket GitHub pré-rempli comme avant.
+
 ## Pièces
 
 Les pièces sont des SVG dans `public/pieces/` (jeu « Cburnett », licence dans `LICENSE.txt`), branchés par **`public/css/pieces.css`**.
@@ -242,6 +251,7 @@ scripts/puzzle-intake.js  validation + intégration d'un problème proposé (lan
 scripts/puzzle-common.js  lecture/validation des tickets et publication, partagé par intake et edit
 scripts/puzzle-edit.js    modification d'un problème, déclenchée par l'étiquette edit-approved (Action GitHub)
 scripts/puzzle-delete.js  suppression d'un problème, déclenchée par l'étiquette delete-approved (Action GitHub)
+relais/              2e projet (Vercel) : envoi des problèmes sans compte GitHub, voir relais/README.md
 .github/workflows/   déploiement GitHub Pages, intégration et suppression des problèmes
 .github/ISSUE_TEMPLATE/puzzle.yml  formulaire du ticket « Proposer un problème »
 .github/ISSUE_TEMPLATE/delete-puzzle.yml  formulaire du ticket « Supprimer un problème »

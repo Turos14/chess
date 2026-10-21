@@ -66,7 +66,12 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   pas les workflows). Modification et suppression exigent une étiquette posée à la main par Turos14
   (`edit-approved` / `delete-approved`). Les libellés des champs des templates (`### <Label>` dans le corps du
   ticket) et les paramètres d'URL de pré-remplissage (`id` des champs) doivent rester synchronisés avec
-  `puzzle-common.js` et `openGithubIssue` dans `puzzles.js`. `category` est un texte ou une liste de textes. Les ids sont
+  `puzzle-common.js` et `openGithubIssue` dans `puzzles.js`. `category` est un texte ou une liste de textes.
+- **Relais (`relais/`)** : 2e projet, fonction Vercel qui crée les tickets à la place des visiteurs sans compte
+  GitHub (`lib/ticket.js` produit le même corps de ticket que les templates — `test/relais.test.js` vérifie qu'il
+  est relu par `puzzle-common.js`). Ses propositions portent `puzzle-pending` et ne sont publiées qu'à l'ajout de
+  `puzzle-approved`. Côté appli, `RELAY_URL` (vide = tickets GitHub comme avant). Le relais n'est déployé que par
+  Vercel (pas par `deploy.yml`) ; c'est le seul code hors `public/` exécuté en production. Les ids sont
   `gh-<n° de ticket>` (et `seed-N` pour les problèmes de départ). `test/puzzles.test.js` valide ce fichier :
   si l'Action change le format d'un champ, le test doit suivre.
 - **Pièces** : SVG Cburnett dans `public/pieces/`, branchés par `public/css/pieces.css`
