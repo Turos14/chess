@@ -17,6 +17,10 @@
   var P = {};
   var REPO = 'https://github.com/Turos14/chess';
   var DESCRIPTION_MAX = 1000;   // même limite que scripts/puzzle-common.js
+  // Relais (dossier relais/ du dépôt, hébergé à part) : permet de proposer / modifier / supprimer un problème sans
+  // compte GitHub. Vide = pas encore en ligne : on ouvre alors un ticket GitHub pré-rempli comme avant (et aussi
+  // si le relais ne répond pas). window.PUZZLE_RELAY permet de le remplacer (tests).
+  var RELAY_URL = window.PUZZLE_RELAY || '';
   var DIFFICULTIES = ['facile', 'moyen', 'difficile'];
   var DIFF_LABEL = { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile' };
   var allPuzzles = null, visiblePuzzles = null;
@@ -611,10 +615,40 @@
   // tant que ce n'est pas fait.
   function requestDeletion(p) {
     var issueTitle = '[Suppression] ' + (p.title || ('Problème #' + p.id));
-    var url = REPO + '/issues/new?template=delete-puzzle.yml'
-      + '&title=' + encodeURIComponent(issueTitle)
-      + '&ids=' + encodeURIComponent(p.id);
-    window.open(url, '_blank');
+    function viaGithub() {
+      window.open(REPO + '/issues/new?template=delete-puzzle.yml'
+        + '&title=' + encodeURIComponent(issueTitle)
+        + '&ids=' + encodeURIComponent(p.id), '_blank');
+    }
+    if (!RELAY_URL) { viaGithub(); return; }
+    var node = U.el('div');
+    var reasonIn = U.el('input', 'txt'); reasonIn.placeholder = 'Raison (optionnel) : doublon, erreur…'; reasonIn.setAttribute('autocomplete', 'off');
+    node.appendChild(reasonIn);
+    U.dialog({
+      title: 'Demander la suppression',
+      text: '« ' + (p.title || ('Problème #' + p.id)) + ' » ne sera supprimé qu’après validation par Turos14.',
+      node: node,
+      buttons: [{ label: 'Annuler' }, { label: 'Envoyer', primary: true, fn: function () {
+        sendToRelay({ kind: 'delete', ids: p.id, title: p.title || '', reason: reasonIn.value }, viaGithub,
+          'Demande de suppression envoyée. Elle sera appliquée après validation par Turos14.');
+      } }]
+    });
+  }
+
+  // Envoie la demande au relais ; en cas de relais injoignable, retombe sur le ticket GitHub (fallback).
+  function sendToRelay(payload, fallback, okText) {
+    U.toast('Envoi…');
+    U.ajax('POST', RELAY_URL, payload, function (err, res) {
+      // Bouton (geste de l'utilisateur) plutôt qu'ouverture directe : un window.open après une requête est bloqué
+      // par la plupart des navigateurs mobiles.
+      if (err && err.network) {
+        U.dialog({ title: 'Relais indisponible', text: 'L’envoi direct ne répond pas. Tu peux passer par un ticket GitHub à la place (compte GitHub gratuit nécessaire).',
+          buttons: [{ label: 'Annuler' }, { label: 'Ouvrir GitHub', primary: true, fn: function () { fallback(); } }] });
+        return;
+      }
+      if (err) { U.dialog({ title: 'Envoi refusé', text: err.message, buttons: [{ label: 'OK', primary: true }] }); return; }
+      U.dialog({ title: 'Merci !', text: okText + (res.number ? ' (suivi : demande n° ' + res.number + ')' : ''), buttons: [{ label: 'OK', primary: true }] });
+    }, 20000);
   }
 
   /* ---------- Proposer un problème ---------- */
@@ -623,6 +657,19 @@
   // nouvelle proposition (ticket "puzzle").
   function openGithubIssue(d, editing) {
     var uci = d.solutionRaw.replace(/^\s+|\s+$/g, '').split(/\s+/).join(' ');
+    if (RELAY_URL) {
+      var payload = { kind: editing ? 'edit' : 'propose', fen: d.fen, solution: uci, title: d.title, category: d.category,
+        difficulty: d.difficulty || '', description: d.description };
+      if (editing) payload.id = editing.id; else payload.author = d.author;
+      sendToRelay(payload, function () { openGithubTicket(d, editing, uci); }, editing
+        ? 'Modification envoyée. Elle sera appliquée après validation par Turos14.'
+        : 'Problème envoyé. Il apparaîtra dans la liste après validation par Turos14.');
+      return;
+    }
+    openGithubTicket(d, editing, uci);
+  }
+
+  function openGithubTicket(d, editing, uci) {
     var url = REPO + '/issues/new?template=' + (editing ? 'edit-puzzle.yml' : 'puzzle.yml')
       + '&title=' + encodeURIComponent(editing
         ? '[Modification] ' + (editing.title || ('Problème #' + editing.id)) + ' (' + editing.id + ')'
@@ -686,7 +733,7 @@
     node.appendChild(err);
     var buttons = [{ label: 'Annuler' }];
     if (!prefill) buttons.push({ label: 'Éditeur visuel', fn: function (h) { h.close(true); P.openEditor(editing); } });
-    buttons.push({ label: 'Continuer sur GitHub', primary: true, keep: true, fn: function (h) {
+    buttons.push({ label: RELAY_URL ? 'Envoyer' : 'Continuer sur GitHub', primary: true, keep: true, fn: function (h) {
       var fen = prefill ? prefill.fen : fenIn.value;
       var solRaw = prefill ? prefill.solution.join(' ') : solIn.value;
       var msg = validatePuzzle(fen, solRaw);
@@ -703,9 +750,12 @@
     } });
     U.dialog({
       title: editing ? 'Modifier le problème' : 'Proposer un problème',
-      text: editing
-        ? 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). La modification n’est appliquée qu’après validation manuelle par Turos14.'
-        : 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). Une vérification automatique l’ajoute à la liste publique si tout est valide — visible de tout le monde en moins d’une minute.',
+      text: RELAY_URL
+        ? (editing ? 'Envoyé directement, sans compte. La modification n’est appliquée qu’après validation par Turos14.'
+          : 'Envoyé directement, sans compte. Le problème est vérifié puis publié après validation par Turos14.')
+        : editing
+          ? 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). La modification n’est appliquée qu’après validation manuelle par Turos14.'
+          : 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). Une vérification automatique l’ajoute à la liste publique si tout est valide — visible de tout le monde en moins d’une minute.',
       node: node,
       buttons: buttons
     });
