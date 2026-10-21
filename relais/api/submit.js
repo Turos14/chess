@@ -52,7 +52,13 @@ module.exports = async function handler(req, res) {
     if (!process.env.GITHUB_TOKEN) return send(res, 200, { ok: false, token: 'absent' });
     try {
       var c = await fetch('https://api.github.com/repos/' + REPO + '/issues?per_page=1', { headers: githubHeaders() });
-      return send(res, 200, { ok: c.ok, repo: REPO, github: c.status, origins: ORIGINS });
+      // Test d'écriture sans rien créer : un ticket au titre vide est refusé par GitHub — 422 (invalide) si la clé
+      // a le droit d'écrire, 403 si elle ne l'a pas (le contrôle des droits passe avant la validation).
+      var w = await fetch('https://api.github.com/repos/' + REPO + '/issues', { method: 'POST', headers: githubHeaders(), body: JSON.stringify({ title: '' }) });
+      return send(res, 200, {
+        ok: c.ok && w.status === 422, repo: REPO, lecture: c.status, ecriture: w.status === 422 ? 'autorisée' : w.status,
+        droitsAttendus: w.headers.get('x-accepted-github-permissions') || undefined, origins: ORIGINS
+      });
     } catch (e) { return send(res, 200, { ok: false, github: 'injoignable' }); }
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'Méthode non autorisée.' });
