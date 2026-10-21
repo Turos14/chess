@@ -20,7 +20,7 @@
   // Relais (dossier relais/ du dépôt, hébergé à part) : permet de proposer / modifier / supprimer un problème sans
   // compte GitHub. Vide = pas encore en ligne : on ouvre alors un ticket GitHub pré-rempli comme avant (et aussi
   // si le relais ne répond pas). window.PUZZLE_RELAY permet de le remplacer (tests).
-  var RELAY_URL = window.PUZZLE_RELAY || '';
+  var RELAY_URL = window.PUZZLE_RELAY || 'https://chess-relais.vercel.app/api/submit';
   var DIFFICULTIES = ['facile', 'moyen', 'difficile'];
   var DIFF_LABEL = { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile' };
   var allPuzzles = null, visiblePuzzles = null;
@@ -641,7 +641,7 @@
     U.ajax('POST', RELAY_URL, payload, function (err, res) {
       // Bouton (geste de l'utilisateur) plutôt qu'ouverture directe : un window.open après une requête est bloqué
       // par la plupart des navigateurs mobiles.
-      if (err && err.network) {
+      if (err && (err.network || err.status >= 500)) {   // injoignable, ou clé GitHub refusée (502)
         U.dialog({ title: 'Relais indisponible', text: 'L’envoi direct ne répond pas. Tu peux passer par un ticket GitHub à la place (compte GitHub gratuit nécessaire).',
           buttons: [{ label: 'Annuler' }, { label: 'Ouvrir GitHub', primary: true, fn: function () { fallback(); } }] });
         return;

@@ -28,6 +28,7 @@ existantes (`scripts/puzzle-*.js`) les traitent sans changement.
    - Deploy. L'adresse du relais est affichée (ex. `https://echecs-relais.vercel.app`).
 3. **Brancher l'appli** — mettre l'adresse `https://<projet>.vercel.app/api/submit` dans `RELAY_URL`
    (en tête de `public/js/puzzles.js`). Tant que `RELAY_URL` est vide, l'appli ouvre des tickets GitHub comme avant.
+   Adresse actuelle : **https://chess-relais.vercel.app** (projet Vercel `chess-relais`).
 
 Ensuite, chaque push sur `main` met le relais à jour automatiquement (Vercel suit le dépôt).
 
