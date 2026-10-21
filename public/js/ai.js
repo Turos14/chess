@@ -86,7 +86,7 @@
       },
       trackElo: function () { return false; },
       head: function () {
-        var s = 'Contre l’IA (' + cfg.elo + ')' + (game.chess960 ? ' · Fischer 960' : '') + ' · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
+        var s = 'Contre l’IA (' + cfg.elo + ')' + (cfg.c960 ? ' · Fischer 960' : '') + ' · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
         return thinking ? s + ' · l’IA réfléchit…' : s;
       },
       status: function (color) {

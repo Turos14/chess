@@ -535,13 +535,12 @@
   }
 
   // Position de départ Fischer : nW = n° de la rangée des Blancs, nB = celle des Noirs, chacune tirée au hasard et
-  // indépendamment si absente (les deux camps n'ont en général pas le même placement) ; start960(518, 518) = position
-  // classique. Les droits de roque sont notés par colonne de tour, propres à chaque camp (ex : HFca).
+  // indépendamment si absente (les deux camps n'ont en général pas le même placement). Choix de l'appli : **pas de
+  // roque** dans ces parties (droits de roque « - »), d'où une FEN classique — le moteur sait pourtant roquer en
+  // 960 si une FEN le demande (droits par colonne de tour, voir en tête de fichier).
   function start960(nW, nB) {
     var w = backRank960(nW), b = backRank960(nB);
-    var cs = FILES.charAt(w.rooks[1]).toUpperCase() + FILES.charAt(w.rooks[0]).toUpperCase() +
-      FILES.charAt(b.rooks[1]) + FILES.charAt(b.rooks[0]);
-    return b.back.toLowerCase() + '/pppppppp/8/8/8/8/PPPPPPPP/' + w.back + ' w ' + cs + ' - 0 1';
+    return b.back.toLowerCase() + '/pppppppp/8/8/8/8/PPPPPPPP/' + w.back + ' w - - 0 1';
   }
 
   // Une FEN est-elle en notation Chess960 (droits de roque par colonne) ? Sert à régler le moteur.
@@ -549,7 +548,7 @@
 
   return {
     START: START, Game: Game, replay: replay, perft: perft, start960: start960, is960: is960,
-    LABEL_960: 'Échecs aléatoires Fischer (960) : pièces de la 1re rangée placées au hasard, différemment pour chaque camp',
+    LABEL_960: 'Échecs aléatoires Fischer (960) : pièces de la 1re rangée placées au hasard, différemment pour chaque camp, sans roque',
     sqName: sqName, sqIndex: sqIndex, other: other, parseFen: parseFen, material: material
   };
 });

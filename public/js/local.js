@@ -71,7 +71,7 @@
       trackElo: function () { return cfg.elo; },
       eloStart: function () { return { w: cfg.startW, b: cfg.startB }; },
       head: function () {
-        return 'Partie locale' + (game.chess960 ? ' · Fischer 960' : '') + ' · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
+        return 'Partie locale' + (cfg.c960 ? ' · Fischer 960' : '') + ' · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
       },
       status: function (color) {
         var res = ctrl.getResult();

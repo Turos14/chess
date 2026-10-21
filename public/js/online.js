@@ -135,7 +135,7 @@
         if (st) {
           if (!st.players.w || !st.players.b) s += ' · en attente d’un adversaire';
           else if (st.tc) s += ' · ' + TimeForm.describe({ w: st.tc, b: st.tc });
-          if (ctrl.game.chess960) s += ' · Fischer 960';
+          if (st.startFen && st.startFen !== Chess.START) s += ' · Fischer 960';
           if (st.spectators) s += ' · ' + st.spectators + ' spectateur' + (st.spectators > 1 ? 's' : '');
           if (st.drawOffer && st.drawOffer === myColor) s += ' · nulle proposée';
         }

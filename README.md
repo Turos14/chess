@@ -41,10 +41,9 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
 - **Échecs aléatoires Fischer (960)** : case à cocher dans les réglages des parties locale, en ligne et contre
   l'IA. Les pièces de la 1re rangée sont tirées au hasard parmi les 960 placements possibles (fous de couleurs
   opposées, roi entre les deux tours), **indépendamment pour chaque camp** : Blancs et Noirs n'ont en général pas
-  le même placement (chacun roque avec ses propres tours). **Roque** : touche le roi puis **sa tour**
-  (ou la case d'arrivée du roi, g1/c1) — le roi arrive toujours en g1/c1 et la tour en f1/d1, comme aux échecs
-  classiques. Fonctionne aussi en ligne (position transmise par l'hôte, conservée en cas de bascule), dans les
-  parties enregistrées et l'export PGN (`[Variant "Chess960"]`).
+  le même placement. **Pas de roque** dans ces parties (choix de l'appli). Fonctionne aussi en ligne (position
+  transmise par l'hôte, conservée en cas de bascule), dans les
+  parties enregistrées et l'export PGN (position de départ dans la balise `FEN`).
 - **Score matériel** affiché dans le bandeau du joueur en avance (ex. « +3 »), recalculé à chaque coup.
 - **Problèmes** (onglet dédié) : liste **publique, partagée entre tous les visiteurs** (contrairement au reste de
   l'appli, qui est propre à chaque appareil). Résolution sur l'échiquier, indice, « Voir la solution », suivi
@@ -124,8 +123,9 @@ fonctionnalité entière (comme le classement Elo) peut sembler ne pas marcher a
   (0-20) + le temps de réflexion, et étendue en dessous de ~1300 en piochant au hasard parmi plusieurs des
   meilleurs coups (Skill Level seul ne descend pas assez bas pour un vrai débutant). Approximatif par nature, et
   calé sur l'Elo **local** de l'app (voir ci-dessus), pas sur un classement FIDE.
-- Fischer 960 : l'option `UCI_Chess960` du moteur est réglée à chaque coup d'après la FEN (droits de roque notés
-  par colonne de tour, ex. `HAha`), le moteur annonce alors ses roques « roi sur tour » (`b1h1`).
+- Fischer 960 : les parties de l'appli sont sans roque, donc en FEN classique pour le moteur. Pour une FEN avec
+  roques 960 (droits notés par colonne de tour, ex. `HAha`), l'option `UCI_Chess960` du moteur est activée
+  automatiquement et il annonce ses roques « roi sur tour » (`b1h1`), ce que `chess.js` accepte.
 - `public/js/engine.js` encapsule le Worker ; `public/js/ai.js` est le mode de jeu (comme `local.js`/`online.js`).
 
 ## Comment marche le mode en ligne
