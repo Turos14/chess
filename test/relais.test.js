@@ -47,7 +47,8 @@ process.env.GITHUB_TOKEN = 'test';
 var sent = [];
 global.fetch = function (url, opts) {
   sent.push({ url: url, opts: opts });
-  return Promise.resolve({ ok: true, status: 201, json: function () { return Promise.resolve({ number: 101, html_url: 'https://github.com/Turos14/chess/issues/101' }); } });
+  // Comme le vrai GitHub avec une clé « fine-grained » : étiquettes ignorées à la création.
+  return Promise.resolve({ ok: true, status: 201, json: function () { return Promise.resolve({ number: 101, html_url: 'https://github.com/Turos14/chess/issues/101', labels: [] }); } });
 };
 function call(method, origin, body, ip) {
   return new Promise(function (resolve) {
@@ -67,6 +68,9 @@ var ORIGIN = 'https://turos14.github.io';
   assert.strictEqual(sent[0].url, 'https://api.github.com/repos/Turos14/chess/issues');
   assert.deepStrictEqual(payload.labels, ['puzzle-pending']);
   assert.strictEqual(sent[0].opts.headers.Authorization, 'Bearer test');
+  assert.strictEqual(sent[1].url, 'https://api.github.com/repos/Turos14/chess/issues/101/labels');
+  assert.deepStrictEqual(JSON.parse(sent[1].opts.body).labels, ['puzzle-pending']);
+  sent.length = 1;
   r = await call('POST', ORIGIN, { kind: 'propose', fen: 'x', solution: 'f1f8' });
   assert.strictEqual(r.status, 400);
   r = await call('POST', ORIGIN, { kind: 'delete', ids: 'gh-1', website: 'spam' });   // champ piège

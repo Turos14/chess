@@ -92,5 +92,18 @@ module.exports = async function handler(req, res) {
     return send(res, 502, { error: 'GitHub a refusé la demande (HTTP ' + r.status + (detail ? ' : ' + detail : '') + ').' });
   }
   var created = await r.json();
+  // GitHub ignore sans erreur les étiquettes passées à la création quand la clé n'a que le droit « Issues »
+  // (constaté avec une clé « fine-grained ») : on les ajoute donc ensuite par la route dédiée, qui l'accepte.
+  // Sans étiquette, le ticket n'entrerait dans aucun circuit d'approbation (voir .github/workflows/).
+  var have = (created.labels || []).map(function (l) { return l.name; });
+  var missing = issue.labels.filter(function (l) { return have.indexOf(l) < 0; });
+  if (missing.length) {
+    try {
+      var lr = await fetch('https://api.github.com/repos/' + REPO + '/issues/' + created.number + '/labels', {
+        method: 'POST', headers: githubHeaders(), body: JSON.stringify({ labels: missing })
+      });
+      if (!lr.ok) console.error('Étiquettes non ajoutées au ticket #' + created.number, lr.status, await lr.text());
+    } catch (e) { console.error('Étiquettes non ajoutées au ticket #' + created.number, e.message); }
+  }
   return send(res, 200, { ok: true, number: created.number, url: created.html_url });
 };
