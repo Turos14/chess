@@ -2,7 +2,7 @@ name: Ajout d'un problème (via Issue)
 
 on:
   issues:
-    types: [opened, edited]
+    types: [opened, edited, labeled]
 
 permissions:
   contents: write
@@ -15,7 +15,16 @@ concurrency:
 
 jobs:
   intake:
-    if: contains(github.event.issue.labels.*.name, 'puzzle')
+    # Deux circuits :
+    #  - ticket ouvert directement sur GitHub (étiquette "puzzle") : traité automatiquement à l'ouverture et à
+    #    chaque modification ;
+    #  - proposition envoyée depuis l'appli via le relais (relais/, sans compte GitHub, étiquette
+    #    "puzzle-pending") : traitée seulement quand Turos14 ajoute l'étiquette "puzzle-approved" (uniquement sur
+    #    cet évènement "labeled" : le ticket ne peut pas être changé après approbation sans nouvelle approbation).
+    if: >-
+      (github.event.action != 'labeled' && contains(github.event.issue.labels.*.name, 'puzzle')) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'puzzle-approved' &&
+       contains(github.event.issue.labels.*.name, 'puzzle-pending'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

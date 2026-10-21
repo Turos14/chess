@@ -22,6 +22,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           gh label create puzzle          --force --color 0e8a16 --description "Proposition d'un problème (traitée automatiquement)"
+          gh label create puzzle-pending  --force --color fbca04 --description "Problème envoyé depuis l'appli, en attente de validation"
+          gh label create puzzle-approved --force --color 0e8a16 --description "Problème approuvé par Turos14 (déclenche le bot)"
           gh label create delete-puzzle   --force --color d93f0b --description "Demande de suppression d'un problème"
           gh label create delete-approved --force --color b60205 --description "Suppression approuvée par Turos14 (déclenche le bot)"
           gh label create edit-puzzle     --force --color 1d76db --description "Demande de modification d'un problème"

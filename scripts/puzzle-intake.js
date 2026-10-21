@@ -16,7 +16,8 @@ var login = process.env.ISSUE_LOGIN || 'quelqu’un';
 
 var read = C.readPuzzleFields(body);
 if (read.error) {
-  C.comment(issueNumber, '❌ ' + read.error + '\n\nModifie ce ticket (le champ en cause) : il sera revérifié automatiquement à l’enregistrement.');
+  C.comment(issueNumber, '❌ ' + read.error + '\n\nModifie ce ticket (le champ en cause) : il sera revérifié automatiquement à l’enregistrement' +
+    ' (pour une proposition envoyée depuis l’appli, étiquette `puzzle-pending` : retirer puis remettre `puzzle-approved`).');
   console.log('Rejeté : ' + read.error);
   process.exit(0);
 }
