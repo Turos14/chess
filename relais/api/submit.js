@@ -18,6 +18,16 @@ function allowed(ip, now) {
   return true;
 }
 
+function githubHeaders() {
+  return {
+    Authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'User-Agent': 'echecs-relais',
+    'Content-Type': 'application/json'
+  };
+}
+
 function send(res, status, obj) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -35,7 +45,16 @@ module.exports = async function handler(req, res) {
     return send(res, 403, { error: 'Origine non autorisée.' });
   }
   if (req.method === 'OPTIONS') { res.statusCode = 204; return res.end(); }
-  if (req.method === 'GET') return send(res, 200, { ok: true, service: 'relais des problèmes' });
+  if (req.method === 'GET') {
+    // Diagnostic sans rien créer : GET /api/submit?check=1 teste la clé GitHub en lecture sur le dépôt
+    // (401 = clé invalide ou expirée, 404 = clé sans accès au dépôt). La clé elle-même n'est jamais renvoyée.
+    if (!/[?&]check=1\b/.test(req.url || '')) return send(res, 200, { ok: true, service: 'relais des problèmes' });
+    if (!process.env.GITHUB_TOKEN) return send(res, 200, { ok: false, token: 'absent' });
+    try {
+      var c = await fetch('https://api.github.com/repos/' + REPO + '/issues?per_page=1', { headers: githubHeaders() });
+      return send(res, 200, { ok: c.ok, repo: REPO, github: c.status, origins: ORIGINS });
+    } catch (e) { return send(res, 200, { ok: false, github: 'injoignable' }); }
+  }
   if (req.method !== 'POST') return send(res, 405, { error: 'Méthode non autorisée.' });
   if (!process.env.GITHUB_TOKEN) return send(res, 500, { error: 'Relais mal configuré (GITHUB_TOKEN manquant).' });
 
@@ -54,21 +73,17 @@ module.exports = async function handler(req, res) {
   try {
     r = await fetch('https://api.github.com/repos/' + REPO + '/issues', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': 'echecs-relais',
-        'Content-Type': 'application/json'
-      },
+      headers: githubHeaders(),
       body: JSON.stringify({ title: issue.title, body: issue.body, labels: issue.labels })
     });
   } catch (e) {
     return send(res, 502, { error: 'GitHub injoignable, réessaie plus tard.' });
   }
   if (!r.ok) {
-    console.error('GitHub a refusé la création du ticket', r.status, await r.text());
-    return send(res, 502, { error: 'GitHub a refusé la demande (HTTP ' + r.status + ').' });
+    var detail = '';
+    try { detail = (await r.json()).message || ''; } catch (e) { /* ignore */ }
+    console.error('GitHub a refusé la création du ticket', r.status, detail);
+    return send(res, 502, { error: 'GitHub a refusé la demande (HTTP ' + r.status + (detail ? ' : ' + detail : '') + ').' });
   }
   var created = await r.json();
   return send(res, 200, { ok: true, number: created.number, url: created.html_url });

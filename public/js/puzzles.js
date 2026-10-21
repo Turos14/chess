@@ -642,7 +642,8 @@
       // Bouton (geste de l'utilisateur) plutôt qu'ouverture directe : un window.open après une requête est bloqué
       // par la plupart des navigateurs mobiles.
       if (err && (err.network || err.status >= 500)) {   // injoignable, ou clé GitHub refusée (502)
-        U.dialog({ title: 'Relais indisponible', text: 'L’envoi direct ne répond pas. Tu peux passer par un ticket GitHub à la place (compte GitHub gratuit nécessaire).',
+        var why = err.status >= 500 ? err.message : 'pas de réponse' + (err.status ? ' (HTTP ' + err.status + ')' : '') + ' — adresse de l’appli : ' + location.origin;
+        U.dialog({ title: 'Relais indisponible', text: 'L’envoi direct n’a pas abouti (' + why + '). Tu peux passer par un ticket GitHub à la place (compte GitHub gratuit nécessaire).',
           buttons: [{ label: 'Annuler' }, { label: 'Ouvrir GitHub', primary: true, fn: function () { fallback(); } }] });
         return;
       }
