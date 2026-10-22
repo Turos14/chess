@@ -442,5 +442,21 @@
     "description": "Les compositeurs d’études raffolent décidément des pions passés dont la promotion semble inéluctable ! Le facétieux problémiste tchèque Ladislav Prokes (1884-1966) a en effet placé dans cette finale de pièces légères un pion noir en h2 qui semble valoir toutes les pièces de l’échiquier à lui tout seul. En effet les pièces blanches semblent totalement impuissantes à arrêter la promotion du pion noir. Trouve une bonne idée avec les blancs et fais-la fonctionner !",
     "addedAt": 1792514223325,
     "editedAt": 1792567088437
+  },
+  {
+    "id": "gh-123",
+    "fen": "8/4p3/1p2ppb1/kP2B2p/p1K1p2b/P1NpP3/2PP4/8 w - - 0 1",
+    "solution": [
+      "c3b1",
+      "f6e5",
+      "c2c3",
+      "g6e8"
+    ],
+    "title": "problème du 22/10/2026",
+    "author": "arthur",
+    "category": "problème du jour",
+    "difficulty": "difficile",
+    "description": "Quel désordre sur l’échiquier ! Les pièces et les pions semblent placés un peu aléatoirement, mais quand on fait le compte, on remarque que le problémiste russe Leonid Kubbel (1891-1942) a fait en sorte que les noirs aient un fou et 3 pions de plus que les blancs. Par ailleurs, le fou blanc en e5 est attaqué par un pion noir (on dit en prise) et le pion noir en d3 rêve de capturer le pion blanc en c2 et de faire dame. Trouve la meilleure continuation pour les blancs !",
+    "addedAt": 1792670888641
   }
 ]
