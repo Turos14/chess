@@ -458,5 +458,28 @@
     "difficulty": "difficile",
     "description": "Quel désordre sur l’échiquier ! Les pièces et les pions semblent placés un peu aléatoirement, mais quand on fait le compte, on remarque que le problémiste russe Leonid Kubbel (1891-1942) a fait en sorte que les noirs aient un fou et 3 pions de plus que les blancs. Par ailleurs, le fou blanc en e5 est attaqué par un pion noir (on dit en prise) et le pion noir en d3 rêve de capturer le pion blanc en c2 et de faire dame. Trouve la meilleure continuation pour les blancs !",
     "addedAt": 1792670888641
+  },
+  {
+    "id": "gh-124",
+    "fen": "5k2/2p1p3/2P1Q3/1q1pp3/pP5b/3P4/4K3/8 w - - 0 1",
+    "solution": [
+      "e6c8",
+      "f8f7",
+      "c8b7",
+      "b5b6",
+      "b7b6",
+      "c7b6",
+      "c6c7",
+      "a4a3",
+      "c7c8q",
+      "a3a2",
+      "c8a8"
+    ],
+    "title": "Meilleur coup",
+    "author": "Arthur",
+    "category": "Meilleur coup",
+    "difficulty": "difficile",
+    "description": null,
+    "addedAt": 1792688323266
   }
 ]
