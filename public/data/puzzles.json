@@ -470,5 +470,19 @@
     "difficulty": "moyen",
     "description": null,
     "addedAt": 1792667173392
+  },
+  {
+    "id": "gh-115",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "solution": [
+      "d2d4",
+      "d7d5"
+    ],
+    "title": "Aa",
+    "author": "Aaa",
+    "category": "Aa",
+    "difficulty": null,
+    "description": "Aa",
+    "addedAt": 1792669426425
   }
 ]
