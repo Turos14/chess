@@ -456,5 +456,19 @@
     "difficulty": "moyen",
     "description": null,
     "addedAt": 1792666377562
+  },
+  {
+    "id": "gh-114",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "solution": [
+      "d2d4",
+      "d7d5"
+    ],
+    "title": "Test v",
+    "author": "Arthur",
+    "category": "Test v",
+    "difficulty": "moyen",
+    "description": null,
+    "addedAt": 1792667173392
   }
 ]
