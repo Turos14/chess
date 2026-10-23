@@ -504,5 +504,24 @@
     "difficulty": "difficile",
     "description": "Le problème d’échecs à résoudre cette semaine est une position sortie de l’imagination du maître international allemand Kurt Richter (1900-1969). Les blancs ont le trait dans la position suivante (c’est-à-dire que c’est aux blancs de jouer leur coup). Les blancs ont une tour nette de plus mais la promotion à dame des pions noirs sur la troisième rangée semble inarrêtable. Vois-tu comment retourner cette situation a priori désespérée avec les pièces blanches ?",
     "addedAt": 1792743088671
+  },
+  {
+    "id": "gh-126",
+    "fen": "8/8/p1p2p2/q1N1kP2/6P1/1PP1B3/1K6/8 w - - 0 1",
+    "solution": [
+      "c3c4",
+      "a5c7",
+      "e3f4",
+      "e5f4",
+      "c5e6",
+      "f4g4",
+      "e6c7"
+    ],
+    "title": "meilleur coup",
+    "author": "arthur",
+    "category": "meilleur coup",
+    "difficulty": "difficile",
+    "description": null,
+    "addedAt": 1792744115349
   }
 ]
