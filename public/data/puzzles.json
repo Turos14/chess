@@ -481,5 +481,28 @@
     "difficulty": "difficile",
     "description": null,
     "addedAt": 1792688323266
+  },
+  {
+    "id": "gh-125",
+    "fen": "8/kp6/4R3/1P2K3/8/3pp3/8/8 w - - 0 1",
+    "solution": [
+      "e5d6",
+      "d3d2",
+      "d6c7",
+      "d2d1q",
+      "e6a6",
+      "b7a6",
+      "b5b6",
+      "a7a8",
+      "b6b7",
+      "a8a7",
+      "b7b8q"
+    ],
+    "title": "problème du 23/10/2026",
+    "author": "arthur",
+    "category": "problème du jour",
+    "difficulty": "difficile",
+    "description": "Le problème d’échecs à résoudre cette semaine est une position sortie de l’imagination du maître international allemand Kurt Richter (1900-1969). Les blancs ont le trait dans la position suivante (c’est-à-dire que c’est aux blancs de jouer leur coup). Les blancs ont une tour nette de plus mais la promotion à dame des pions noirs sur la troisième rangée semble inarrêtable. Vois-tu comment retourner cette situation a priori désespérée avec les pièces blanches ?",
+    "addedAt": 1792743088671
   }
 ]
