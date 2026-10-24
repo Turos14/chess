@@ -626,9 +626,9 @@
     node.appendChild(reasonIn);
     U.dialog({
       title: 'Demander la suppression',
-      text: '« ' + (p.title || ('Problème #' + p.id)) + ' » ne sera supprimé qu’après validation par Turos14.',
+      text: '« ' + (p.title || ('Problème #' + p.id)) + ' » ne sera supprimé qu’après validation par Turos14. « Envoyer » : directement, sans compte ; « Ticket GitHub » : ouvre un ticket pré-rempli (compte GitHub nécessaire).',
       node: node,
-      buttons: [{ label: 'Annuler' }, { label: 'Envoyer', primary: true, fn: function () {
+      buttons: [{ label: 'Annuler' }, { label: 'Ticket GitHub', fn: viaGithub }, { label: 'Envoyer', primary: true, fn: function () {
         sendToRelay({ kind: 'delete', ids: p.id, title: p.title || '', reason: reasonIn.value }, viaGithub,
           'Demande de suppression envoyée. Elle sera appliquée après validation par Turos14.');
       } }]
@@ -656,9 +656,10 @@
   // d : {fen, solutionRaw, title, author, category, difficulty, description}. editing : problème modifié (ticket
   // "edit-puzzle", traité seulement après approbation manuelle — voir .github/workflows/puzzle-edit.yml), sinon
   // nouvelle proposition (ticket "puzzle").
-  function openGithubIssue(d, editing) {
+  // viaGithub : l'utilisateur a choisi « Ticket GitHub » plutôt que l'envoi direct par le relais.
+  function openGithubIssue(d, editing, viaGithub) {
     var uci = d.solutionRaw.replace(/^\s+|\s+$/g, '').split(/\s+/).join(' ');
-    if (RELAY_URL) {
+    if (RELAY_URL && !viaGithub) {
       var payload = { kind: editing ? 'edit' : 'propose', fen: d.fen, solution: uci, title: d.title, category: d.category,
         difficulty: d.difficulty || '', description: d.description };
       if (editing) payload.id = editing.id; else payload.author = d.author;
@@ -734,7 +735,7 @@
     node.appendChild(err);
     var buttons = [{ label: 'Annuler' }];
     if (!prefill) buttons.push({ label: 'Éditeur visuel', fn: function (h) { h.close(true); P.openEditor(editing); } });
-    buttons.push({ label: RELAY_URL ? 'Envoyer' : 'Continuer sur GitHub', primary: true, keep: true, fn: function (h) {
+    function submit(viaGithub) { return function (h) {
       var fen = prefill ? prefill.fen : fenIn.value;
       var solRaw = prefill ? prefill.solution.join(' ') : solIn.value;
       var msg = validatePuzzle(fen, solRaw);
@@ -747,18 +748,23 @@
         U.store.set('puzzleCategory', categoryIn.value);
       }
       h.close(true);
-      openGithubIssue({ fen: fen, solutionRaw: solRaw, title: titleIn.value, author: authorIn.value, category: categoryIn.value, difficulty: diffSeg.get(), description: description }, editing);
-    } });
+      openGithubIssue({ fen: fen, solutionRaw: solRaw, title: titleIn.value, author: authorIn.value, category: categoryIn.value, difficulty: diffSeg.get(), description: description }, editing, viaGithub);
+    }; }
+    // Avec le relais : deux façons d'envoyer, au choix — directement sans compte, ou par un ticket GitHub.
+    if (RELAY_URL) buttons.push({ label: 'Ticket GitHub', keep: true, fn: submit(true) });
+    buttons.push({ label: RELAY_URL ? 'Envoyer' : 'Continuer sur GitHub', primary: true, keep: true, fn: submit(false) });
     U.dialog({
       title: editing ? 'Modifier le problème' : 'Proposer un problème',
       text: RELAY_URL
-        ? (editing ? 'Envoyé directement, sans compte. La modification n’est appliquée qu’après validation par Turos14.'
-          : 'Envoyé directement, sans compte. Le problème est vérifié puis publié après validation par Turos14.')
+        ? '« Envoyer » : directement, sans compte' + (editing ? ' ; la modification est appliquée après validation par Turos14.'
+          : ' ; le problème est vérifié puis publié après validation par Turos14.') +
+          ' « Ticket GitHub » : ouvre un ticket pré-rempli sur GitHub (compte GitHub gratuit nécessaire).'
         : editing
           ? 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). La modification n’est appliquée qu’après validation manuelle par Turos14.'
           : 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). Une vérification automatique l’ajoute à la liste publique si tout est valide — visible de tout le monde en moins d’une minute.',
       node: node,
-      buttons: buttons
+      buttons: buttons,
+      vertical: buttons.length > 3
     });
   }
 

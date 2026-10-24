@@ -216,7 +216,10 @@ depuis l'onglet Actions).
 Le dossier `relais/` est un **deuxième projet**, hébergé à part (Vercel, adresse séparée) : il reçoit les
 propositions / modifications / suppressions envoyées depuis l'appli sans compte GitHub et crée lui-même les
 tickets (même format, mêmes Actions). Une proposition envoyée ainsi attend l'étiquette `puzzle-approved` de
-Turos14 avant d'être publiée. Mise en ligne et fonctionnement : voir [`relais/README.md`](relais/README.md). Tant
+Turos14 avant d'être publiée. Les fenêtres « Proposer », « Modif. » et « Suppr. » laissent le choix : **« Envoyer »**
+(relais, sans compte) ou **« Ticket GitHub »** (ticket pré-rempli, compte GitHub nécessaire — une proposition faite
+ainsi est publiée automatiquement si elle est valide, comme avant). Mise en ligne et fonctionnement : voir
+[`relais/README.md`](relais/README.md). Tant
 que l'adresse du relais (`RELAY_URL` dans `public/js/puzzles.js`) est vide, ou si le relais ne répond pas,
 l'appli ouvre un ticket GitHub pré-rempli comme avant.
 
