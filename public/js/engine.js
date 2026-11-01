@@ -82,7 +82,7 @@
     // ce que Chess.Game.move accepte. Réglé à chaque coup d'après la FEN (une même poignée peut servir aux deux).
     this.worker.postMessage('setoption name UCI_Chess960 value ' + (Chess.is960(fen) ? 'true' : 'false'));
     this.worker.postMessage('position fen ' + fen);
-    this.worker.postMessage('go movetime ' + p.moveTime);
+    this.worker.postMessage('go movetime ' + EngineStrength.moveTime());
   };
 
   Handle.prototype.destroy = function () {

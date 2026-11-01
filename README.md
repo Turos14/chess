@@ -117,7 +117,7 @@ fonctionnalité entière (comme le classement Elo) peut sembler ne pas marcher a
 - Moteur : **Stockfish.js 10** (vendor/, GPL-3.0, voir `stockfish-README.txt`), ~430 Ko, chargé en **Web Worker**
   (protocole UCI par `postMessage`). Choisi pour sa légèreté : les versions récentes de Stockfish nécessitent un
   réseau de neurones (NNUE) de plusieurs dizaines de Mo, disproportionné pour une appli statique. Temps de
-  réflexion fixe : 2 s par coup par défaut, réglable en cours de partie (menu « Niveau de l’IA »).
+  réflexion tiré au hasard entre 1 et 2 s à chaque coup, quel que soit le niveau.
 - Cette version n'a **pas** les options `UCI_LimitStrength`/`UCI_Elo` des Stockfish récents. La difficulté est donc
   calibrée nous-mêmes (`public/js/engineStrength.js`, testable sous Node) à partir du réglage « Skill Level »
   (0-20) + le temps de réflexion, et étendue en dessous de ~1300 en piochant au hasard parmi plusieurs des

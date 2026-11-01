@@ -2,13 +2,12 @@ var assert = require('assert');
 var ES = require('../public/js/engineStrength.js');
 
 // Monotone : plus l'Elo visé est haut, plus le moteur est fort (skill en hausse, aléa en baisse) ;
-// le temps de réflexion est fixe (2 s) quel que soit le niveau.
+// le temps de réflexion est tiré à chaque coup entre 1 et 2 s, quel que soit le niveau.
 var elos = [200, 400, 800, 1100, 1320, 1600, 2000, 2400, 2900, 3200];
 var prev = null;
 elos.forEach(function (e) {
   var p = ES.paramsFor(e);
   assert(p.skill >= 0 && p.skill <= 20, 'skill hors bornes pour ' + e);
-  assert.strictEqual(p.moveTime, 2000, 'moveTime fixe à 2000 ms pour ' + e);
   assert(p.randomTop >= 1, 'randomTop >= 1 pour ' + e);
   if (prev) {
     assert(p.skill >= prev.skill, 'skill doit croître (' + e + ')');
@@ -16,7 +15,17 @@ elos.forEach(function (e) {
   }
   prev = p;
 });
-assert.strictEqual(ES.MOVE_TIME, 2000);
+assert.strictEqual(ES.MOVE_TIME_MIN, 1000);
+assert.strictEqual(ES.MOVE_TIME_MAX, 2000);
+assert.strictEqual(ES.moveTime(0), 1000);
+assert.strictEqual(ES.moveTime(0.5), 1500);
+assert.strictEqual(ES.moveTime(0.9999999), 2000);
+assert.strictEqual(ES.moveTime(1), 2000);          // borne haute incluse, jamais au-delà
+assert.strictEqual(ES.moveTime(-3), 1000);
+for (var k = 0; k < 500; k++) {
+  var t = ES.moveTime();
+  assert(t >= 1000 && t <= 2000 && t === Math.floor(t), 'moveTime aléatoire hors bornes : ' + t);
+}
 
 // Bornes et valeurs extrêmes
 assert.strictEqual(ES.paramsFor(100).skill, 0);
