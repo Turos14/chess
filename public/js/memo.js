@@ -68,6 +68,14 @@
     });
   }
 
+  // Même coup (cases et promotion) : sert à l'entraînement pour comparer le coup joué à celui de la fiche.
+  function sameMove(a, b) {
+    return !!a && !!b && a.from === b.from && a.to === b.to && (a.promo || null) === (b.promo || null);
+  }
+
+  // Entraînement : le joueur doit-il jouer le coup n° ply (0 = premier) ? side : 'w', 'b' ou 'both'.
+  function isTrainerMove(ply, side) { return side === 'both' || (ply % 2 === 0 ? 'w' : 'b') === side; }
+
   // Plus récemment modifiées d'abord.
   function sortList(list) {
     return list.slice().sort(function (a, b) { return (b.updated || 0) - (a.updated || 0); });
@@ -75,6 +83,6 @@
 
   return {
     moveText: moveText, sanitize: sanitize, sanitizeList: sanitizeList, isEmpty: isEmpty, filter: filter,
-    sortList: sortList, TITLE_MAX: TITLE_MAX, NOTES_MAX: NOTES_MAX
+    sortList: sortList, sameMove: sameMove, isTrainerMove: isTrainerMove, TITLE_MAX: TITLE_MAX, NOTES_MAX: NOTES_MAX
   };
 });

@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=21">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=21">
-<link rel="icon" href="icons/icon-192.png?v=21">
-<link rel="stylesheet" href="css/style.css?v=21">
-<link rel="stylesheet" href="css/pieces.css?v=21">
+<link rel="manifest" href="manifest.json?v=22">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=22">
+<link rel="icon" href="icons/icon-192.png?v=22">
+<link rel="stylesheet" href="css/style.css?v=22">
+<link rel="stylesheet" href="css/pieces.css?v=22">
 </head>
 <body>
 
@@ -247,7 +247,7 @@
   <div class="replay">
     <div class="rv-left">
       <div id="mme-board" class="rv-board"></div>
-      <div class="rv-ctrl">
+      <div id="mme-nav" class="rv-ctrl">
         <button id="mme-first" class="btn">«</button><button id="mme-prev" class="btn">‹</button>
         <span id="mme-count" class="rv-count"></span>
         <button id="mme-next" class="btn">›</button><button id="mme-last" class="btn">»</button>
@@ -255,13 +255,27 @@
     </div>
     <div class="rv-right">
       <input id="mme-title" class="txt" placeholder="Titre (ex. Défense française)" autocomplete="off">
-      <div id="mme-status" class="hint"></div>
-      <div id="mme-moves" class="mm-moves"></div>
-      <div class="rv-ctrl2">
-        <button id="mme-undo" class="btn">Annuler le dernier coup</button><button id="mme-flip" class="btn">Retourner</button>
+      <div id="mme-editpane">
+        <div id="mme-status" class="hint"></div>
+        <div id="mme-moves" class="mm-moves"></div>
+        <div class="rv-ctrl2">
+          <button id="mme-undo" class="btn">Annuler le dernier coup</button><button id="mme-flip" class="btn">Retourner</button>
+        </div>
+        <button id="mme-train" class="btn primary big">S’entraîner</button>
+        <textarea id="mme-notes" class="txt pz-desc-in" rows="4" placeholder="Notes (idées, pièges à éviter…)"></textarea>
+        <button id="mme-del" class="btn danger" style="margin-top:12px">Supprimer</button>
       </div>
-      <textarea id="mme-notes" class="txt pz-desc-in" rows="4" placeholder="Notes (idées, pièges à éviter…)"></textarea>
-      <button id="mme-del" class="btn danger" style="margin-top:12px">Supprimer</button>
+      <div id="mme-trainpane" style="display:none">
+        <h3>Entraînement</h3>
+        <div id="mme-tr-status" class="hint center"></div>
+        <div id="mme-tr-score" class="hint center"></div>
+        <div class="btnrow">
+          <button id="mme-tr-hint" class="btn">Indice</button><button id="mme-tr-show" class="btn">Voir le coup</button>
+        </div>
+        <div class="btnrow">
+          <button id="mme-tr-retry" class="btn">Recommencer</button><button id="mme-tr-quit" class="btn primary">Terminer</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -304,26 +318,26 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=21"></script>
-<script src="js/memo.js?v=21"></script>
-<script src="js/util.js?v=21"></script>
-<script src="js/clock.js?v=21"></script>
-<script src="js/board.js?v=21"></script>
-<script src="js/elo.js?v=21"></script>
-<script src="js/eloChart.js?v=21"></script>
-<script src="js/eloview.js?v=21"></script>
-<script src="js/records.js?v=21"></script>
-<script src="js/puzzles.js?v=21"></script>
-<script src="js/gameview.js?v=21"></script>
-<script src="js/pendule.js?v=21"></script>
-<script src="js/local.js?v=21"></script>
-<script src="js/engineStrength.js?v=21"></script>
-<script src="js/engine.js?v=21"></script>
-<script src="js/ai.js?v=21"></script>
-<script src="js/room.js?v=21"></script>
-<script src="js/net.js?v=21"></script>
-<script src="js/online.js?v=21"></script>
-<script src="js/memoview.js?v=21"></script>
-<script src="js/app.js?v=21"></script>
+<script src="js/chess.js?v=22"></script>
+<script src="js/memo.js?v=22"></script>
+<script src="js/util.js?v=22"></script>
+<script src="js/clock.js?v=22"></script>
+<script src="js/board.js?v=22"></script>
+<script src="js/elo.js?v=22"></script>
+<script src="js/eloChart.js?v=22"></script>
+<script src="js/eloview.js?v=22"></script>
+<script src="js/records.js?v=22"></script>
+<script src="js/puzzles.js?v=22"></script>
+<script src="js/gameview.js?v=22"></script>
+<script src="js/pendule.js?v=22"></script>
+<script src="js/local.js?v=22"></script>
+<script src="js/engineStrength.js?v=22"></script>
+<script src="js/engine.js?v=22"></script>
+<script src="js/ai.js?v=22"></script>
+<script src="js/room.js?v=22"></script>
+<script src="js/net.js?v=22"></script>
+<script src="js/online.js?v=22"></script>
+<script src="js/memoview.js?v=22"></script>
+<script src="js/app.js?v=22"></script>
 </body>
 </html>

@@ -44,4 +44,12 @@ assert.strictEqual(Memo.filter(list, '  ').length, 2);
 assert.strictEqual(Memo.filter(list, 'zzz').length, 0);
 assert.deepStrictEqual(Memo.sortList(list).map(function (x) { return x.id; }), ['2', '1']);
 
+// Entraînement
+assert(Memo.sameMove({ from: 'e2', to: 'e4', promo: null }, { from: 'e2', to: 'e4' }));
+assert(!Memo.sameMove({ from: 'g7', to: 'h8', promo: 'q' }, { from: 'g7', to: 'h8', promo: 'n' }));
+assert(!Memo.sameMove(null, { from: 'e2', to: 'e4' }));
+assert(Memo.isTrainerMove(0, 'w') && !Memo.isTrainerMove(1, 'w'));
+assert(Memo.isTrainerMove(1, 'b') && !Memo.isTrainerMove(2, 'b'));
+assert(Memo.isTrainerMove(5, 'both'));
+
 console.log('memo OK');

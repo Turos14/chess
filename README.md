@@ -69,7 +69,9 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
 - **Aide-mémoire** (onglet dédié) : enchaînements de coups à retenir (ouvertures, pièges…), joués sur l'échiquier
   depuis la position de départ, avec un titre et des notes. Navigation coup par coup ; rejouer un autre coup au
   milieu de la ligne remplace la suite (après confirmation). Enregistrement automatique, recherche par titre, notes ou
-  coups. **Propre à l'appareil** (`localStorage`) : rien n'est envoyé ni partagé.
+  coups. **S'entraîner** : on choisit son camp (Blancs, Noirs ou les deux) et on rejoue la ligne de mémoire (coups
+  et notes masqués), l'adversaire répond seul ; un coup faux compte une erreur, avec « Indice » (pièce à jouer
+  surlignée) et « Voir le coup ». **Propre à l'appareil** (`localStorage`) : rien n'est envoyé ni partagé.
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
