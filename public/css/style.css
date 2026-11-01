@@ -151,7 +151,7 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .item .main { -webkit-flex: 1; flex: 1; min-width: 0; cursor: pointer; }
 .ititle { font-weight: 600; font-size: 16px; }
 .isub { font-size: 12.5px; color: #8f97a6; margin-top: 3px; }
-.replay { max-width: 960px; margin: 0 auto; padding: 8px; }
+.replay { max-width: 1400px; margin: 0 auto; padding: 8px; }
 #rv-board, .rv-board { position: relative; margin: 0 auto; }
 .rv-ctrl { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-top: 6px; }
 .rv-ctrl .btn { -webkit-flex: 1; flex: 1; margin: 4px; padding: 10px 0; font-size: 20px; }

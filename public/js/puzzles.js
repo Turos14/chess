@@ -372,11 +372,7 @@
   P.layoutSolve = layoutSolve;
   function layoutSolve() {
     if (!sv || !sv.board) return;
-    var vp = U.viewport();
-    var land = vp.w > vp.h * 1.25;
-    var size = land ? Math.min(vp.h - 70, vp.w * 0.55) : Math.min(vp.w - 12, vp.h - 300);
-    sv.board.setSize(Math.max(160, size));
-    U.toggleClass(U.$('scr-puzzle-solve'), 'land', land);
+    U.layoutSideBoard(sv.board, 'scr-puzzle-solve', { port: 300, land: 70 });
   }
   window.addEventListener('resize', function () { if (U.hasClass(U.$('scr-puzzle-solve'), 'active')) layoutSolve(); }, false);
 
@@ -595,11 +591,7 @@
 
   function layoutEditor() {
     if (!editorBoard) return;
-    var vp = U.viewport();
-    var land = vp.w > vp.h * 1.25;
-    var size = land ? Math.min(vp.h - 70, vp.w * 0.55) : Math.min(vp.w - 12, vp.h - 330);
-    editorBoard.setSize(Math.max(160, size));
-    U.toggleClass(U.$('scr-puzzle-editor'), 'land', land);
+    U.layoutSideBoard(editorBoard, 'scr-puzzle-editor', { port: 330, land: 70 });
   }
   window.addEventListener('resize', function () { if (U.hasClass(U.$('scr-puzzle-editor'), 'active')) layoutEditor(); }, false);
 

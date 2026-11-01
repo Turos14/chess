@@ -176,11 +176,7 @@
 
   function layout() {
     if (!ed.board) return;
-    var vp = U.viewport();
-    var land = vp.w > vp.h * 1.25;
-    var size = land ? Math.min(vp.h - 70, vp.w * 0.55) : Math.min(vp.w - 12, vp.h - 330);
-    ed.board.setSize(Math.max(160, size));
-    U.toggleClass(U.$('scr-memo-edit'), 'land', land);
+    U.layoutSideBoard(ed.board, 'scr-memo-edit', { port: 330, land: 130 });
   }
   window.addEventListener('resize', function () { if (U.hasClass(U.$('scr-memo-edit'), 'active')) layout(); }, false);
 

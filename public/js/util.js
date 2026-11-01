@@ -30,6 +30,23 @@
     return { w: window.innerWidth || de.clientWidth, h: window.innerHeight || de.clientHeight };
   };
 
+  /* Écrans « échiquier + colonne » (.replay : revue, problèmes, aide-mémoire). En paysage l'échiquier est à gauche ;
+   * sa taille est bornée pour laisser au moins SIDE_MIN px à la colonne de droite dans la largeur utile de .replay
+   * (REPLAY_MAX = max-width de .replay dans style.css, padding 8 px de chaque côté + 12 px d'écart). Sans cette
+   * borne, sur un grand écran de PC l'échiquier (calé sur la hauteur) débordait et écrasait la colonne.
+   * reserve : hauteur à laisser sous l'échiquier (portrait : {port}, paysage : {land}). Retourne true en paysage. */
+  var REPLAY_MAX = 1400, SIDE_MIN = 320;
+  U.layoutSideBoard = function (board, screenId, reserve) {
+    var vp = U.viewport();
+    var land = vp.w > vp.h * 1.25;
+    var size = land
+      ? Math.min(vp.h - reserve.land, vp.w * 0.55, Math.min(vp.w, REPLAY_MAX) - 28 - SIDE_MIN)
+      : Math.min(vp.w - 12, vp.h - reserve.port);
+    board.setSize(Math.max(160, size));
+    U.toggleClass(U.$(screenId), 'land', land);
+    return land;
+  };
+
   /* Icônes SVG (symboles noirs) */
   var ICONS = {
     pause: '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>',

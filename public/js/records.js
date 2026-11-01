@@ -229,11 +229,7 @@
 
   R.layoutReplay = function () {
     if (!rv.board) return;
-    var vp = U.viewport();
-    var land = vp.w > vp.h * 1.25;
-    var size = land ? Math.min(vp.h - 70, vp.w * 0.55) : Math.min(vp.w - 12, vp.h - 330);
-    rv.board.setSize(Math.max(160, size));
-    U.toggleClass(U.$('scr-replay'), 'land', land);
+    U.layoutSideBoard(rv.board, 'scr-replay', { port: 330, land: 130 });
   };
   window.addEventListener('resize', function () { if (U.hasClass(U.$('scr-replay'), 'active')) R.layoutReplay(); }, false);
 
