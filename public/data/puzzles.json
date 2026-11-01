@@ -523,5 +523,57 @@
     "difficulty": "difficile",
     "description": null,
     "addedAt": 1792744115349
+  },
+  {
+    "id": "gh-128",
+    "fen": "8/8/5B1p/5k1p/1R5P/2p4K/2p5/8 w - - 0 1",
+    "solution": [
+      "b4f4",
+      "f5f4",
+      "f6c3",
+      "c2c1q",
+      "c3d2",
+      "c1d2"
+    ],
+    "title": "problème du 24/10/2026",
+    "author": "arthur",
+    "category": "problème du jour",
+    "difficulty": "difficile",
+    "description": "Nous découvrons cette semaine une étude composée par le problémiste tchèque Ladislav Prokes (1884-1966). Cette fois, ce sont les blancs qui disposent d’un avantage matériel considérable : une tour et un fou contre 3 pions noirs. Mais quels pions noirs ! Les pions noirs doublés sur la colonne c valent très chers et sont sur le point d’arriver à la promotion dame, alors que les pièces blanches sont très mal placées pour les arrêter. Que joues-tu avec les blancs dans cette position ?",
+    "addedAt": 1792834556041
+  },
+  {
+    "id": "gh-129",
+    "fen": "8/2K3R1/8/1pkp4/2b4p/8/1P5p/4N3 w - - 0 1",
+    "solution": [
+      "g7g4",
+      "h2h1q",
+      "e1d3",
+      "c4d3",
+      "b2b4"
+    ],
+    "title": "Problème du 25/10/2026",
+    "author": "Arthur",
+    "category": "Problème du jour",
+    "difficulty": "difficile",
+    "description": null,
+    "addedAt": 1792934910594
+  },
+  {
+    "id": "gh-130",
+    "fen": "2r5/6pp/4R3/5p2/2Bn1Pk1/6P1/6KP/8 w - - 0 1",
+    "solution": [
+      "e6h6",
+      "g7h6",
+      "h2h3",
+      "g4h5",
+      "c4f7"
+    ],
+    "title": "problème d 27/10/2026",
+    "author": "arthur",
+    "category": "problème du jour",
+    "difficulty": "difficile",
+    "description": null,
+    "addedAt": 1793119727014
   }
 ]
