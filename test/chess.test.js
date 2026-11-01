@@ -93,4 +93,25 @@ assert(!/Variant/.test(new Chess.Game().pgn()));
 var gs = new Chess.Game('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1');
 assert(gs.move('e1', 'h1').san === 'O-O' && gs.board()[Chess.sqIndex('g1')] === 'wK');
 
+// Éditeur de position : plateau -> FEN, et validation
+(function () {
+  var b = Chess.parseFen(Chess.START).board.slice();
+  assert.strictEqual(Chess.boardToFen(b, 'w'), Chess.START);
+  b[Chess.sqIndex('h1')] = null;
+  assert.strictEqual(Chess.boardToFen(b, 'b').split(' ').slice(1, 3).join(' '), 'b Qkq');
+  assert.strictEqual(Chess.setupError(Chess.parseFen(Chess.START).board, 'w'), null);
+  var e = []; for (var i = 0; i < 64; i++) e.push(null);
+  assert(/roi/.test(Chess.setupError(e, 'w')));
+  e[Chess.sqIndex('e1')] = 'wK'; e[Chess.sqIndex('e8')] = 'bK';
+  assert.strictEqual(Chess.setupError(e, 'w'), null);
+  e[Chess.sqIndex('a8')] = 'wP';
+  assert(/pion/.test(Chess.setupError(e, 'w')));
+  e[Chess.sqIndex('a8')] = null; e[Chess.sqIndex('e4')] = 'wR';
+  assert(/échec/.test(Chess.setupError(e, 'w')));          // Noirs en échec mais trait aux Blancs
+  assert.strictEqual(Chess.setupError(e, 'b'), null);
+  var pat = []; for (i = 0; i < 64; i++) pat.push(null);
+  pat[Chess.sqIndex('a8')] = 'bK'; pat[Chess.sqIndex('b6')] = 'wQ'; pat[Chess.sqIndex('h1')] = 'wK';
+  assert(/aucun coup/.test(Chess.setupError(pat, 'b')));
+})();
+
 console.log('OK');

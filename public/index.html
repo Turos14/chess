@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=22">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=22">
-<link rel="icon" href="icons/icon-192.png?v=22">
-<link rel="stylesheet" href="css/style.css?v=22">
-<link rel="stylesheet" href="css/pieces.css?v=22">
+<link rel="manifest" href="manifest.json?v=23">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=23">
+<link rel="icon" href="icons/icon-192.png?v=23">
+<link rel="stylesheet" href="css/style.css?v=23">
+<link rel="stylesheet" href="css/pieces.css?v=23">
 </head>
 <body>
 
@@ -255,6 +255,18 @@
     </div>
     <div class="rv-right">
       <input id="mme-title" class="txt" placeholder="Titre (ex. Défense française)" autocomplete="off">
+      <div id="mme-setuppane" style="display:none">
+        <h3>Position de départ</h3>
+        <div id="mme-palette" class="chips"></div>
+        <div id="mme-turn"></div>
+        <div class="btnrow">
+          <button id="mme-su-start" class="btn">Position initiale</button><button id="mme-su-clear" class="btn">Vider l’échiquier</button>
+        </div>
+        <p class="hint">Choisis une pièce (ou ✕ pour effacer), puis touche les cases. Valide tel quel pour partir de la position initiale.</p>
+        <div id="mme-su-err" class="error"></div>
+        <button id="mme-su-ok" class="btn primary big">Valider la position</button>
+        <button id="mme-su-cancel" class="btn" style="margin-top:8px">Annuler</button>
+      </div>
       <div id="mme-editpane">
         <div id="mme-status" class="hint"></div>
         <div id="mme-moves" class="mm-moves"></div>
@@ -262,6 +274,7 @@
           <button id="mme-undo" class="btn">Annuler le dernier coup</button><button id="mme-flip" class="btn">Retourner</button>
         </div>
         <button id="mme-train" class="btn primary big">S’entraîner</button>
+        <button id="mme-setup" class="btn" style="margin-top:8px">Changer la position de départ</button>
         <textarea id="mme-notes" class="txt pz-desc-in" rows="4" placeholder="Notes (idées, pièges à éviter…)"></textarea>
         <button id="mme-del" class="btn danger" style="margin-top:12px">Supprimer</button>
       </div>
@@ -318,26 +331,26 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=22"></script>
-<script src="js/memo.js?v=22"></script>
-<script src="js/util.js?v=22"></script>
-<script src="js/clock.js?v=22"></script>
-<script src="js/board.js?v=22"></script>
-<script src="js/elo.js?v=22"></script>
-<script src="js/eloChart.js?v=22"></script>
-<script src="js/eloview.js?v=22"></script>
-<script src="js/records.js?v=22"></script>
-<script src="js/puzzles.js?v=22"></script>
-<script src="js/gameview.js?v=22"></script>
-<script src="js/pendule.js?v=22"></script>
-<script src="js/local.js?v=22"></script>
-<script src="js/engineStrength.js?v=22"></script>
-<script src="js/engine.js?v=22"></script>
-<script src="js/ai.js?v=22"></script>
-<script src="js/room.js?v=22"></script>
-<script src="js/net.js?v=22"></script>
-<script src="js/online.js?v=22"></script>
-<script src="js/memoview.js?v=22"></script>
-<script src="js/app.js?v=22"></script>
+<script src="js/chess.js?v=23"></script>
+<script src="js/memo.js?v=23"></script>
+<script src="js/util.js?v=23"></script>
+<script src="js/clock.js?v=23"></script>
+<script src="js/board.js?v=23"></script>
+<script src="js/elo.js?v=23"></script>
+<script src="js/eloChart.js?v=23"></script>
+<script src="js/eloview.js?v=23"></script>
+<script src="js/records.js?v=23"></script>
+<script src="js/puzzles.js?v=23"></script>
+<script src="js/gameview.js?v=23"></script>
+<script src="js/pendule.js?v=23"></script>
+<script src="js/local.js?v=23"></script>
+<script src="js/engineStrength.js?v=23"></script>
+<script src="js/engine.js?v=23"></script>
+<script src="js/ai.js?v=23"></script>
+<script src="js/room.js?v=23"></script>
+<script src="js/net.js?v=23"></script>
+<script src="js/online.js?v=23"></script>
+<script src="js/memoview.js?v=23"></script>
+<script src="js/app.js?v=23"></script>
 </body>
 </html>

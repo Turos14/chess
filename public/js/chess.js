@@ -543,12 +543,60 @@
     return b.back.toLowerCase() + '/pppppppp/8/8/8/8/PPPPPPPP/' + w.back + ' w - - 0 1';
   }
 
+  /* ---------- Éditeur de position (problèmes, aide-mémoire) ---------- */
+
+  // Droits de roque déduits de la position : autorisé dès que le roi et la tour concernés sont
+  // chacun sur leur case de départ (même convention que les éditeurs de position habituels — on ne
+  // peut pas savoir, à partir d'un simple placement de pièces, si le roi/la tour ont déjà bougé).
+  function castlingFromBoard(board) {
+    var cs = '';
+    if (board[sqIndex('e1')] === 'wK' && board[sqIndex('h1')] === 'wR') cs += 'K';
+    if (board[sqIndex('e1')] === 'wK' && board[sqIndex('a1')] === 'wR') cs += 'Q';
+    if (board[sqIndex('e8')] === 'bK' && board[sqIndex('h8')] === 'bR') cs += 'k';
+    if (board[sqIndex('e8')] === 'bK' && board[sqIndex('a8')] === 'bR') cs += 'q';
+    return cs || '-';
+  }
+
+  // Plateau (64 cases, null ou 'wK'…) + trait -> FEN (roques déduits, pas de prise en passant).
+  function boardToFen(board, turn) {
+    var rows = [], r, f, p, row, empty;
+    for (r = 0; r < 8; r++) {
+      row = ''; empty = 0;
+      for (f = 0; f < 8; f++) {
+        p = board[r * 8 + f];
+        if (!p) { empty++; continue; }
+        if (empty) { row += empty; empty = 0; }
+        row += p.charAt(0) === 'w' ? p.charAt(1) : p.charAt(1).toLowerCase();
+      }
+      if (empty) row += empty;
+      rows.push(row);
+    }
+    return rows.join('/') + ' ' + turn + ' ' + castlingFromBoard(board) + ' - 0 1';
+  }
+
+  // Position placée à la main jouable ? Retourne le message d'erreur (en français), ou null si elle convient.
+  function setupError(board, turn) {
+    var kings = { w: 0, b: 0 }, s;
+    for (s = 0; s < 64; s++) {
+      if (board[s] === 'wK') kings.w++;
+      else if (board[s] === 'bK') kings.b++;
+      if (board[s] && board[s].charAt(1) === 'P' && (s < 8 || s >= 56)) return 'Un pion ne peut pas être sur la 1re ou la 8e rangée.';
+    }
+    if (kings.w !== 1 || kings.b !== 1) return 'Il faut exactement un roi blanc et un roi noir.';
+    if (attacked(board, findKing(board, other(turn)), turn)) return 'Le roi des ' + (turn === 'w' ? 'Noirs' : 'Blancs') + ' est en échec alors que ce n’est pas à eux de jouer.';
+    var g;
+    try { g = new Game(boardToFen(board, turn)); } catch (e) { return 'Position invalide.'; }
+    if (!g.legalMoves().length) return 'Cette position n’a aucun coup légal.';
+    return null;
+  }
+
   // Une FEN est-elle en notation Chess960 (droits de roque par colonne) ? Sert à régler le moteur.
   function is960(fen) { var p = String(fen).split(/\s+/); return p.length > 2 && /[A-Ha-h]/.test(p[2]); }
 
   return {
     START: START, Game: Game, replay: replay, perft: perft, start960: start960, is960: is960,
     LABEL_960: 'Échecs aléatoires Fischer (960) : pièces de la 1re rangée placées au hasard, différemment pour chaque camp, sans roque',
-    sqName: sqName, sqIndex: sqIndex, other: other, parseFen: parseFen, material: material
+    sqName: sqName, sqIndex: sqIndex, other: other, parseFen: parseFen, material: material,
+    boardToFen: boardToFen, setupError: setupError
   };
 });

@@ -386,34 +386,6 @@
   function emptyBoard() { var b = [], i; for (i = 0; i < 64; i++) b.push(null); return b; }
   function startBoard() { return Chess.parseFen(Chess.START).board; }
 
-  // Droits de roque déduits de la position : autorisé dès que le roi et la tour concernés sont
-  // chacun sur leur case de départ (même convention que les éditeurs de position habituels — on ne
-  // peut pas savoir, à partir d'un simple placement de pièces, si le roi/la tour ont déjà bougé).
-  function castlingRights(board) {
-    var cs = '';
-    if (board[Chess.sqIndex('e1')] === 'wK' && board[Chess.sqIndex('h1')] === 'wR') cs += 'K';
-    if (board[Chess.sqIndex('e1')] === 'wK' && board[Chess.sqIndex('a1')] === 'wR') cs += 'Q';
-    if (board[Chess.sqIndex('e8')] === 'bK' && board[Chess.sqIndex('h8')] === 'bR') cs += 'k';
-    if (board[Chess.sqIndex('e8')] === 'bK' && board[Chess.sqIndex('a8')] === 'bR') cs += 'q';
-    return cs || '-';
-  }
-
-  function boardToFen(board, turn) {
-    var rows = [], r, f, s, p, row, empty;
-    for (r = 0; r < 8; r++) {
-      row = ''; empty = 0;
-      for (f = 0; f < 8; f++) {
-        s = r * 8 + f; p = board[s];
-        if (!p) { empty++; continue; }
-        if (empty) { row += empty; empty = 0; }
-        row += p.charAt(0) === 'w' ? p.charAt(1) : p.charAt(1).toLowerCase();
-      }
-      if (empty) row += empty;
-      rows.push(row);
-    }
-    return rows.join('/') + ' ' + turn + ' ' + castlingRights(board) + ' - 0 1';
-  }
-
   function buildPalette() {
     var box = U.$('pze-palette');
     U.clear(box);
@@ -533,7 +505,7 @@
     }
     var err = U.$('pze-err1');
     if (wKings !== 1 || bKings !== 1) { err.textContent = 'Il faut exactement un roi blanc et un roi noir.'; return; }
-    var fen = boardToFen(ed.board, ed.turn), g;
+    var fen = Chess.boardToFen(ed.board, ed.turn), g;
     try { g = new Chess.Game(fen); } catch (e) { err.textContent = 'Position invalide : ' + e.message; return; }
     if (!g.legalMoves().length) { err.textContent = 'Cette position n’a aucun coup légal : il en faut au moins un à jouer.'; return; }
     err.textContent = '';

@@ -52,4 +52,18 @@ assert(Memo.isTrainerMove(0, 'w') && !Memo.isTrainerMove(1, 'w'));
 assert(Memo.isTrainerMove(1, 'b') && !Memo.isTrainerMove(2, 'b'));
 assert(Memo.isTrainerMove(5, 'both'));
 
+// Position de départ particulière
+var custom = '4k3/8/8/8/8/8/4P3/4K3 b - - 0 1';
+var cm = Memo.sanitize({ id: 'c', startFen: custom, moves: [{ from: 'e8', to: 'd7' }, { from: 'e2', to: 'e4' }] });
+assert.strictEqual(cm.startFen, custom);
+assert.deepStrictEqual(cm.moves.map(function (x) { return x.san; }), ['Kd7', 'e4']);
+assert.strictEqual(Memo.moveText(cm.moves, cm.startFen), '1...Kd7 2.e4');
+assert.strictEqual(Memo.startTurn(cm), 'b');
+assert.strictEqual(Memo.startTurn({}), 'w');
+assert.strictEqual(Memo.sanitize({ id: 'x' }).startFen, require('../public/js/chess.js').START);
+assert.strictEqual(Memo.sanitize({ id: 'x', startFen: 'nimporte quoi' }), null);
+assert.strictEqual(Memo.sanitize({ id: 'x', startFen: custom, moves: [{ from: 'e2', to: 'e4' }] }), null);   // pas aux Blancs
+assert.deepStrictEqual(Memo.filter([cm], 'kd7').length, 1);
+assert(Memo.isTrainerMove(0, 'b', 'b') && !Memo.isTrainerMove(1, 'b', 'b') && Memo.isTrainerMove(1, 'w', 'b'));
+
 console.log('memo OK');

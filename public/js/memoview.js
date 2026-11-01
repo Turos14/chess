@@ -1,6 +1,7 @@
 /* Aide-mémoire : liste des enchaînements et éditeur (échiquier + titre + notes). Logique pure dans memo.js.
  * Données propres à l'appareil (localStorage « memos ») : jamais envoyées, ni partagées, ni exportées.
  * Enregistrement automatique à chaque changement ; une fiche restée vide n'est pas conservée.
+ * Position de départ : classique ou placée à la main (éditeur de plateau, proposé d'emblée pour une nouvelle fiche).
  * Mode « S'entraîner » : le joueur rejoue la ligne de mémoire (coups et notes masqués), l'adversaire est joué seul. */
 (function () {
   'use strict';
@@ -24,9 +25,9 @@
       var item = U.el('div', 'item');
       var main = U.el('div', 'main');
       main.appendChild(U.el('div', 'ititle', m.title || 'Sans titre'));
-      var line = Memo.moveText(m.moves);
+      var line = Memo.moveText(m.moves, m.startFen);
       main.appendChild(U.el('div', 'isub', (line ? (line.length > 70 ? line.slice(0, 70) + '…' : line) : 'Aucun coup') +
-        ' · ' + m.moves.length + ' coup' + (m.moves.length > 1 ? 's' : '')));
+        ' · ' + m.moves.length + ' coup' + (m.moves.length > 1 ? 's' : '') + (m.startFen !== Chess.START ? ' · position particulière' : '')));
       U.on(main, 'click', function () { open(m); });
       item.appendChild(main);
       item.appendChild(U.button('Suppr.', 'btn small danger', function () { remove(m.id, MV.renderList); }));
@@ -47,14 +48,18 @@
   // tr (entraînement en cours, sinon null) : {side 'w'|'b'|'both', ply (coups déjà joués), errors, hints, hint (montrer
   // la case de départ), done, timer}. Le joueur rejoue ses coups de mémoire, ceux de l'adversaire sont joués seuls.
   var tr = null, TRAIN_REPLY_MS = 600;
+  // su (éditeur de position en cours, sinon null) : {board (64 cases), turn, tool (pièce ou 'erase', null = aucun)}
+  var su = null, paletteBtns = null, turnSeg = null;
+  var PALETTE = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP', 'bK', 'bQ', 'bR', 'bB', 'bN', 'bP'];
 
   function newMemo() {
     var now = new Date().getTime();
-    return { id: String(now) + Math.floor(Math.random() * 1000), title: '', notes: '', moves: [], created: now, updated: now };
+    return { id: String(now) + Math.floor(Math.random() * 1000), title: '', notes: '', startFen: Chess.START, moves: [], created: now, updated: now };
   }
 
   function open(memo) {
     stopTraining();
+    stopSetup();
     ed.memo = memo; ed.ply = memo.moves.length; ed.sel = -1; ed.orient = 'w';
     if (!ed.board) { ed.board = new Board(U.$('mme-board')); ed.board.onSquare = onSquare; }
     U.$('mme-title').value = memo.title;
@@ -76,9 +81,10 @@
     persist(list);
   }
 
-  function game(ply) { return Chess.replay(Chess.START, ed.memo.moves.slice(0, ply)); }
+  function game(ply) { return Chess.replay(ed.memo.startFen, ed.memo.moves.slice(0, ply)); }
 
   function refresh() {
+    if (su) { refreshSetup(); return; }
     if (tr) { refreshTraining(); return; }
     var m = ed.memo, n = m.moves.length;
     ed.ply = Math.max(0, Math.min(n, ed.ply));
@@ -98,10 +104,13 @@
 
   function renderMoves() {
     var box = U.$('mme-moves'), moves = ed.memo.moves, i;
+    var fp = ed.memo.startFen.split(' '), first = fp[1], startFull = parseInt(fp[5], 10) || 1;
     U.clear(box);
     if (!moves.length) { box.appendChild(U.el('span', 'hint', 'Joue les coups sur l’échiquier.')); return; }
     for (i = 0; i < moves.length; i++) {
-      if (i % 2 === 0) box.appendChild(U.el('span', 'mnum', (i / 2 + 1) + '.'));
+      var num = startFull + Math.floor((i + (first === 'b' ? 1 : 0)) / 2);
+      if ((first === 'w') === (i % 2 === 0)) box.appendChild(U.el('span', 'mnum', num + '.'));
+      else if (i === 0) box.appendChild(U.el('span', 'mnum', num + '…'));
       var s = U.el('span', 'mv' + (i + 1 === ed.ply ? ' cur' : ''), moves[i].san);
       (function (p) { U.on(s, 'click', function () { ed.sel = -1; ed.ply = p; refresh(); }); })(i + 1);
       box.appendChild(s);
@@ -116,6 +125,7 @@
   }
 
   function onSquare(idx) {
+    if (su) { onSetupSquare(idx); return; }
     if (tr) { onTrainSquare(idx); return; }
     var g = game(ed.ply), turn = g.turn(), piece = g.board()[idx], i;
     if (g.status().over) return;
@@ -210,7 +220,7 @@
   function advance() {
     var t = tr;
     if (t.ply >= ed.memo.moves.length) { t.done = true; U.fx('end'); refresh(); return; }
-    if (!Memo.isTrainerMove(t.ply, t.side)) {
+    if (!Memo.isTrainerMove(t.ply, t.side, Memo.startTurn(ed.memo))) {
       t.timer = setTimeout(function () {
         if (tr !== t) return;
         t.ply++; U.fx('move'); advance();
@@ -219,7 +229,7 @@
     refresh();
   }
 
-  function trainerTurn() { return !!tr && !tr.done && tr.ply < ed.memo.moves.length && Memo.isTrainerMove(tr.ply, tr.side); }
+  function trainerTurn() { return !!tr && !tr.done && tr.ply < ed.memo.moves.length && Memo.isTrainerMove(tr.ply, tr.side, Memo.startTurn(ed.memo)); }
 
   function refreshTraining() {
     var m = ed.memo, n = m.moves.length, g = game(tr.ply), last = null, check = -1;
@@ -272,6 +282,78 @@
     refresh();
   }
 
+  /* ---------- Éditeur de position de départ ---------- */
+  function emptyBoard() { var b = [], i; for (i = 0; i < 64; i++) b.push(null); return b; }
+
+  function buildPalette() {
+    var box = U.$('mme-palette');
+    U.clear(box);
+    paletteBtns = {};
+    PALETTE.concat(['erase']).forEach(function (code) {
+      var b = code === 'erase' ? U.el('button', 'pzbtn erase', '✕') : U.el('button', 'pzbtn');
+      b.type = 'button';
+      if (code !== 'erase') b.appendChild(U.el('div', 'pc pc-' + code));
+      U.on(b, 'click', function () { if (su) { su.tool = code; refresh(); } });
+      paletteBtns[code] = b;
+      box.appendChild(b);
+    });
+  }
+
+  function startSetup() {
+    stopTraining();
+    var pos = Chess.parseFen(ed.memo.startFen);
+    su = { board: pos.board.slice(), turn: pos.turn, tool: null };
+    if (!paletteBtns) buildPalette();
+    turnSeg.set(su.turn);
+    ed.sel = -1;
+    U.$('mme-su-err').textContent = '';
+    U.$('mme-su-cancel').style.display = Memo.isEmpty(ed.memo) ? 'none' : 'block';
+    U.$('mme-setuppane').style.display = 'block';
+    U.$('mme-editpane').style.display = 'none';
+    U.$('mme-nav').style.display = 'none';
+    refresh();
+  }
+
+  function stopSetup() {
+    if (!su) return;
+    su = null;
+    U.$('mme-setuppane').style.display = 'none';
+    U.$('mme-editpane').style.display = 'block';
+    U.$('mme-nav').style.display = '';
+  }
+
+  function refreshSetup() {
+    var k;
+    ed.board.render({ board: su.board, orient: ed.orient, last: null, sel: -1, targets: [], check: -1, coords: U.getSetting('coords'), faceTop: null });
+    for (k in paletteBtns) if (paletteBtns.hasOwnProperty(k)) U.toggleClass(paletteBtns[k], 'on', su.tool === k);
+  }
+
+  function onSetupSquare(idx) {
+    if (!su.tool) { U.toast('Choisis d’abord une pièce (ou ✕) dans la palette.'); return; }
+    su.board[idx] = su.tool === 'erase' ? null : su.tool;
+    U.$('mme-su-err').textContent = '';
+    refresh();
+  }
+
+  // Valide la position : les coups déjà notés ne valent plus depuis une autre position, ils sont effacés (après confirmation).
+  function confirmSetup() {
+    var err = Chess.setupError(su.board, su.turn);
+    if (err) { U.$('mme-su-err').textContent = err; return; }
+    var fen = Chess.boardToFen(su.board, su.turn), m = ed.memo;
+    function apply() {
+      if (fen !== m.startFen) { m.startFen = fen; m.moves = []; }
+      ed.ply = m.moves.length;
+      stopSetup();
+      save();
+      refresh();
+    }
+    var n = m.moves.length;
+    if (fen !== m.startFen && n) {
+      U.confirm('Changer la position de départ ?', 'Les ' + n + ' coup' + (n > 1 ? 's' : '') + ' déjà noté' + (n > 1 ? 's' : '') +
+        ' seront effacés.', 'Changer', 'Annuler', apply, null, true);
+    } else apply();
+  }
+
   function layout() {
     if (!ed.board) return;
     U.layoutSideBoard(ed.board, 'scr-memo-edit', { port: 330, land: 130 });
@@ -283,9 +365,9 @@
   MV.initScreen = function () {
     U.$('mme-title').maxLength = Memo.TITLE_MAX;
     U.$('mme-notes').maxLength = Memo.NOTES_MAX;
-    U.on(U.$('mm-new'), 'click', function () { open(newMemo()); U.$('mme-del').style.display = 'none'; });
+    U.on(U.$('mm-new'), 'click', function () { open(newMemo()); U.$('mme-del').style.display = 'none'; startSetup(); });
     U.on(U.$('mm-search'), 'input', MV.renderList);
-    U.on(U.$('mme-back'), 'click', function () { stopTraining(); save(); ed.memo = null; App.show('memo'); });
+    U.on(U.$('mme-back'), 'click', function () { stopTraining(); stopSetup(); save(); ed.memo = null; App.show('memo'); });
     U.on(U.$('mme-title'), 'input', function () { ed.memo.title = this.value; save(); });
     U.on(U.$('mme-notes'), 'input', function () { ed.memo.notes = this.value; save(); });
     U.on(U.$('mme-first'), 'click', function () { step(0); });
@@ -320,6 +402,13 @@
     });
     U.on(U.$('mme-tr-retry'), 'click', function () { if (tr) startTraining(tr.side); });
     U.on(U.$('mme-tr-quit'), 'click', function () { stopTraining(); ed.ply = ed.memo.moves.length; refresh(); });
+    turnSeg = U.segmented(U.$('mme-turn'), [{ v: 'w', label: 'Trait aux Blancs' }, { v: 'b', label: 'Trait aux Noirs' }], 'w',
+      function (v) { if (su) su.turn = v; U.$('mme-su-err').textContent = ''; });
+    U.on(U.$('mme-setup'), 'click', startSetup);
+    U.on(U.$('mme-su-start'), 'click', function () { if (!su) return; su.board = Chess.parseFen(Chess.START).board.slice(); su.turn = 'w'; turnSeg.set('w'); U.$('mme-su-err').textContent = ''; refresh(); });
+    U.on(U.$('mme-su-clear'), 'click', function () { if (!su) return; su.board = emptyBoard(); U.$('mme-su-err').textContent = ''; refresh(); });
+    U.on(U.$('mme-su-ok'), 'click', confirmSetup);
+    U.on(U.$('mme-su-cancel'), 'click', function () { stopSetup(); refresh(); });
     U.on(U.$('mme-del'), 'click', function () {
       var id = ed.memo.id;
       remove(id, function () { ed.memo = null; App.show('memo'); });

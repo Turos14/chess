@@ -66,8 +66,9 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   sur chaque problème : rouvre l'éditeur avec sa position et sa solution, puis un ticket de modification
   pré-rempli — appliqué seulement après validation manuelle de Turos14 (voir « Comment marche la modification de
   problèmes »).
-- **Aide-mémoire** (onglet dédié) : enchaînements de coups à retenir (ouvertures, pièges…), joués sur l'échiquier
-  depuis la position de départ, avec un titre et des notes. Navigation coup par coup ; rejouer un autre coup au
+- **Aide-mémoire** (onglet dédié) : enchaînements de coups à retenir (ouvertures, pièges, finales…), joués sur
+  l'échiquier depuis la position initiale ou une position placée à la main (éditeur de plateau proposé à la création,
+  modifiable ensuite), avec un titre et des notes. Navigation coup par coup ; rejouer un autre coup au
   milieu de la ligne remplace la suite (après confirmation). Enregistrement automatique, recherche par titre, notes ou
   coups. **S'entraîner** : on choisit son camp (Blancs, Noirs ou les deux) et on rejoue la ligne de mémoire (coups
   et notes masqués), l'adversaire répond seul ; un coup faux compte une erreur, avec « Indice » (pièce à jouer

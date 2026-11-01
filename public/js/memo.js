@@ -1,6 +1,6 @@
 /* Aide-mémoire : enchaînements de coups notés par le joueur (ouvertures, pièges…) — module pur (aucun DOM), testable
- * sous Node. Une fiche : {id, title, notes, moves:[{from, to, promo, san}], created, updated}, toujours jouée depuis
- * la position de départ classique. Stockage et écrans : memoview.js (localStorage de l'appareil, jamais partagé). */
+ * sous Node. Une fiche : {id, title, notes, startFen, moves:[{from, to, promo, san}], created, updated} ; startFen est
+ * la position de départ classique (Chess.START) ou une position placée à la main dans l'éditeur. Stockage et écrans : memoview.js (localStorage de l'appareil, jamais partagé). */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory(require('./chess.js'));
   else root.Memo = factory(root.Chess);
@@ -25,13 +25,17 @@
   // Les SAN sont recalculés par le moteur de règles : ils font foi plutôt que ce qui a été stocké.
   function sanitize(m) {
     if (!m || typeof m !== 'object' || !m.id) return null;
-    var moves = Array.isArray(m.moves) ? m.moves : [];
-    var g = Chess.replay(Chess.START, moves);
+    var moves = Array.isArray(m.moves) ? m.moves : [], startFen = Chess.START, g;
+    if (m.startFen) {
+      try { startFen = new Chess.Game(m.startFen).startFen; } catch (e) { return null; }
+    }
+    g = Chess.replay(startFen, moves);
     if (!g) return null;
     return {
       id: String(m.id),
       title: String(m.title || '').slice(0, TITLE_MAX),
       notes: String(m.notes || '').slice(0, NOTES_MAX),
+      startFen: startFen,
       moves: g.history.map(function (h) { return { from: h.from, to: h.to, promo: h.promo || null, san: h.san }; }),
       created: Number(m.created) || 0,
       updated: Number(m.updated) || Number(m.created) || 0
@@ -62,7 +66,7 @@
     var words = fold(query || '').split(/\s+/).filter(function (w) { return w; });
     if (!words.length) return list.slice();
     return list.filter(function (m) {
-      var hay = fold(m.title + ' ' + m.notes + ' ' + moveText(m.moves));
+      var hay = fold(m.title + ' ' + m.notes + ' ' + moveText(m.moves, m.startFen));
       for (var i = 0; i < words.length; i++) if (hay.indexOf(words[i]) < 0) return false;
       return true;
     });
@@ -73,8 +77,15 @@
     return !!a && !!b && a.from === b.from && a.to === b.to && (a.promo || null) === (b.promo || null);
   }
 
-  // Entraînement : le joueur doit-il jouer le coup n° ply (0 = premier) ? side : 'w', 'b' ou 'both'.
-  function isTrainerMove(ply, side) { return side === 'both' || (ply % 2 === 0 ? 'w' : 'b') === side; }
+  // Camp au trait au départ d'une fiche ('w' ou 'b').
+  function startTurn(m) { return String(m.startFen || Chess.START).split(' ')[1] === 'b' ? 'b' : 'w'; }
+
+  // Entraînement : le joueur doit-il jouer le coup n° ply (0 = premier) ? side : 'w', 'b' ou 'both' ;
+  // first : camp au trait au départ ('w' par défaut).
+  function isTrainerMove(ply, side, first) {
+    var f = first === 'b' ? 'b' : 'w';
+    return side === 'both' || (ply % 2 === 0 ? f : Chess.other(f)) === side;
+  }
 
   // Plus récemment modifiées d'abord.
   function sortList(list) {
@@ -83,6 +94,6 @@
 
   return {
     moveText: moveText, sanitize: sanitize, sanitizeList: sanitizeList, isEmpty: isEmpty, filter: filter,
-    sortList: sortList, sameMove: sameMove, isTrainerMove: isTrainerMove, TITLE_MAX: TITLE_MAX, NOTES_MAX: NOTES_MAX
+    sortList: sortList, sameMove: sameMove, isTrainerMove: isTrainerMove, startTurn: startTurn, TITLE_MAX: TITLE_MAX, NOTES_MAX: NOTES_MAX
   };
 });
