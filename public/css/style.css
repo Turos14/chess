@@ -152,7 +152,7 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .ititle { font-weight: 600; font-size: 16px; }
 .isub { font-size: 12.5px; color: #8f97a6; margin-top: 3px; }
 .replay { max-width: 960px; margin: 0 auto; padding: 8px; }
-#rv-board { position: relative; margin: 0 auto; }
+#rv-board, .rv-board { position: relative; margin: 0 auto; }
 .rv-ctrl { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-top: 6px; }
 .rv-ctrl .btn { -webkit-flex: 1; flex: 1; margin: 4px; padding: 10px 0; font-size: 20px; }
 .rv-count { width: 70px; text-align: center; font-size: 14px; color: #9aa2b1; }
@@ -170,6 +170,14 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 #scr-replay.land .rv-left { -webkit-flex: none; flex: none; }
 #scr-replay.land .rv-right { -webkit-flex: 1; flex: 1; padding-left: 12px; min-width: 0; }
 #scr-replay.land #rv-moves { height: 45vh; }
+
+/* Aide-mémoire (reprend la mise en page de la revue) */
+.mm-moves { min-height: 60px; max-height: 130px; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #23262d; padding: 8px; border-radius: 10px; line-height: 2; margin: 6px 0; position: relative; }
+#mme-notes { margin-top: 8px; }
+#scr-memo-edit.land .replay { display: -webkit-box; display: -webkit-flex; display: flex; }
+#scr-memo-edit.land .rv-left { -webkit-flex: none; flex: none; }
+#scr-memo-edit.land .rv-right { -webkit-flex: 1; flex: 1; padding-left: 12px; min-width: 0; }
+#scr-memo-edit.land .mm-moves { max-height: 35vh; }
 .hint.ok { color: #6fdc8c; }
 
 /* Classement Elo */

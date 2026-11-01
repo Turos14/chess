@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=19">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=19">
-<link rel="icon" href="icons/icon-192.png?v=19">
-<link rel="stylesheet" href="css/style.css?v=19">
-<link rel="stylesheet" href="css/pieces.css?v=19">
+<link rel="manifest" href="manifest.json?v=20">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=20">
+<link rel="icon" href="icons/icon-192.png?v=20">
+<link rel="stylesheet" href="css/style.css?v=20">
+<link rel="stylesheet" href="css/pieces.css?v=20">
 </head>
 <body>
 
@@ -35,6 +35,7 @@
     <button class="btn big" data-go="records">Parties enregistrées <span id="rec-count" class="badge"></span></button>
     <button class="btn big" data-go="elo">Classement Elo</button>
     <button class="btn big" data-go="puzzles">Problèmes</button>
+    <button class="btn big" data-go="memo">Aide-mémoire</button>
     <p class="hint center">Pour le plein écran sur iPhone / iPad : Partager → « Sur l’écran d’accueil ».</p>
   </div>
 </div>
@@ -228,6 +229,43 @@
   </div>
 </div>
 
+<!-- Aide-mémoire : liste -->
+<div id="scr-memo" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Aide-mémoire</h1></div>
+  <div class="content">
+    <p class="hint">Tes enchaînements de coups à retenir (ouvertures, pièges, finales…). Gardés uniquement sur cet
+      appareil : rien n’est envoyé ni partagé.</p>
+    <button id="mm-new" class="btn primary big">Nouvel enchaînement</button>
+    <input id="mm-search" class="txt" type="search" placeholder="Rechercher (titre, notes, coups…)" autocomplete="off" style="margin-top:12px">
+    <div id="mm-list"></div>
+  </div>
+</div>
+
+<!-- Aide-mémoire : éditeur -->
+<div id="scr-memo-edit" class="screen page">
+  <div class="topbar"><button id="mme-back" class="back">‹ Aide-mémoire</button><h1>Enchaînement</h1></div>
+  <div class="replay">
+    <div class="rv-left">
+      <div id="mme-board" class="rv-board"></div>
+      <div class="rv-ctrl">
+        <button id="mme-first" class="btn">«</button><button id="mme-prev" class="btn">‹</button>
+        <span id="mme-count" class="rv-count"></span>
+        <button id="mme-next" class="btn">›</button><button id="mme-last" class="btn">»</button>
+      </div>
+    </div>
+    <div class="rv-right">
+      <input id="mme-title" class="txt" placeholder="Titre (ex. Défense française)" autocomplete="off">
+      <div id="mme-status" class="hint"></div>
+      <div id="mme-moves" class="mm-moves"></div>
+      <div class="rv-ctrl2">
+        <button id="mme-undo" class="btn">Annuler le dernier coup</button><button id="mme-flip" class="btn">Retourner</button>
+      </div>
+      <textarea id="mme-notes" class="txt pz-desc-in" rows="4" placeholder="Notes (idées, pièges à éviter…)"></textarea>
+      <button id="mme-del" class="btn danger" style="margin-top:12px">Supprimer</button>
+    </div>
+  </div>
+</div>
+
 <!-- Revue -->
 <div id="scr-replay" class="screen page">
   <div class="topbar"><button id="rv-back" class="back">‹ Liste</button><h1 id="rv-title"></h1></div>
@@ -266,24 +304,26 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=19"></script>
-<script src="js/util.js?v=19"></script>
-<script src="js/clock.js?v=19"></script>
-<script src="js/board.js?v=19"></script>
-<script src="js/elo.js?v=19"></script>
-<script src="js/eloChart.js?v=19"></script>
-<script src="js/eloview.js?v=19"></script>
-<script src="js/records.js?v=19"></script>
-<script src="js/puzzles.js?v=19"></script>
-<script src="js/gameview.js?v=19"></script>
-<script src="js/pendule.js?v=19"></script>
-<script src="js/local.js?v=19"></script>
-<script src="js/engineStrength.js?v=19"></script>
-<script src="js/engine.js?v=19"></script>
-<script src="js/ai.js?v=19"></script>
-<script src="js/room.js?v=19"></script>
-<script src="js/net.js?v=19"></script>
-<script src="js/online.js?v=19"></script>
-<script src="js/app.js?v=19"></script>
+<script src="js/chess.js?v=20"></script>
+<script src="js/memo.js?v=20"></script>
+<script src="js/util.js?v=20"></script>
+<script src="js/clock.js?v=20"></script>
+<script src="js/board.js?v=20"></script>
+<script src="js/elo.js?v=20"></script>
+<script src="js/eloChart.js?v=20"></script>
+<script src="js/eloview.js?v=20"></script>
+<script src="js/records.js?v=20"></script>
+<script src="js/puzzles.js?v=20"></script>
+<script src="js/gameview.js?v=20"></script>
+<script src="js/pendule.js?v=20"></script>
+<script src="js/local.js?v=20"></script>
+<script src="js/engineStrength.js?v=20"></script>
+<script src="js/engine.js?v=20"></script>
+<script src="js/ai.js?v=20"></script>
+<script src="js/room.js?v=20"></script>
+<script src="js/net.js?v=20"></script>
+<script src="js/online.js?v=20"></script>
+<script src="js/memoview.js?v=20"></script>
+<script src="js/app.js?v=20"></script>
 </body>
 </html>

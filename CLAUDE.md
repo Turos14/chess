@@ -9,7 +9,7 @@ Interface, commentaires et messages de commit **en français**. Le `README.md` d
 
 ```bash
 npm start                     # serveur de fichiers statiques de dev : http://localhost:3000 (PORT=… pour changer)
-npm test                      # tous les tests (enchaîne les fichiers test/*.test.js)
+npm test                      # tous les tests (liste explicite dans package.json : y ajouter tout nouveau fichier)
 node test/chess.test.js       # un seul fichier de test
 ```
 
@@ -27,12 +27,12 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   fusionner `origin/main` dans la branche de travail puis pousser sur `main` sans attendre de confirmation.
 - **Cache-busting manuel** : toute modification de `public/js` ou `public/css` doit incrémenter le `?v=N`
   partout dans `public/index.html` **et** dans `public/js/net.js` (chargement de `peerjs.min.js`).
-- Toutes les données utilisateur (parties, classement Elo, problèmes résolus) sont en `localStorage`, propres
+- Toutes les données utilisateur (parties, classement Elo, problèmes résolus, aide-mémoire) sont en `localStorage`, propres
   à l'appareil. Seule exception partagée : `public/data/puzzles.json`.
 
 ## Architecture
 
-- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js` utilisent un
+- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js` utilisent un
   wrapper UMD `(function (root, factory) {…})` : sans DOM, chargeables sous Node (`require`) et testés dans
   `test/`. Tous les autres fichiers de `public/js/` sont des IIFE qui posent un global sur `window`
   (`U`, `Board`, `GameView`, `Local`, `Online`, `AI`, `Rec`, `EloView`, `Puzzles`, `App`…) et dépendent de
@@ -53,7 +53,7 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   l'état ; en cas de départ de l'hôte, un autre participant reprend l'identifiant (bascule d'hôte).
 - **IA** : Stockfish.js 10 vendu dans `public/vendor/` (choisi exprès : pas de fichier NNUE), lancé en Web Worker
   par `engine.js`. Cette version n'a pas `UCI_Elo` : la force est calibrée par `engineStrength.js`
-  (Skill Level + temps + coup aléatoire parmi les meilleurs sous ~1300). Les parties contre l'IA ne modifient
+  (Skill Level + coup aléatoire parmi les meilleurs sous ~1300) ; temps de réflexion tiré entre 1 et 2 s par coup. Les parties contre l'IA ne modifient
   jamais le classement Elo.
 - **Elo** : calcul pur dans `elo.js`, stockage/écrans dans `eloview.js` ; appelé par `gameview.js` en fin de partie.
 - **Navigation** : `app.js` (`App.show`) gère les écrans et transitions ; robuste aux clics rapides, ne pas

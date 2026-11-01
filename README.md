@@ -66,6 +66,10 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   sur chaque problème : rouvre l'éditeur avec sa position et sa solution, puis un ticket de modification
   pré-rempli — appliqué seulement après validation manuelle de Turos14 (voir « Comment marche la modification de
   problèmes »).
+- **Aide-mémoire** (onglet dédié) : enchaînements de coups à retenir (ouvertures, pièges…), joués sur l'échiquier
+  depuis la position de départ, avec un titre et des notes. Navigation coup par coup ; rejouer un autre coup au
+  milieu de la ligne remplace la suite (après confirmation). Enregistrement automatique, recherche par titre, notes ou
+  coups. **Propre à l'appareil** (`localStorage`) : rien n'est envoyé ni partagé.
 - **Plein écran** pour les parties en cours et la pendule (API Fullscreen ; sur iPhone : « Sur l'écran d'accueil »).
 - **Transitions** : fondu à la navigation entre écrans, fondu + léger zoom pour les boîtes de dialogue, fondu +
   glissé pour les notifications. Implémentation robuste aux clics rapprochés (jamais deux écrans visibles à la
@@ -244,6 +248,8 @@ public/js/ai.js      mode de jeu « contre l'IA »
 public/js/eloChart.js courbe Elo (SVG, sans dépendance)
 public/js/eloview.js écran « Classement » et stockage du classement (navigateur)
 public/js/net.js     réseau pair-à-pair, bascule d'hôte
+public/js/memo.js    aide-mémoire : mise en forme, recherche des enchaînements (module pur, testable sous Node)
+public/js/memoview.js écran « Aide-mémoire » et son stockage local (navigateur)
 public/js/puzzles.js écran « Problèmes » (liste publique, résolution, proposition via ticket GitHub)
 public/data/puzzles.json  liste publique des problèmes (modifiée uniquement par l'Action GitHub)
 public/js/           util, clock, board, gameview, pendule, local, online, app

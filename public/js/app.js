@@ -20,6 +20,7 @@
     else if (name === 'online') Online.refresh();
     else if (name === 'elo') EloView.render();
     else if (name === 'puzzles') Puzzles.renderList();
+    else if (name === 'memo') MemoView.renderList();
     if (!newEl) return;
 
     clearTimeout(pendingTimer);
@@ -79,6 +80,7 @@
     Rec.initReplay();
     EloView.initScreen();
     Puzzles.initScreen();
+    MemoView.initScreen();
     App.show('home');
   }
 
