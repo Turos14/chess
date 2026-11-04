@@ -32,7 +32,7 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 
 ## Architecture
 
-- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js` utilisent un
+- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js`, `analysis.js` utilisent un
   wrapper UMD `(function (root, factory) {…})` : sans DOM, chargeables sous Node (`require`) et testés dans
   `test/`. Tous les autres fichiers de `public/js/` sont des IIFE qui posent un global sur `window`
   (`U`, `Board`, `GameView`, `Local`, `Online`, `AI`, `Rec`, `EloView`, `Puzzles`, `App`…) et dépendent de
@@ -55,6 +55,10 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   par `engine.js`. Cette version n'a pas `UCI_Elo` : la force est calibrée par `engineStrength.js`
   (Skill Level + coup aléatoire parmi les meilleurs sous ~1300) ; temps de réflexion tiré entre 1 et 2 s par coup. Les parties contre l'IA ne modifient
   jamais le classement Elo.
+- **Analyse « Hulotte »** : `coach.js` (navigateur) fait évaluer chaque position de la ligne principale d'une partie
+  enregistrée par `Engine` (`Handle.analyse`, pleine force) et stocke les évaluations brutes dans `rec.analysis`
+  (`{v:1, evals[]}`, une par position) ; classement, précision et textes sont dérivés à l'affichage par `analysis.js`
+  (pur, testé). `records.js` l'appelle via `Coach.open/show/decorate/stop`.
 - **Elo** : calcul pur dans `elo.js`, stockage/écrans dans `eloview.js` ; appelé par `gameview.js` en fin de partie.
 - **Navigation** : `app.js` (`App.show`) gère les écrans et transitions ; robuste aux clics rapides, ne pas
   contourner.

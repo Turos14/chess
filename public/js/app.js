@@ -78,6 +78,7 @@
     AI.init();
     Online.init();
     Rec.initReplay();
+    Coach.init();
     EloView.initScreen();
     Puzzles.initScreen();
     MemoView.initScreen();

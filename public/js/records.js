@@ -1,4 +1,5 @@
 /* Enregistrement des parties (plateau de départ + coups), écran de revue, et branches (variantes).
+ * Commentaires et analyse de la ligne principale : coach.js (Hulotte).
  * Une branche diverge d'un coup de la ligne principale : {id, fromPly, label, moves[], createdAt}.
  * Restriction volontaire (v1) : on ne crée/continue des branches que depuis la ligne principale, jamais
  * depuis une autre branche (pas de sous-branches) — ça évite un arbre à profondeur illimitée pour un gain
@@ -143,9 +144,10 @@
     buildMoveList();
   }
 
-  function persistRec() {
+  function persistRec() { saveRec(rv.rec); }
+  function saveRec(rec) {
     var list = load(), i;
-    for (i = 0; i < list.length; i++) if (list[i].id === rv.rec.id) list[i] = rv.rec;
+    for (i = 0; i < list.length; i++) if (list[i].id === rec.id) list[i] = rec;
     persist(list);
   }
 
@@ -174,6 +176,18 @@
     U.$('rv-title').textContent = rec.white + ' – ' + rec.black;
     var info = U.fmtDate(rec.date) + ' · ' + resultLabel(rec) + (rec.reason ? ' (' + GameView.reasonText(rec.reason).toLowerCase() + ')' : '');
     U.$('rv-info').textContent = info;
+    Coach.open(rec, {
+      names: function () { return { w: rec.white, b: rec.black }; },
+      save: function () { saveRec(rec); },
+      // Aller à une position de la ligne principale (moments clés, courbe, fin d'analyse)
+      goto: function (p) {
+        if (edit || rv.rec !== rec) return;
+        stopAuto();
+        if (rv.branchId) { rv.branchId = null; rebuildLine(); syncBranchUI(); }
+        showPly(p);
+      },
+      refreshMoves: function () { if (rv.rec === rec) { buildMoveList(); showPly(rv.ply); } }
+    });
     rebuildLine();
     syncBranchUI();
     App.show('replay');
@@ -193,6 +207,7 @@
       if (white) box.appendChild(U.el('span', 'mnum', num + '.'));
       else if (i === 0) box.appendChild(U.el('span', 'mnum', num + '…'));
       var s = U.el('span', 'mv' + (i >= fromPly ? ' branch' : ''), moves[i].san);
+      if (i < fromPly) Coach.decorate(s, i);
       s.setAttribute('data-ply', i + 1);
       (function (p) { U.on(s, 'click', function () { if (edit) return; stopAuto(); showPly(p); }); })(i + 1);
       box.appendChild(s);
@@ -216,6 +231,8 @@
     var targets = (atTip && editSel >= 0) ? edit.game.targets(editSel) : [];
     rv.board.render({ board: pos.board, orient: rv.orient, last: last, sel: sel, targets: U.getSetting('hints') ? targets : [], check: check, coords: U.getSetting('coords'), faceTop: null });
     U.$('rv-count').textContent = p + ' / ' + n;
+    var br = currentBranch();
+    Coach.show(p, !edit && (!br || p <= br.fromPly));
     var spans = U.$('rv-moves').getElementsByClassName('mv'), i;
     for (i = 0; i < spans.length; i++) {
       var on = parseInt(spans[i].getAttribute('data-ply'), 10) === p;
@@ -268,6 +285,7 @@
 
   function startNewBranch() {
     if (edit || rv.branchId) return;
+    if (Coach.busy()) { U.toast('Attends la fin de l’analyse de Hulotte (ou arrête-la).'); return; }
     var fromPly = rv.ply;
     var g = Chess.replay(rv.rec.startFen, rv.rec.moves.slice(0, fromPly));
     if (!g) { U.toast('Position illisible.'); return; }
@@ -280,6 +298,7 @@
 
   function continueBranch(b) {
     if (edit || !b) return;
+    if (Coach.busy()) { U.toast('Attends la fin de l’analyse de Hulotte (ou arrête-la).'); return; }
     var baseMoves = rv.rec.moves.slice(0, b.fromPly).concat(b.moves);
     var g = Chess.replay(rv.rec.startFen, baseMoves);
     if (!g) { U.toast('Branche illisible.'); return; }
@@ -455,9 +474,9 @@
     });
     U.on(U.$('rv-del'), 'click', function () {
       cancelEdit();
-      R.remove(rv.rec.id, function () { stopAuto(); App.show('records'); });
+      R.remove(rv.rec.id, function () { Coach.stop(); stopAuto(); App.show('records'); });
     });
-    U.on(U.$('rv-back'), 'click', function () { cancelEdit(); stopAuto(); App.show('records'); });
+    U.on(U.$('rv-back'), 'click', function () { Coach.stop(); cancelEdit(); stopAuto(); App.show('records'); });
 
     U.on(U.$('rv-branch-new'), 'click', function () {
       if (rv.branchId) continueBranch(currentBranch());

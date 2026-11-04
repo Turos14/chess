@@ -226,3 +226,23 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .pzbtn.on { background: #3d7eff; }
 .pzbtn.erase { color: #fff; font-size: 16px; line-height: 38px; }
 .pze-phase h3:first-child { margin-top: 4px; }
+
+/* Hulotte, la chouette qui commente les parties (coach.js) */
+.coach { background: #23262d; border-radius: 12px; padding: 10px; margin: 8px 0; }
+.coach-row { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: flex-start; align-items: flex-start; }
+.owl { -webkit-flex: none; flex: none; width: 56px; height: 56px; margin-right: 10px; }
+.owl .pupil { fill: #1b1d22; }
+.mood-think .owl svg { -webkit-animation: owlbob 1s ease-in-out infinite alternate; animation: owlbob 1s ease-in-out infinite alternate; }
+@-webkit-keyframes owlbob { from { -webkit-transform: rotate(-6deg); } to { -webkit-transform: rotate(6deg); } }
+@keyframes owlbob { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+.bubble { position: relative; -webkit-flex: 1; flex: 1; min-width: 0; background: #f6efe2; color: #222; border-radius: 12px; padding: 9px 11px; font-size: 14px; line-height: 1.4; border: 2px solid #f6efe2; }
+.bubble:before { content: ""; position: absolute; left: -9px; top: 16px; border: 8px solid transparent; border-left: 0; border-right-color: #f6efe2; }
+.mood-shock .bubble { border-color: #ff6b6b; }
+.mood-proud .bubble { border-color: #4cd27a; }
+.coach .btn { margin-top: 8px; }
+.coach .btnrow { margin-top: 2px; }
+.egraph { height: 56px; margin-top: 8px; border-radius: 6px; overflow: hidden; cursor: pointer; }
+.csym { font-size: 10px; font-weight: 700; margin-left: 1px; }
+.mv.c-blunder { color: #ff6b6b; } .mv.c-mistake, .mv.c-miss { color: #ff9f43; } .mv.c-inaccuracy { color: #f5d76e; }
+.mv.c-best .csym { color: #4cd27a; }
+.mv.cur.c-blunder, .mv.cur.c-mistake, .mv.cur.c-miss, .mv.cur.c-inaccuracy { color: #fff; }

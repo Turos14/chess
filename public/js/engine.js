@@ -85,6 +85,34 @@
     this.worker.postMessage('go movetime ' + EngineStrength.moveTime());
   };
 
+  // Analyse à pleine force (Skill Level 20, une seule variante) : cb({cp | mate, best}) du point de vue du camp au trait,
+  // best = meilleur coup UCI ; cb(null) si le moteur ne renvoie rien d'exploitable. Sert à l'analyse de partie
+  // (coach.js) ; setStrength doit être rappelé avant de rejouer contre la poignée.
+  Handle.prototype.analyse = function (fen, ms, cb) {
+    if (this.destroyed) { cb(null); return; }
+    var self = this, score = null, done = false;
+    this._onLine = function (line) {
+      if (done) return;
+      var m = /^info .*\bscore (cp|mate) (-?\d+)/.exec(line);
+      if (m && !/\bmultipv [2-9]/.test(line) && !/\b(lower|upper)bound\b/.test(line)) {
+        score = m[1] === 'cp' ? { cp: parseInt(m[2], 10) } : { mate: parseInt(m[2], 10) };
+        return;
+      }
+      if ((m = /^bestmove (\S+)/.exec(line))) {
+        done = true;
+        self._onLine = null;
+        if (!score) { cb(null); return; }
+        score.best = /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(m[1]) ? m[1] : null;
+        cb(score);
+      }
+    };
+    this.worker.postMessage('setoption name Skill Level value 20');
+    this.worker.postMessage('setoption name MultiPV value 1');
+    this.worker.postMessage('setoption name UCI_Chess960 value ' + (Chess.is960(fen) ? 'true' : 'false'));
+    this.worker.postMessage('position fen ' + fen);
+    this.worker.postMessage('go movetime ' + ms);
+  };
+
   Handle.prototype.destroy = function () {
     if (this.destroyed) return;
     this.destroyed = true;

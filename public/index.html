@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=24">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=24">
-<link rel="icon" href="icons/icon-192.png?v=24">
-<link rel="stylesheet" href="css/style.css?v=24">
-<link rel="stylesheet" href="css/pieces.css?v=24">
+<link rel="manifest" href="manifest.json?v=25">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=25">
+<link rel="icon" href="icons/icon-192.png?v=25">
+<link rel="stylesheet" href="css/style.css?v=25">
+<link rel="stylesheet" href="css/pieces.css?v=25">
 </head>
 <body>
 
@@ -307,6 +307,15 @@
     </div>
     <div class="rv-right">
       <div id="rv-info" class="hint"></div>
+      <div id="rv-coach" class="coach mood-happy">
+        <div class="coach-row"><div id="rv-owl" class="owl"></div><div id="rv-bubble" class="bubble"></div></div>
+        <button id="rv-analyse" class="btn primary">Analyser avec Hulotte</button>
+        <button id="rv-analyse-stop" class="btn" style="display:none">Arrêter l’analyse</button>
+        <div id="rv-graph" class="egraph" style="display:none"></div>
+        <div id="rv-keys" class="btnrow" style="display:none">
+          <button id="rv-key-prev" class="btn">‹ Moment clé</button><button id="rv-key-next" class="btn">Moment clé ›</button>
+        </div>
+      </div>
       <h3>Branches</h3>
       <div id="rv-branches" class="chips"></div>
       <button id="rv-branch-new" class="btn">+ Nouvelle branche depuis ce coup</button>
@@ -331,26 +340,28 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=24"></script>
-<script src="js/memo.js?v=24"></script>
-<script src="js/util.js?v=24"></script>
-<script src="js/clock.js?v=24"></script>
-<script src="js/board.js?v=24"></script>
-<script src="js/elo.js?v=24"></script>
-<script src="js/eloChart.js?v=24"></script>
-<script src="js/eloview.js?v=24"></script>
-<script src="js/records.js?v=24"></script>
-<script src="js/puzzles.js?v=24"></script>
-<script src="js/gameview.js?v=24"></script>
-<script src="js/pendule.js?v=24"></script>
-<script src="js/local.js?v=24"></script>
-<script src="js/engineStrength.js?v=24"></script>
-<script src="js/engine.js?v=24"></script>
-<script src="js/ai.js?v=24"></script>
-<script src="js/room.js?v=24"></script>
-<script src="js/net.js?v=24"></script>
-<script src="js/online.js?v=24"></script>
-<script src="js/memoview.js?v=24"></script>
-<script src="js/app.js?v=24"></script>
+<script src="js/chess.js?v=25"></script>
+<script src="js/memo.js?v=25"></script>
+<script src="js/util.js?v=25"></script>
+<script src="js/clock.js?v=25"></script>
+<script src="js/board.js?v=25"></script>
+<script src="js/elo.js?v=25"></script>
+<script src="js/eloChart.js?v=25"></script>
+<script src="js/eloview.js?v=25"></script>
+<script src="js/records.js?v=25"></script>
+<script src="js/puzzles.js?v=25"></script>
+<script src="js/gameview.js?v=25"></script>
+<script src="js/pendule.js?v=25"></script>
+<script src="js/local.js?v=25"></script>
+<script src="js/engineStrength.js?v=25"></script>
+<script src="js/engine.js?v=25"></script>
+<script src="js/analysis.js?v=25"></script>
+<script src="js/coach.js?v=25"></script>
+<script src="js/ai.js?v=25"></script>
+<script src="js/room.js?v=25"></script>
+<script src="js/net.js?v=25"></script>
+<script src="js/online.js?v=25"></script>
+<script src="js/memoview.js?v=25"></script>
+<script src="js/app.js?v=25"></script>
 </body>
 </html>

@@ -32,6 +32,12 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
 - **Enregistrement et revue** : proposition d'enregistrer en fin de partie ; bouton « Enreg. » pour enregistrer
   le plateau actuel + les coups suivants jusqu'à l'arrêt. Revue pas à pas / lecture auto, export PGN (ligne
   principale). Les parties sont stockées dans le navigateur (`localStorage`).
+- **Analyse commentée par Hulotte** (la chouette) : dans la revue d'une partie enregistrée, « Analyser avec Hulotte »
+  fait évaluer chaque position par Stockfish à pleine force (~0,35 s par position, sur l'appareil). Chaque coup est
+  classé (★ meilleur coup, ?! imprécision, ? erreur ou mat manqué, ?? gaffe, d'après la perte de chances de gain,
+  échelle Lichess), commenté par Hulotte avec le coup qu'il fallait jouer, et la position de départ affiche le bilan
+  (précision par joueur, nombre d'erreurs). Courbe d'évaluation cliquable, boutons « Moment clé » pour sauter aux
+  erreurs. Résultat gardé dans la partie enregistrée ; analyse interrompue reprenable. Ligne principale seulement.
 - **Branches dans les parties enregistrées** : depuis la revue, « + Nouvelle branche depuis ce coup » pour jouer
   une variante à partir d'une position de la ligne principale (coups manuels sur l'échiquier) ; « Continuer cette
   branche » pour reprendre l'édition d'une branche existante. Case **« Laisser l'IA jouer »** : l'IA enchaîne les
@@ -250,6 +256,8 @@ public/js/room.js    salle de jeu côté hôte (sièges, pendule, nulle, abandon
 public/js/elo.js     calcul de classement Elo (module pur, testable sous Node)
 public/js/engineStrength.js  calibration Elo -> réglages du moteur (module pur, testable sous Node)
 public/js/engine.js  enveloppe Web Worker autour du moteur Stockfish
+public/js/analysis.js classement des coups, précision, commentaires de Hulotte (module pur, testable sous Node)
+public/js/coach.js   Hulotte dans l'écran de revue : lancement de l'analyse, bulle, courbe, moments clés
 public/js/ai.js      mode de jeu « contre l'IA »
 public/js/eloChart.js courbe Elo (SVG, sans dépendance)
 public/js/eloview.js écran « Classement » et stockage du classement (navigateur)
