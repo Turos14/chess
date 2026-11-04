@@ -16,6 +16,9 @@
   var V = {};
   var ctrl = null, board = null, sel = -1, targets = [], timer = null, shownResult = false;
   var el = {}, lastWarn = { w: -1, b: -1 }, promoOpen = false;
+  // Revue en cours de partie : n° de la position affichée (0 = départ), null = position actuelle. Pendant la revue,
+  // on ne peut pas jouer (toucher l'échiquier ramène à la position actuelle) ; la partie et la pendule continuent.
+  var viewPly = null;
 
   V.reasonText = function (r) { return REASONS[r] || ''; };
 
@@ -96,7 +99,7 @@
   V.open = function (c) {
     ctrl = c;
     Rec.reset();
-    sel = -1; targets = []; shownResult = false;
+    sel = -1; targets = []; shownResult = false; viewPly = null;
     lastWarn = { w: -1, b: -1 };
     buildTools();
     App.show('game');
@@ -124,6 +127,10 @@
 
   function buildTools() {
     U.clear(el.tools);
+    el.prevBtn = U.button('‹', 'tbtn nav', function () { V.review(-1); });
+    el.nextBtn = U.button('›', 'tbtn nav', function () { V.review(1); });
+    el.tools.appendChild(el.prevBtn);
+    el.tools.appendChild(el.nextBtn);
     if (ctrl.pausable) el.tools.appendChild(U.button('Pause', 'tbtn', function () { ctrl.onPause(); }));
     el.tools.appendChild(U.button('Vue', 'tbtn', function () { V.flip(); }));
     el.recBtn = U.button('Enreg.', 'tbtn', function () { Rec.toggle(ctrl); V.refresh(); });
@@ -131,9 +138,23 @@
     el.tools.appendChild(U.button('Menu', 'tbtn', function () { V.menu(); }));
   }
 
+  /* ---------- Revue des coups précédents ---------- */
+  function reviewing() { return viewPly !== null && viewPly < ctrl.game.history.length; }
+
+  // step : -1 (coup précédent) ou +1 (coup suivant) ; arrivé au bout, on revient à la position actuelle.
+  V.review = function (step) {
+    if (!ctrl) return;
+    var n = ctrl.game.history.length, p = reviewing() ? viewPly : n;
+    p = Math.max(0, Math.min(n, p + step));
+    viewPly = p < n ? p : null;
+    sel = -1; targets = [];
+    V.refresh();
+  };
+
   /* ---------- Interaction ---------- */
   function onSquare(idx) {
     if (!ctrl || promoOpen) return;
+    if (reviewing()) { viewPly = null; V.refresh(); return; }
     var g = ctrl.game;
     if (ctrl.getResult() || U.dialogOpen()) return;
     var i, piece = g.board()[idx], turn = g.turn();
@@ -184,29 +205,42 @@
       if (!p || p.charAt(0) !== g.turn() || res) { sel = -1; targets = []; }
       else targets = g.targets(sel);
     }
-    var last = g.lastMove();
-    var checkSq = (!res || res.reason === 'checkmate') && g.inCheck() ? g.kingSquare(g.turn()) : -1;
+    var shown = g.board(), last = g.lastMove(), checkSq, n = g.history.length;
+    if (reviewing()) {
+      var vg = new Chess.Game(g.fens[viewPly]);
+      shown = vg.board();
+      last = viewPly > 0 ? g.history[viewPly - 1] : null;
+      checkSq = vg.inCheck() ? vg.kingSquare(vg.turn()) : -1;
+      sel = -1; targets = [];
+    } else {
+      viewPly = null;
+      checkSq = (!res || res.reason === 'checkmate') && g.inCheck() ? g.kingSquare(g.turn()) : -1;
+    }
     var faceTop = ctrl.view.faceToFace ? Chess.other(orient) : null;
     board.render({
-      board: g.board(), orient: orient,
+      board: shown, orient: orient,
       last: last ? { from: Chess.sqIndex(last.from), to: Chess.sqIndex(last.to) } : null,
       sel: sel, targets: U.getSetting('hints') ? targets : [],
       check: checkSq, coords: U.getSetting('coords'), faceTop: faceTop
     });
     // Barres des joueurs : haut = adversaire de l'orientation
-    paintBar(el.top, Chess.other(orient), !!ctrl.view.faceToFace);
-    paintBar(el.bottom, orient, false);
-    el.info.textContent = ctrl.head();
+    paintBar(el.top, Chess.other(orient), !!ctrl.view.faceToFace, shown);
+    paintBar(el.bottom, orient, false, shown);
+    el.info.textContent = reviewing()
+      ? 'Revue : coup ' + viewPly + ' / ' + n + (viewPly > 0 ? ' (' + g.history[viewPly - 1].san + ')' : ' (départ)') + ' · touche l’échiquier pour revenir'
+      : ctrl.head();
+    U.toggleClass(el.head, 'review', reviewing());
+    if (el.prevBtn) { el.prevBtn.disabled = !n || viewPly === 0; el.nextBtn.disabled = !reviewing(); }
     el.rec.textContent = Rec.active() ? '● REC' : '';
     if (el.recBtn) U.toggleClass(el.recBtn, 'recon', Rec.active());
     tick();
     if (res && !shownResult) { shownResult = true; V.gameOver(res); }
   };
 
-  function paintBar(bar, color, rotated) {
+  function paintBar(bar, color, rotated, shown) {
     var g = ctrl.game, res = ctrl.getResult();
     var turn = !res && g.turn() === color;
-    var m = Chess.material(g.board());
+    var m = Chess.material(shown);
     bar.className = 'pbar' + (turn ? ' turn' : '') + (rotated ? ' rot' : '') + (color === 'w' ? ' cw' : ' cb');
     bar.childNodes[0].className = 'pdot ' + (color === 'w' ? 'w' : 'b');
     bar.childNodes[1].textContent = ctrl.names[color];

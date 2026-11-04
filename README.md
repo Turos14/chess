@@ -44,6 +44,9 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   le même placement. **Pas de roque** dans ces parties (choix de l'appli). Fonctionne aussi en ligne (position
   transmise par l'hôte, conservée en cas de bascule), dans les
   parties enregistrées et l'export PGN (position de départ dans la balise `FEN`).
+- **Revoir les coups précédents en cours de partie** : boutons ‹ › dans la barre d'outils ; l'échiquier montre
+  l'ancienne position sans pouvoir jouer (la partie et la pendule continuent), toucher l'échiquier ou › jusqu'au bout
+  revient à la position actuelle.
 - **Score matériel** affiché dans le bandeau du joueur en avance (ex. « +3 »), recalculé à chaque coup.
 - **Problèmes** (onglet dédié) : liste **publique, partagée entre tous les visiteurs** (contrairement au reste de
   l'appli, qui est propre à chaque appareil). Résolution sur l'échiquier, indice, « Voir la solution », suivi
