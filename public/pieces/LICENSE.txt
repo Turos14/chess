@@ -3,3 +3,6 @@ Source : https://github.com/lichess-org/lila/tree/master/public/piece/cburnett
 (originaux : Wikimedia Commons, "Chess_klt45.svg" etc.)
 Licences (au choix) : CC BY-SA 3.0, GFDL, BSD, GPLv2+.
 Attribution requise : Colin M.L. Burnett.
+
+Variantes de couleur r*/u*/y*/g*.svg (rouge, bleu, jaune, vert) : pièces blanches dont le remplissage blanc a été
+remplacé par une couleur, pour les échecs à plusieurs. Même auteur, mêmes licences.

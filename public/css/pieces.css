@@ -19,3 +19,29 @@
 .pc-bB { background-image: url(../pieces/bB.svg); }
 .pc-bN { background-image: url(../pieces/bN.svg); }
 .pc-bP { background-image: url(../pieces/bP.svg); }
+
+/* Couleurs supplémentaires des échecs à plusieurs (r rouge, u bleu, y jaune, g vert) : pièces blanches recolorées */
+.pc-rK { background-image: url(../pieces/rK.svg); }
+.pc-rQ { background-image: url(../pieces/rQ.svg); }
+.pc-rR { background-image: url(../pieces/rR.svg); }
+.pc-rB { background-image: url(../pieces/rB.svg); }
+.pc-rN { background-image: url(../pieces/rN.svg); }
+.pc-rP { background-image: url(../pieces/rP.svg); }
+.pc-uK { background-image: url(../pieces/uK.svg); }
+.pc-uQ { background-image: url(../pieces/uQ.svg); }
+.pc-uR { background-image: url(../pieces/uR.svg); }
+.pc-uB { background-image: url(../pieces/uB.svg); }
+.pc-uN { background-image: url(../pieces/uN.svg); }
+.pc-uP { background-image: url(../pieces/uP.svg); }
+.pc-yK { background-image: url(../pieces/yK.svg); }
+.pc-yQ { background-image: url(../pieces/yQ.svg); }
+.pc-yR { background-image: url(../pieces/yR.svg); }
+.pc-yB { background-image: url(../pieces/yB.svg); }
+.pc-yN { background-image: url(../pieces/yN.svg); }
+.pc-yP { background-image: url(../pieces/yP.svg); }
+.pc-gK { background-image: url(../pieces/gK.svg); }
+.pc-gQ { background-image: url(../pieces/gQ.svg); }
+.pc-gR { background-image: url(../pieces/gR.svg); }
+.pc-gB { background-image: url(../pieces/gB.svg); }
+.pc-gN { background-image: url(../pieces/gN.svg); }
+.pc-gP { background-image: url(../pieces/gP.svg); }
