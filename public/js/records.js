@@ -114,8 +114,13 @@
   /* ---------- Revue ---------- */
   // rv : {rec, lineMoves, fens, ply, orient, branchId (null = ligne principale), timer, board}
   var rv = { rec: null, lineMoves: [], fens: [], ply: 0, orient: 'w', branchId: null, timer: null, board: null };
-  // edit : {fromPly, branchId (id existant ou null = nouvelle branche), game, moves[], aiOn, engineHandle, thinking, destroyed}
-  var edit = null, editSel = -1;
+  // edit : {fromPly, branchId (id existant ou null = nouvelle branche), game, moves[], ai ('none'|'w'|'b'|'both' : camps
+  // joués par l'IA), engineHandle, thinking, destroyed}
+  var edit = null, editSel = -1, aiSeg = null;
+
+  function aiPlays(color) { return !!edit && (edit.ai === 'both' || edit.ai === color); }
+  // L'IA doit-elle jouer maintenant ? (camp au trait confié à l'IA, partie pas finie, pas déjà en réflexion)
+  function aiTurn() { return !!edit && !edit.thinking && !edit.game.status().over && aiPlays(edit.game.turn()); }
 
   function stopAuto() {
     clearInterval(rv.timer); rv.timer = null;
@@ -289,7 +294,7 @@
     var fromPly = rv.ply;
     var g = Chess.replay(rv.rec.startFen, rv.rec.moves.slice(0, fromPly));
     if (!g) { U.toast('Position illisible.'); return; }
-    edit = { fromPly: fromPly, branchId: null, game: g, moves: [], aiOn: false, engineHandle: null, thinking: false, destroyed: false };
+    edit = { fromPly: fromPly, branchId: null, game: g, moves: [], ai: 'none', engineHandle: null, thinking: false, destroyed: false };
     editSel = -1;
     rebuildLine();
     showPly(fromPly);
@@ -302,7 +307,7 @@
     var baseMoves = rv.rec.moves.slice(0, b.fromPly).concat(b.moves);
     var g = Chess.replay(rv.rec.startFen, baseMoves);
     if (!g) { U.toast('Branche illisible.'); return; }
-    edit = { fromPly: b.fromPly, branchId: b.id, game: g, moves: b.moves.slice(), aiOn: false, engineHandle: null, thinking: false, destroyed: false };
+    edit = { fromPly: b.fromPly, branchId: b.id, game: g, moves: b.moves.slice(), ai: 'none', engineHandle: null, thinking: false, destroyed: false };
     editSel = -1;
     rebuildLine();
     showPly(rv.lineMoves.length);
@@ -317,13 +322,12 @@
     var turnName = g.turn() === 'w' ? (rv.rec.white || 'Blancs') : (rv.rec.black || 'Noirs');
     status.textContent = edit.thinking ? 'L’IA (' + turnName + ') réfléchit…' :
       (res.over ? 'Terminé : ' + GameView.reasonText(res.reason).toLowerCase() : 'Trait aux ' + (g.turn() === 'w' ? 'Blancs' : 'Noirs') + ' (' + turnName + ')');
-    U.$('rv-edit-ai').checked = edit.aiOn;
-    U.$('rv-edit-ai').disabled = res.over;
+    aiSeg.set(edit.ai);
     U.$('rv-edit-undo').disabled = !edit.moves.length || edit.thinking;
   }
 
   function onReplaySquare(idx) {
-    if (!edit || edit.aiOn || edit.thinking || rv.ply !== rv.lineMoves.length || edit.game.status().over) return;
+    if (!edit || aiPlays(edit.game.turn()) || edit.thinking || rv.ply !== rv.lineMoves.length || edit.game.status().over) return;
     var g = edit.game, piece = g.board()[idx], turn = g.turn(), i;
     if (editSel >= 0) {
       var targets = g.targets(editSel);
@@ -365,13 +369,15 @@
     rebuildLine();
     showPly(rv.lineMoves.length);
     renderEdit();
-    if (!edit.game.status().over && edit.aiOn) askEngineForEdit();
+    if (aiTurn()) askEngineForEdit();
   }
 
   function editUndo() {
     if (!edit || !edit.moves.length || edit.thinking) return;
     edit.game.undo();
     edit.moves.pop();
+    // Contre l'IA (un seul camp) : on annule aussi son coup, sinon elle rejouerait aussitôt le même
+    if (edit.ai !== 'both' && edit.moves.length && aiPlays(edit.game.turn())) { edit.game.undo(); edit.moves.pop(); }
     rebuildLine();
     showPly(rv.lineMoves.length);
     renderEdit();
@@ -392,15 +398,16 @@
       edit.engineHandle.bestMove(g.fen(), function (mv) {
         if (!edit || edit.destroyed) return;
         edit.thinking = false;
+        if (!aiPlays(g.turn())) { renderEdit(); return; }     // camp retiré à l'IA pendant sa réflexion
         if (!mv) { U.toast('L’IA n’a pas trouvé de coup.'); renderEdit(); return; }
         playEditMove(mv.from, mv.to, mv.promo);
       });
     }
     if (edit.engineHandle) { go(); return; }
-    if (!Engine.supported()) { edit.thinking = false; edit.aiOn = false; U.toast('IA indisponible sur ce navigateur (Web Worker).'); renderEdit(); return; }
+    if (!Engine.supported()) { edit.thinking = false; edit.ai = 'none'; U.toast('IA indisponible sur ce navigateur (Web Worker).'); renderEdit(); return; }
     Engine.create(function (err, h) {
       if (!edit || edit.destroyed) { if (h) h.destroy(); return; }
-      if (err) { edit.thinking = false; edit.aiOn = false; U.toast(err.message); renderEdit(); return; }
+      if (err) { edit.thinking = false; edit.ai = 'none'; U.toast(err.message); renderEdit(); return; }
       edit.engineHandle = h;
       go();
     });
@@ -482,11 +489,15 @@
       if (rv.branchId) continueBranch(currentBranch());
       else startNewBranch();
     });
-    U.on(U.$('rv-edit-ai'), 'change', function () {
+    aiSeg = U.segmented(U.$('rv-edit-ai'), [
+      { v: 'none', label: 'Personne' }, { v: 'w', label: 'Blancs' }, { v: 'b', label: 'Noirs' }, { v: 'both', label: 'Les deux' }
+    ], 'none', function (v) {
       if (!edit) return;
-      edit.aiOn = this.checked;
+      edit.ai = v;
+      editSel = -1;
       renderEdit();
-      if (edit.aiOn && !edit.thinking && !edit.game.status().over) askEngineForEdit();
+      showPly(rv.ply);
+      if (aiTurn()) askEngineForEdit();
     });
     U.on(U.$('rv-edit-undo'), 'click', editUndo);
     U.on(U.$('rv-edit-done'), 'click', finishBranch);

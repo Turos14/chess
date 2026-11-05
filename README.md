@@ -41,9 +41,10 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   erreurs. Résultat gardé dans la partie enregistrée ; analyse interrompue reprenable. Ligne principale seulement.
 - **Branches dans les parties enregistrées** : depuis la revue, « + Nouvelle branche depuis ce coup » pour jouer
   une variante à partir d'une position de la ligne principale (coups manuels sur l'échiquier) ; « Continuer cette
-  branche » pour reprendre l'édition d'une branche existante. Case **« Laisser l'IA jouer »** : l'IA enchaîne les
-  coups des deux camps automatiquement, chacun à **sa propre note Elo suivie** (celle du nom sous ce camp dans le
-  classement, sinon 1200) — jusqu'à décocher, la fin de partie, ou « Terminer ». Restriction volontaire : pas de
+  branche » pour reprendre l'édition d'une branche existante. Choix **« L'IA joue : Personne / Blancs / Noirs /
+  Les deux »** : l'IA prend 0, 1 ou 2 camps, chacun à **sa propre note Elo suivie** (celle du nom sous ce camp dans le
+  classement, sinon 1200) ; avec un seul camp, on joue l'autre à la main et « Annuler le coup » retire aussi la
+  réponse de l'IA. Modifiable à tout moment de l'édition. Restriction volontaire : pas de
   branche depuis une autre branche (pas de sous-arbre).
 - **Échecs aléatoires Fischer (960)** : case à cocher dans les réglages des parties locale, en ligne et contre
   l'IA. Les pièces de la 1re rangée sont tirées au hasard parmi les 960 placements possibles (fous de couleurs
