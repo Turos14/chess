@@ -54,7 +54,10 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   parties enregistrées et l'export PGN (position de départ dans la balise `FEN`).
 - **Échecs à plusieurs** (onglet dédié) : **3 joueurs** sur l'échiquier hexagonal « Yalta » (96 cases, Blancs /
   Noirs / Rouges) ou **4 joueurs** sur l'échiquier en croix 14×14 (Rouges / Bleus / Jaunes / Verts, option équipes 2
-  contre 2). Échiquier en SVG qui peut tourner vers le joueur au trait, revue des coups ‹ ›, abandon d'un joueur.
+  contre 2). Sur un seul appareil, ou **en ligne** (chacun sur son appareil, code à 5 caractères, spectateurs ; même
+  réseau pair-à-pair et même bascule d'hôte que la partie en ligne à deux ; la partie commence quand tous les sièges
+  sont pris, un joueur déconnecté peut être retiré par les autres). Échiquier en SVG qui peut tourner vers le joueur
+  au trait (en ligne : vers son propre camp), revue des coups ‹ ›, abandon d'un joueur.
   Règles simplifiées (v1) : pas de roque ni de prise en passant ; promotion sur la dernière rangée d'un autre camp
   (3 joueurs) ou la 8e rangée (4 joueurs) ; un joueur sans coup légal est éliminé (mat ou pat) et ses pièces
   disparaissent ; un roi laissé en prise peut être capturé ; le dernier en jeu gagne. Pas de pendule, d'Elo ni
@@ -267,6 +270,8 @@ public/js/engineStrength.js  calibration Elo -> réglages du moteur (module pur,
 public/js/multichess.js  règles des échecs à 3 (Yalta) et à 4 (croix), module pur testable sous Node
 public/js/multiboard.js  rendu SVG de ces échiquiers
 public/js/multi.js   écrans des échecs à plusieurs (réglages, partie) et mode sur un appareil
+public/js/multiroom.js  salle des échecs à plusieurs côté hôte (sièges, coups, abandons), testable sous Node
+public/js/multionline.js  échecs à plusieurs en ligne (créer / rejoindre, contrôleur réseau)
 public/js/engine.js  enveloppe Web Worker autour du moteur Stockfish
 public/js/analysis.js classement des coups, précision, commentaires de Hulotte (module pur, testable sous Node)
 public/js/coach.js   Hulotte dans l'écran de revue : lancement de l'analyse, bulle, courbe, moments clés

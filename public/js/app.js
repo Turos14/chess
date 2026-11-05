@@ -21,6 +21,7 @@
     else if (name === 'elo') EloView.render();
     else if (name === 'puzzles') Puzzles.renderList();
     else if (name === 'memo') MemoView.renderList();
+    else if (name === 'multi-setup') MultiOnline.refreshSetup();
     if (!newEl) return;
 
     clearTimeout(pendingTimer);
@@ -84,6 +85,7 @@
     Puzzles.initScreen();
     MemoView.initScreen();
     Multi.initScreen();
+    MultiOnline.init();
     App.show('home');
   }
 

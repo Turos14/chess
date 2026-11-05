@@ -3,7 +3,9 @@
  *  - les autres (joueur adverse, spectateurs) se connectent à cet identifiant ;
  *  - si l'hôte disparaît, chacun retente d'enregistrer l'identifiant (délai aléatoire croissant) : le premier qui y
  *    arrive devient le nouvel hôte et repart du dernier état reçu, les autres se reconnectent à lui.
- * L'hôte fait tourner Room (public/js/room.js) : règles, pendule, sièges. */
+ * L'hôte fait tourner Room (public/js/room.js) : règles, pendule, sièges — ou la salle fournie par opts.makeRoom
+ * (échecs à plusieurs : MultiRoom, avec opts.prefix pour ne pas partager les codes). Un siège peut être une couleur
+ * ('w'/'b') ou un numéro de camp (0, 1, 2…) : on teste donc « != null », jamais la simple vérité. */
 (function () {
   'use strict';
   var PREFIX = 'echecs-v1-';
@@ -47,7 +49,7 @@
     if (libState === 1) return;
     libState = 1;
     var s = document.createElement('script');
-    s.src = 'vendor/peerjs.min.js?v=28';
+    s.src = 'vendor/peerjs.min.js?v=29';
     s.onload = function () {
       var list = libWaiters; libWaiters = []; libState = 0;
       list.forEach(function (f) { f(window.Peer ? null : new Error('PeerJS indisponible')); });
@@ -87,7 +89,7 @@
   }
 
   /* opts : {
-   *   code, cid, name, role:'player'|'spectator', color, tc,
+   *   code, cid, name, role:'player'|'spectator', color, tc, prefix (défaut 'echecs-v1-'), makeRoom(params) (défaut Room),
    *   mode:'create'|'join'|'resume', lastState,
    *   frozen(): {w,b}|null  (temps figé à l'instant où l'hôte est perdu),
    *   on: { state(s), error(msg), reject(msg), status({kind, role, reason}) } } */
@@ -95,6 +97,7 @@
     this.o = opts;
     this.code = opts.code;
     this.cid = opts.cid;
+    this.prefix = opts.prefix || PREFIX;
     this.role = null;              // 'host' | 'guest'
     this.peer = null; this.conn = null; this.room = null;
     this.hostConns = {};           // cid -> {conn, seen}
@@ -119,14 +122,14 @@
     this._status('connecting');
     function alive() { return !self.closed && gen === self.gen; }
     function asGuest() {
-      openPeer(PREFIX + self.code + '-g-' + Net.newId(), function (err, peer) {
+      openPeer(self.prefix + self.code + '-g-' + Net.newId(), function (err, peer) {
         if (err) { openPeer(null, function (e2, p2) { if (e2) fail(e2); else connect(p2); }); return; }
         connect(peer);
       });
     }
     function connect(peer) {
       if (!alive()) { peer.destroy(); return; }
-      var conn = peer.connect(PREFIX + self.code, { reliable: true, serialization: 'json' });
+      var conn = peer.connect(self.prefix + self.code, { reliable: true, serialization: 'json' });
       var timer = setTimeout(function () { bad(new Error('L’hôte de la partie ne répond pas.')); }, T_CONNECT);
       function bad(e) {
         clearTimeout(timer);
@@ -150,7 +153,7 @@
       else self._fatal(explain(e));
     }
     function asHost(code, tries) {
-      openPeer(PREFIX + code, function (err, peer) {
+      openPeer(self.prefix + code, function (err, peer) {
         if (!alive()) { if (peer) peer.destroy(); return; }
         if (err) {
           if (err.type === 'unavailable-id') {
@@ -184,20 +187,21 @@
       if (!this.lastState) { this._fatal('Impossible de reprendre cette partie : aucun état sauvegardé.'); return; }
       restore = { state: this.lastState, frozen: this.frozen };
     }
-    this.room = new window.Room({
+    var params = {
       code: this.code, tc: o.tc, startFen: o.startFen, restore: restore,
       send: function (cid, msg) {
         if (cid === self.cid) { self._deliver(msg); return; }
         var h = self.hostConns[cid];
         if (h && h.conn.open) h.conn.send(msg);
       }
-    });
+    };
+    this.room = o.makeRoom ? o.makeRoom(params) : new window.Room(params);
     peer.on('connection', function (conn) { self._accept(conn); });
     peer.on('disconnected', function () { if (!self.closed && !peer.destroyed) peer.reconnect(); });
     peer.on('error', function (e) { if (!self.closed && e && e.type !== 'peer-unavailable') self._status('reconnecting', explain(e)); });
     this.beat = setInterval(function () { self._hostTick(); }, HEARTBEAT);
     this._status('online');
-    this.room.hello(this.cid, { name: o.name, role: o.role, color: mode === 'resume' ? (o.color || undefined) : o.color, eloStart: o.startElo });
+    this.room.hello(this.cid, { name: o.name, role: o.role, color: o.color != null ? o.color : undefined, eloStart: o.startElo });
   };
 
   Session.prototype._accept = function (conn) {
@@ -244,7 +248,7 @@
     if (msg.t === 'state') {
       this.lastState = msg.state;
       this.o.color = msg.state.you;                       // siège actuel : sert si on devient l'hôte plus tard
-      this.o.role = msg.state.you ? 'player' : 'spectator';
+      this.o.role = msg.state.you != null ? 'player' : 'spectator';
       if (on.state) on.state(msg.state);
     }
     else if (msg.t === 'error') { if (on.error) on.error(msg.message); }
@@ -273,7 +277,7 @@
       if (new Date().getTime() - self.hostSeen > PRESENCE) self._hostLost('Connexion perdue avec l’hôte.');
     }, HEARTBEAT);
     this._status('online');
-    conn.send({ t: 'hello', cid: this.cid, name: o.name, role: o.role, color: o.color || undefined, eloStart: o.startElo });
+    conn.send({ t: 'hello', cid: this.cid, name: o.name, role: o.role, color: o.color != null ? o.color : undefined, eloStart: o.startElo });
   };
 
   Session.prototype._hostLost = function (reason) {

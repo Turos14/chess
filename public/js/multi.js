@@ -3,7 +3,8 @@
  * multionline.js (en ligne) :
  *   game (MultiChess.Game), names [nom par camp], view {mode:'fixed'|'turn', color (camp vu en bas si fixe)},
  *   canMove(color) -> bool, attemptMove(from, to, promo), resign(color), quit(), head() -> texte d'en-tête,
- *   menuItems() -> [{label, fn, danger}], myColors() -> camps joués sur cet appareil (abandon), mode ('local'|'online')
+ *   menuItems() -> [{label, fn, danger}], myColors() -> camps joués sur cet appareil, mode ('local'|'online'),
+ *   note(color) -> texte ajouté au statut du joueur (facultatif : « déconnecté » en ligne)
  * Règles : multichess.js. Pas de pendule, d'Elo ni d'enregistrement pour ces parties (v1). */
 (function () {
   'use strict';
@@ -156,6 +157,8 @@
       chip.appendChild(dot);
       chip.appendChild(U.el('span', 'mu-name', ctrl.names[i] || M.colorName(g.variant, i)));
       var st = !g.alive[i] ? 'éliminé (' + (OUT[g.out[i]] || '') + ')' : g.inCheck(i) ? 'échec !' : (!g.over && g.turn === i ? 'au trait' : '');
+      var note = ctrl.note ? ctrl.note(i) : '';
+      if (note) st = st ? st + ' · ' + note : note;
       if (g.teams) st = (i % 2 === 0 ? 'équipe A' : 'équipe B') + (st ? ' · ' + st : '');
       chip.appendChild(U.el('span', 'mu-st', st));
       box.appendChild(chip);
