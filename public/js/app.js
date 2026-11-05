@@ -65,6 +65,7 @@
     if (U.dialogOpen()) return;
     if (current === 'pendule') Pendule.quitConfirm();
     else if (current === 'game') GameView.quit();
+    else if (current === 'multi') Multi.quit();
   }, false);
 
   function ready() {
@@ -82,6 +83,7 @@
     EloView.initScreen();
     Puzzles.initScreen();
     MemoView.initScreen();
+    Multi.initScreen();
     App.show('home');
   }
 

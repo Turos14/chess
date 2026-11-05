@@ -246,3 +246,33 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .mv.c-blunder { color: #ff6b6b; } .mv.c-mistake, .mv.c-miss { color: #ff9f43; } .mv.c-inaccuracy { color: #f5d76e; }
 .mv.c-best .csym { color: #4cd27a; }
 .mv.cur.c-blunder, .mv.cur.c-mistake, .mv.cur.c-miss, .mv.cur.c-inaccuracy { color: #fff; }
+
+/* Échecs à plusieurs (multi.js, multiboard.js) */
+#scr-multi { text-align: center; }
+.mu-head { font-size: 12px; line-height: 24px; height: 24px; color: #9aa2b1; padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-head.review { color: #ffcf6b; }
+.mu-main { display: inline-block; text-align: left; }
+.mu-board { margin: 2px auto; }
+.mu-board svg { display: block; }
+#scr-multi.land .mu-main { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: flex-start; align-items: flex-start; }
+#scr-multi.land .mu-side { width: 230px; margin-left: 10px; }
+.mu-players { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; margin: 4px 0; }
+.mu-p { -webkit-flex: 1 1 45%; flex: 1 1 45%; display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; background: #2a2d35; border-radius: 10px; margin: 3px; padding: 7px 9px; min-width: 0; }
+#scr-multi.land .mu-p { -webkit-flex-basis: 100%; flex-basis: 100%; }
+.mu-p.turn { background: #24422f; -webkit-box-shadow: inset 0 -3px 0 #4cd27a; box-shadow: inset 0 -3px 0 #4cd27a; }
+.mu-p.out { opacity: .45; }
+.mu-p .pdot { width: 16px; height: 16px; margin-right: 8px; }
+.mu-name { -webkit-flex: 1; flex: 1; min-width: 0; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-st { font-size: 11.5px; color: #9fe0b3; margin-left: 6px; white-space: nowrap; }
+.mu-tools { display: -webkit-box; display: -webkit-flex; display: flex; }
+.mu-tools .tbtn { min-height: 44px; }
+.mc { stroke: #1b1d22; stroke-width: 0.004; }
+.mc-l { fill: #f0d9b5; } .mc-d { fill: #b58863; }
+.mc-last { fill: #cdd26a; } .mc-d.mc-last { fill: #aaa23a; }
+.mc-sel { fill: #7fa650; }
+.mc-chk { fill: #e05a4f; }
+.md-dot { fill: rgba(20, 30, 20, .35); }
+.md-cap { fill: none; stroke: rgba(20, 30, 20, .4); stroke-width: 0.012; }
+.mu-namerow { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin: 6px 0; }
+.mu-namerow .pdot { margin-right: 10px; }
+#mu-start { margin-top: 18px; }

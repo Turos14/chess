@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=27">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=27">
-<link rel="icon" href="icons/icon-192.png?v=27">
-<link rel="stylesheet" href="css/style.css?v=27">
-<link rel="stylesheet" href="css/pieces.css?v=27">
+<link rel="manifest" href="manifest.json?v=28">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=28">
+<link rel="icon" href="icons/icon-192.png?v=28">
+<link rel="stylesheet" href="css/style.css?v=28">
+<link rel="stylesheet" href="css/pieces.css?v=28">
 </head>
 <body>
 
@@ -35,6 +35,7 @@
     <button class="btn big" data-go="records">Parties enregistrées <span id="rec-count" class="badge"></span></button>
     <button class="btn big" data-go="elo">Classement Elo</button>
     <button class="btn big" data-go="puzzles">Problèmes</button>
+    <button class="btn big" data-go="multi-setup">Échecs à plusieurs</button>
     <button class="btn big" data-go="memo">Aide-mémoire</button>
     <p class="hint center">Pour le plein écran sur iPhone / iPad : Partager → « Sur l’écran d’accueil ».</p>
   </div>
@@ -137,6 +138,42 @@
   <div id="g-board"></div>
   <div id="g-bottom" class="pbar"></div>
   <div id="g-tools"></div>
+</div>
+
+<!-- Échecs à plusieurs : réglages -->
+<div id="scr-multi-setup" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Échecs à plusieurs</h1></div>
+  <div class="content">
+    <h3>Variante</h3>
+    <div id="mu-variant"></div>
+    <div id="mu-teams"></div>
+    <h3>Joueurs</h3>
+    <div id="mu-names"></div>
+    <h3>Vue de l’échiquier</h3>
+    <div id="mu-view"></div>
+    <button id="mu-start" class="btn primary big">Jouer sur cet appareil</button>
+    <div id="mu-online"></div>
+    <p class="hint">Règles : chacun joue à son tour (sens des couleurs ci-dessus). Pas de roque ni de prise en passant ;
+      un pion se promeut sur la dernière rangée d’un autre camp (3 joueurs) ou sur la 8e rangée (4 joueurs). Un joueur
+      sans coup légal à son tour est éliminé (mat ou pat) et ses pièces disparaissent ; un roi laissé en prise peut être
+      capturé. Le dernier en jeu gagne (en équipes : la première équipe qui perd un joueur a perdu). À 3 joueurs, une
+      diagonale qui traverse le centre peut continuer de deux façons.</p>
+  </div>
+</div>
+
+<!-- Échecs à plusieurs : partie -->
+<div id="scr-multi" class="screen live">
+  <div id="mu-head" class="mu-head"></div>
+  <div class="mu-main">
+    <div id="mu-board" class="mu-board"></div>
+    <div class="mu-side">
+      <div id="mu-players" class="mu-players"></div>
+      <div class="mu-tools">
+        <button id="mu-prev" class="tbtn nav" type="button">‹</button><button id="mu-next" class="tbtn nav" type="button">›</button>
+        <button id="mu-rot" class="tbtn" type="button">Vue</button><button id="mu-menu" class="tbtn" type="button">Menu</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Parties enregistrées -->
@@ -341,28 +378,31 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=27"></script>
-<script src="js/memo.js?v=27"></script>
-<script src="js/util.js?v=27"></script>
-<script src="js/clock.js?v=27"></script>
-<script src="js/board.js?v=27"></script>
-<script src="js/elo.js?v=27"></script>
-<script src="js/eloChart.js?v=27"></script>
-<script src="js/eloview.js?v=27"></script>
-<script src="js/records.js?v=27"></script>
-<script src="js/puzzles.js?v=27"></script>
-<script src="js/gameview.js?v=27"></script>
-<script src="js/pendule.js?v=27"></script>
-<script src="js/local.js?v=27"></script>
-<script src="js/engineStrength.js?v=27"></script>
-<script src="js/engine.js?v=27"></script>
-<script src="js/analysis.js?v=27"></script>
-<script src="js/coach.js?v=27"></script>
-<script src="js/ai.js?v=27"></script>
-<script src="js/room.js?v=27"></script>
-<script src="js/net.js?v=27"></script>
-<script src="js/online.js?v=27"></script>
-<script src="js/memoview.js?v=27"></script>
-<script src="js/app.js?v=27"></script>
+<script src="js/chess.js?v=28"></script>
+<script src="js/memo.js?v=28"></script>
+<script src="js/util.js?v=28"></script>
+<script src="js/clock.js?v=28"></script>
+<script src="js/board.js?v=28"></script>
+<script src="js/elo.js?v=28"></script>
+<script src="js/eloChart.js?v=28"></script>
+<script src="js/eloview.js?v=28"></script>
+<script src="js/records.js?v=28"></script>
+<script src="js/puzzles.js?v=28"></script>
+<script src="js/gameview.js?v=28"></script>
+<script src="js/pendule.js?v=28"></script>
+<script src="js/local.js?v=28"></script>
+<script src="js/engineStrength.js?v=28"></script>
+<script src="js/engine.js?v=28"></script>
+<script src="js/analysis.js?v=28"></script>
+<script src="js/coach.js?v=28"></script>
+<script src="js/ai.js?v=28"></script>
+<script src="js/room.js?v=28"></script>
+<script src="js/net.js?v=28"></script>
+<script src="js/online.js?v=28"></script>
+<script src="js/memoview.js?v=28"></script>
+<script src="js/multichess.js?v=28"></script>
+<script src="js/multiboard.js?v=28"></script>
+<script src="js/multi.js?v=28"></script>
+<script src="js/app.js?v=28"></script>
 </body>
 </html>

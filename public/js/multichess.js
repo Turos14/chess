@@ -102,7 +102,7 @@
       promotes: function (c, color) { return seg(c) !== color && rk(c) === 0; },
       // Teinte de la case (claire/foncée), comme sur un échiquier classique dans le repère du camp
       dark: function (c) { return ((rk(c) + fl(c)) & 1) === 0; },
-      // Angle (degrés) dont tourner l'échiquier pour que le camp p soit en bas
+      // Angle (degrés, sens des aiguilles à l'écran) dont tourner l'échiquier pour que le camp p soit en bas
       viewAngle: function (p) { return [0, 120, 240][p]; }
     };
   })();
@@ -155,8 +155,8 @@
       pawnDir: function (c, color) { return FWD[color]; },
       pawnStart: function (c, color) { return rankOf(c, color) === 2; },
       promotes: function (c, color) { return rankOf(c, color) === 8; },
-      dark: function (c) { return ((c % S + Math.floor(c / S)) & 1) === 1; },
-      viewAngle: function (p) { return [0, 90, 180, 270][p]; }
+      dark: function (c) { return ((c % S + Math.floor(c / S)) & 1) === 0; },   // d1 foncée, k1 claire (« blanc à droite »)
+      viewAngle: function (p) { return [0, 270, 180, 90][p]; }
     };
   })();
 

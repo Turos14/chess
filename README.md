@@ -52,6 +52,13 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   le même placement. **Pas de roque** dans ces parties (choix de l'appli). Fonctionne aussi en ligne (position
   transmise par l'hôte, conservée en cas de bascule), dans les
   parties enregistrées et l'export PGN (position de départ dans la balise `FEN`).
+- **Échecs à plusieurs** (onglet dédié) : **3 joueurs** sur l'échiquier hexagonal « Yalta » (96 cases, Blancs /
+  Noirs / Rouges) ou **4 joueurs** sur l'échiquier en croix 14×14 (Rouges / Bleus / Jaunes / Verts, option équipes 2
+  contre 2). Échiquier en SVG qui peut tourner vers le joueur au trait, revue des coups ‹ ›, abandon d'un joueur.
+  Règles simplifiées (v1) : pas de roque ni de prise en passant ; promotion sur la dernière rangée d'un autre camp
+  (3 joueurs) ou la 8e rangée (4 joueurs) ; un joueur sans coup légal est éliminé (mat ou pat) et ses pièces
+  disparaissent ; un roi laissé en prise peut être capturé ; le dernier en jeu gagne. Pas de pendule, d'Elo ni
+  d'enregistrement pour ces parties.
 - **Revoir les coups précédents en cours de partie** : boutons ‹ › dans la barre d'outils ; l'échiquier montre
   l'ancienne position sans pouvoir jouer (la partie et la pendule continuent), toucher l'échiquier ou › jusqu'au bout
   revient à la position actuelle.
@@ -257,6 +264,9 @@ public/js/records.js enregistrement, revue, branches (variantes, avec poursuite 
 public/js/room.js    salle de jeu côté hôte (sièges, pendule, nulle, abandon), testable sous Node
 public/js/elo.js     calcul de classement Elo (module pur, testable sous Node)
 public/js/engineStrength.js  calibration Elo -> réglages du moteur (module pur, testable sous Node)
+public/js/multichess.js  règles des échecs à 3 (Yalta) et à 4 (croix), module pur testable sous Node
+public/js/multiboard.js  rendu SVG de ces échiquiers
+public/js/multi.js   écrans des échecs à plusieurs (réglages, partie) et mode sur un appareil
 public/js/engine.js  enveloppe Web Worker autour du moteur Stockfish
 public/js/analysis.js classement des coups, précision, commentaires de Hulotte (module pur, testable sous Node)
 public/js/coach.js   Hulotte dans l'écran de revue : lancement de l'analyse, bulle, courbe, moments clés

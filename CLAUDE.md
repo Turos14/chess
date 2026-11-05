@@ -32,7 +32,7 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 
 ## Architecture
 
-- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js`, `analysis.js` utilisent un
+- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js`, `analysis.js`, `multichess.js` utilisent un
   wrapper UMD `(function (root, factory) {…})` : sans DOM, chargeables sous Node (`require`) et testés dans
   `test/`. Tous les autres fichiers de `public/js/` sont des IIFE qui posent un global sur `window`
   (`U`, `Board`, `GameView`, `Local`, `Online`, `AI`, `Rec`, `EloView`, `Puzzles`, `App`…) et dépendent de
@@ -59,6 +59,11 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   enregistrée par `Engine` (`Handle.analyse`, pleine force) et stocke les évaluations brutes dans `rec.analysis`
   (`{v:1, evals[]}`, une par position) ; classement, précision et textes sont dérivés à l'affichage par `analysis.js`
   (pur, testé). `records.js` l'appelle via `Coach.open/show/decorate/stop`.
+- **Échecs à plusieurs** : moteur séparé `multichess.js` (pur, testé ; ne passe pas par `chess.js`) où l'échiquier est
+  un graphe de cases (`variant.step(case, direction)`, directions dans le repère local du camp pour Yalta, où une
+  diagonale par le centre a deux suites). Écran propre `multi.js` piloté par un contrôleur (interface en tête du
+  fichier, même principe que `gameview.js`), rendu SVG `multiboard.js`. Pièces de couleur r/u/y/g = pièces blanches
+  recolorées (`public/pieces/`).
 - **Elo** : calcul pur dans `elo.js`, stockage/écrans dans `eloview.js` ; appelé par `gameview.js` en fin de partie.
 - **Navigation** : `app.js` (`App.show`) gère les écrans et transitions ; robuste aux clics rapides, ne pas
   contourner.
