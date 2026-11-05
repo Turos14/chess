@@ -4,6 +4,7 @@
   'use strict';
   var Engine = {};
   var MOVE_RE = /^([a-h][1-8])([a-h][1-8])([qrbn])?$/;
+  var UCI_RE = /^[a-h][1-8][a-h][1-8][qrbn]?$/, PV_MAX = 10;
 
   Engine.supported = function () { return typeof window.Worker !== 'undefined'; };
 
@@ -85,8 +86,9 @@
     this.worker.postMessage('go movetime ' + EngineStrength.moveTime());
   };
 
-  // Analyse à pleine force (Skill Level 20, une seule variante) : cb({cp | mate, best}) du point de vue du camp au trait,
-  // best = meilleur coup UCI ; cb(null) si le moteur ne renvoie rien d'exploitable. Sert à l'analyse de partie
+  // Analyse à pleine force (Skill Level 20, une seule variante) : cb({cp | mate, best, pv}) du point de vue du camp au
+  // trait, best = meilleur coup UCI, pv = variante principale (coups UCI, PV_MAX au plus) ; cb(null) si le moteur ne
+  // renvoie rien d'exploitable. Sert à l'analyse de partie
   // (coach.js) ; setStrength doit être rappelé avant de rejouer contre la poignée.
   Handle.prototype.analyse = function (fen, ms, cb) {
     if (this.destroyed) { cb(null); return; }
@@ -96,13 +98,16 @@
       var m = /^info .*\bscore (cp|mate) (-?\d+)/.exec(line);
       if (m && !/\bmultipv [2-9]/.test(line) && !/\b(lower|upper)bound\b/.test(line)) {
         score = m[1] === 'cp' ? { cp: parseInt(m[2], 10) } : { mate: parseInt(m[2], 10) };
+        var pv = /\bpv (.+)$/.exec(line);
+        score.pv = pv ? pv[1].split(/\s+/).filter(function (u) { return UCI_RE.test(u); }).slice(0, PV_MAX) : [];
         return;
       }
       if ((m = /^bestmove (\S+)/.exec(line))) {
         done = true;
         self._onLine = null;
         if (!score) { cb(null); return; }
-        score.best = /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(m[1]) ? m[1] : null;
+        score.best = UCI_RE.test(m[1]) ? m[1] : null;
+        if (score.best && score.pv[0] !== score.best) score.pv = [score.best];
         cb(score);
       }
     };

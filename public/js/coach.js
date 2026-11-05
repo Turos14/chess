@@ -37,6 +37,12 @@
     return a.evals;
   }
 
+  // Analyse faite avant l'ajout des variantes (pv) : commentaires moins détaillés, on propose de la refaire.
+  function outdated(rec) {
+    var e = stored(rec);
+    return !!e && e.some(function (x) { return x && !x.pv; });
+  }
+
   function compute() {
     var evals = stored(st.rec);
     st.result = evals ? Analysis.analyse(st.rec.startFen, st.rec.moves, evals) : null;
@@ -81,7 +87,7 @@
     if (!st || st.run) return;
     if (!Engine.supported()) { U.toast('Analyse indisponible sur ce navigateur (Web Worker).'); return; }
     var rec = st.rec, fens = positions(rec), n = fens.length;
-    var evals = (rec.analysis && rec.analysis.v === 1 && rec.analysis.evals && rec.analysis.evals.length === n) ? rec.analysis.evals.slice() : [];
+    var evals = (!outdated(rec) && rec.analysis && rec.analysis.v === 1 && rec.analysis.evals && rec.analysis.evals.length === n) ? rec.analysis.evals.slice() : [];
     while (evals.length < n) evals.push(null);
     var run = st.run = { handle: null, i: 0, n: n, stopped: false, ended: false, finish: finish };
     var mine = st;
@@ -137,8 +143,9 @@
   function render() {
     if (!st) return;
     var r = st.result, run = st.run, bubble = $('rv-bubble');
-    $('rv-analyse').style.display = run ? 'none' : (r && r.complete ? 'none' : 'block');
-    $('rv-analyse').textContent = st.rec.analysis ? 'Reprendre l’analyse' : 'Analyser avec ' + Analysis.COACH;
+    var old = outdated(st.rec);
+    $('rv-analyse').style.display = run ? 'none' : (r && r.complete && !old ? 'none' : 'block');
+    $('rv-analyse').textContent = old ? 'Refaire l’analyse (explications détaillées)' : st.rec.analysis ? 'Reprendre l’analyse' : 'Analyser avec ' + Analysis.COACH;
     $('rv-analyse-stop').style.display = run ? 'block' : 'none';
     $('rv-keys').style.display = r && !run ? 'flex' : 'none';
     renderGraph();
@@ -160,8 +167,7 @@
     }
     var m = r.moves[st.ply - 1];
     setMood(!m || !m.cls ? 'happy' : (m.cls === 'blunder' || m.cls === 'mistake' || m.cls === 'miss') ? 'shock' : m.cls === 'best' ? 'proud' : 'happy');
-    var label = m && m.cls ? Analysis.CLASSES[m.cls].label + ' — ' : '';
-    bubble.textContent = label + Analysis.comment(m, names());
+    bubble.textContent = Analysis.comment(m, names());   // le commentaire annonce déjà la catégorie du coup
   }
 
   // Courbe des chances de gain des Blancs (zone claire) au fil de la partie ; trait vertical = position affichée,

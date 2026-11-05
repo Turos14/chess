@@ -35,7 +35,8 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
 - **Analyse commentée par Hulotte** (la chouette) : dans la revue d'une partie enregistrée, « Analyser avec Hulotte »
   fait évaluer chaque position par Stockfish à pleine force (~0,35 s par position, sur l'appareil). Chaque coup est
   classé (★ meilleur coup, ?! imprécision, ? erreur ou mat manqué, ?? gaffe, d'après la perte de chances de gain,
-  échelle Lichess), commenté par Hulotte avec le coup qu'il fallait jouer, et la position de départ affiche le bilan
+  échelle Lichess), commenté par Hulotte à partir des variantes du moteur (ce que fait le coup, la réponse adverse et ce
+  qu'elle coûte — pièce perdue, mat —, le coup qu'il fallait jouer et ce qu'il gagnait, l'évaluation avant/après), et la position de départ affiche le bilan
   (précision par joueur, nombre d'erreurs). Courbe d'évaluation cliquable, boutons « Moment clé » pour sauter aux
   erreurs. Résultat gardé dans la partie enregistrée ; analyse interrompue reprenable. Ligne principale seulement.
 - **Branches dans les parties enregistrées** : depuis la revue, « + Nouvelle branche depuis ce coup » pour jouer
