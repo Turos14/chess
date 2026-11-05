@@ -49,7 +49,7 @@
     if (libState === 1) return;
     libState = 1;
     var s = document.createElement('script');
-    s.src = 'vendor/peerjs.min.js?v=29';
+    s.src = 'vendor/peerjs.min.js?v=30';
     s.onload = function () {
       var list = libWaiters; libWaiters = []; libState = 0;
       list.forEach(function (f) { f(window.Peer ? null : new Error('PeerJS indisponible')); });

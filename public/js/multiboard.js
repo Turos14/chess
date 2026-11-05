@@ -5,6 +5,9 @@
   'use strict';
   var NS = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink';
   var CODES = { yalta: ['w', 'b', 'r'], cross4: ['r', 'u', 'y', 'g'] };
+  // Unités du dessin : la géométrie [-1, 1]² est agrandie ×100. Avec des coordonnées minuscules (pièce de 0,12 unité),
+  // Chrome / Edge dessinent les <image> SVG à une taille quasi nulle (pièces invisibles sous Windows), Safari non.
+  var K = 100;
 
   function svgEl(tag, attrs) {
     var e = document.createElementNS(NS, tag), k;
@@ -18,7 +21,7 @@
     this.codes = CODES[variant.id];
     this.el = container;
     U.clear(container);
-    this.svg = svgEl('svg', { viewBox: '-1.04 -1.04 2.08 2.08', width: '100%', height: '100%' });
+    this.svg = svgEl('svg', { viewBox: (-1.04 * K) + ' ' + (-1.04 * K) + ' ' + (2.08 * K) + ' ' + (2.08 * K), width: '100%', height: '100%' });
     this.gCells = svgEl('g', {});
     this.gMarks = svgEl('g', {});
     this.gPieces = svgEl('g', {});
@@ -48,7 +51,7 @@
   // Recalcule polygones, centres et tailles de pièces pour un angle de vue (degrés).
   MultiBoard.prototype._geometry = function (angle) {
     var v = this.v, a = angle * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a), self = this;
-    function rot(p) { return [p[0] * ca - p[1] * sa, p[0] * sa + p[1] * ca]; }
+    function rot(p) { return [K * (p[0] * ca - p[1] * sa), K * (p[0] * sa + p[1] * ca)]; }
     this.geo = {};
     U.clear(this.gCells);
     this.cellEls = {};
@@ -62,7 +65,7 @@
       var size = Math.sqrt(Math.abs(area) / 2);
       self.geo[c] = { cx: cx, cy: cy, size: size };
       var poly = svgEl('polygon', {
-        points: pts.map(function (p) { return p[0].toFixed(4) + ',' + p[1].toFixed(4); }).join(' '),
+        points: pts.map(function (p) { return p[0].toFixed(2) + ',' + p[1].toFixed(2); }).join(' '),
         'class': 'mc ' + (v.dark(c) ? 'mc-d' : 'mc-l'), 'data-cell': c
       });
       self.gCells.appendChild(poly);

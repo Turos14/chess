@@ -266,13 +266,13 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .mu-st { font-size: 11.5px; color: #9fe0b3; margin-left: 6px; white-space: nowrap; }
 .mu-tools { display: -webkit-box; display: -webkit-flex; display: flex; }
 .mu-tools .tbtn { min-height: 44px; }
-.mc { stroke: #1b1d22; stroke-width: 0.004; }
+.mc { stroke: #1b1d22; stroke-width: 0.4; }   /* unités ×100, voir multiboard.js */
 .mc-l { fill: #f0d9b5; } .mc-d { fill: #b58863; }
 .mc-last { fill: #cdd26a; } .mc-d.mc-last { fill: #aaa23a; }
 .mc-sel { fill: #7fa650; }
 .mc-chk { fill: #e05a4f; }
 .md-dot { fill: rgba(20, 30, 20, .35); }
-.md-cap { fill: none; stroke: rgba(20, 30, 20, .4); stroke-width: 0.012; }
+.md-cap { fill: none; stroke: rgba(20, 30, 20, .4); stroke-width: 1.2; }
 .mu-namerow { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin: 6px 0; }
 .mu-namerow .pdot { margin-right: 10px; }
 #mu-start { margin-top: 18px; }
