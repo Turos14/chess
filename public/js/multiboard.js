@@ -93,9 +93,14 @@
     U.clear(this.gPieces);
     U.clear(this.gDots);
     clearTimeout(this.animTimer);
+    // Un nouveau rendu du même coup (écho réseau, rafraîchissement) reprend le glissement là où il en était.
     var key = st.last ? st.last.from + '-' + st.last.to : '', prev = this.prevBoard, slide = null;
-    if (key && key !== this.prevLast && prev && prev[st.last.from] && !st.board[st.last.from] && st.board[st.last.to] &&
+    var t0 = new Date().getTime();
+    if (this.slideKey && this.slideKey === key && this.angle === st.angle && t0 - this.slideT0 < SLIDE_MS) {
+      slide = st.last; t0 = this.slideT0;
+    } else if (key && key !== this.prevLast && prev && prev[st.last.from] && !st.board[st.last.from] && st.board[st.last.to] &&
         prev[st.last.from].c === st.board[st.last.to].c && this.angle === st.angle) slide = st.last;
+    this.slideKey = slide ? key : ''; this.slideT0 = t0;
     for (i = 0; i < st.board.length; i++) {
       var p = st.board[i], g = this.geo[i];
       if (!p || !g) continue;
@@ -105,7 +110,7 @@
       img.setAttributeNS(XLINK, 'xlink:href', href);
       img.setAttribute('href', href);
       this.gPieces.appendChild(img);
-      if (slide && slide.to === i) this._slide(img, this.geo[slide.from], g);
+      if (slide && slide.to === i) this._slide(img, this.geo[slide.from], g, t0);
     }
     this.prevBoard = st.board.slice();
     this.prevLast = key;
@@ -122,13 +127,13 @@
   // Glissement de la pièce qui vient d'être jouée, de sa case de départ à sa case d'arrivée (attribut transform animé
   // en JavaScript : plus sûr que les transitions CSS sur le SVG des anciens Safari).
   var SLIDE_MS = 200;
-  MultiBoard.prototype._slide = function (img, a, b) {
-    var self = this, dx = a.cx - b.cx, dy = a.cy - b.cy, t0 = new Date().getTime();
+  MultiBoard.prototype._slide = function (img, a, b, t0) {
+    var self = this, dx = a.cx - b.cx, dy = a.cy - b.cy;
     function frame() {
       var k = Math.min(1, (new Date().getTime() - t0) / SLIDE_MS), e = 1 - (1 - k) * (1 - k);
       img.setAttribute('transform', 'translate(' + (dx * (1 - e)).toFixed(2) + ',' + (dy * (1 - e)).toFixed(2) + ')');
       if (k < 1) self.animTimer = setTimeout(frame, 16);
-      else img.removeAttribute('transform');
+      else { img.removeAttribute('transform'); self.slideKey = ''; }
     }
     frame();
   };

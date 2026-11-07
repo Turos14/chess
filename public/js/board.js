@@ -65,11 +65,17 @@
     }
     // Glissement : la pièce qui vient d'arriver (nouveau « dernier coup », case de départ vidée) part de sa case de
     // départ. Rien quand on saute plusieurs coups ou qu'on revient en arrière (la pièce n'est pas passée de from à to).
+    // Un nouveau rendu du même coup (pendule, « réfléchit… », écho réseau) laisse finir le glissement en cours.
     var key = st.last ? st.last.from + '-' + st.last.to : '', prev = this.prevBoard;
-    this._stopAnim();
-    if (key && key !== this.prevLast && prev && prev[st.last.from] && !st.board[st.last.from] && st.board[st.last.to] &&
-        prev[st.last.from].charAt(0) === st.board[st.last.to].charAt(0)) {
-      this._slide(st.last.from, st.last.to);
+    var keep = this.anim && this.anim.key === key && this.anim.flip === flip && st.board[st.last.to];
+    if (keep) this.anim.ghost.className = this.pc[st.last.to].className + ' pc-anim';
+    else {
+      this._stopAnim();
+      if (key && key !== this.prevLast && prev && prev[st.last.from] && !st.board[st.last.from] && st.board[st.last.to] &&
+          prev[st.last.from].charAt(0) === st.board[st.last.to].charAt(0)) {
+        this._slide(st.last.from, st.last.to);
+        this.anim.key = key; this.anim.flip = flip;
+      }
     }
     this.prevBoard = st.board.slice();
     this.prevLast = key;
