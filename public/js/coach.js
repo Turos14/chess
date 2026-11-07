@@ -196,6 +196,8 @@
     if (target !== null) st.hooks.goto(target);
   }
 
+  C.OWL = OWL;
+
   C.init = function () {
     U.on($('rv-analyse'), 'click', start);
     U.on($('rv-analyse-stop'), 'click', function () { C.stop(); render(); });

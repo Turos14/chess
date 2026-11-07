@@ -30,6 +30,7 @@
     container.appendChild(this.svg);
     this.angle = null;
     this.cellEls = {};
+    this.prevBoard = null; this.prevLast = ''; this.animTimer = null;
     this.onCell = null;
     U.on(this.svg, 'click', function (ev) {
       var n = ev.target;
@@ -91,6 +92,10 @@
     });
     U.clear(this.gPieces);
     U.clear(this.gDots);
+    clearTimeout(this.animTimer);
+    var key = st.last ? st.last.from + '-' + st.last.to : '', prev = this.prevBoard, slide = null;
+    if (key && key !== this.prevLast && prev && prev[st.last.from] && !st.board[st.last.from] && st.board[st.last.to] &&
+        prev[st.last.from].c === st.board[st.last.to].c && this.angle === st.angle) slide = st.last;
     for (i = 0; i < st.board.length; i++) {
       var p = st.board[i], g = this.geo[i];
       if (!p || !g) continue;
@@ -100,7 +105,10 @@
       img.setAttributeNS(XLINK, 'xlink:href', href);
       img.setAttribute('href', href);
       this.gPieces.appendChild(img);
+      if (slide && slide.to === i) this._slide(img, this.geo[slide.from], g);
     }
+    this.prevBoard = st.board.slice();
+    this.prevLast = key;
     Object.keys(tg).forEach(function (k) {
       var g2 = self.geo[k];
       if (!g2) return;
@@ -109,6 +117,20 @@
         : svgEl('circle', { cx: g2.cx, cy: g2.cy, r: g2.size * 0.16, 'class': 'md-dot', 'data-cell': k });
       self.gDots.appendChild(dot);
     });
+  };
+
+  // Glissement de la pièce qui vient d'être jouée, de sa case de départ à sa case d'arrivée (attribut transform animé
+  // en JavaScript : plus sûr que les transitions CSS sur le SVG des anciens Safari).
+  var SLIDE_MS = 200;
+  MultiBoard.prototype._slide = function (img, a, b) {
+    var self = this, dx = a.cx - b.cx, dy = a.cy - b.cy, t0 = new Date().getTime();
+    function frame() {
+      var k = Math.min(1, (new Date().getTime() - t0) / SLIDE_MS), e = 1 - (1 - k) * (1 - k);
+      img.setAttribute('transform', 'translate(' + (dx * (1 - e)).toFixed(2) + ',' + (dy * (1 - e)).toFixed(2) + ')');
+      if (k < 1) self.animTimer = setTimeout(frame, 16);
+      else img.removeAttribute('transform');
+    }
+    frame();
   };
 
   MultiBoard.CODES = CODES;

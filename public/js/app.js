@@ -81,6 +81,7 @@
     Online.init();
     Rec.initReplay();
     Coach.init();
+    U.$('ai-owl').innerHTML = Coach.OWL;
     EloView.initScreen();
     Puzzles.initScreen();
     MemoView.initScreen();

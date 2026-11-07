@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=30">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=30">
-<link rel="icon" href="icons/icon-192.png?v=30">
-<link rel="stylesheet" href="css/style.css?v=30">
-<link rel="stylesheet" href="css/pieces.css?v=30">
+<link rel="manifest" href="manifest.json?v=31">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=31">
+<link rel="icon" href="icons/icon-192.png?v=31">
+<link rel="stylesheet" href="css/style.css?v=31">
+<link rel="stylesheet" href="css/pieces.css?v=31">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
     <h1 class="logo">Échecs</h1>
     <button class="btn big" data-go="pendule-setup">Pendule</button>
     <button class="btn big" data-go="local-setup">Partie d’échecs</button>
-    <button class="btn big" data-go="ai-setup">Jouer contre l’IA</button>
+    <button class="btn big" data-go="ai-setup">Jouer contre Hulotte</button>
     <button class="btn big" data-go="online">Partie en ligne</button>
     <button class="btn big" data-go="records">Parties enregistrées <span id="rec-count" class="badge"></span></button>
     <button class="btn big" data-go="elo">Classement Elo</button>
@@ -88,14 +88,15 @@
 
 <!-- Partie contre l'IA : réglages -->
 <div id="scr-ai-setup" class="screen page">
-  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie contre l’IA</h1></div>
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie contre Hulotte</h1></div>
   <div class="content">
+    <div class="coach mood-happy"><div class="coach-row"><div id="ai-owl" class="owl"></div><div class="bubble">Hou hou ! Je suis Hulotte. Choisis mon niveau et ta couleur : je joue contre toi.</div></div></div>
     <h3>Toi</h3>
     <input id="ai-name" class="txt" maxlength="20" placeholder="Ton nom" autocomplete="off">
-    <h3>Niveau de l’IA</h3>
+    <h3>Niveau de Hulotte</h3>
     <div class="fieldrow"><input id="ai-elo" class="num" type="number" min="100" max="3000" inputmode="numeric" style="width:100%"></div>
-    <p class="hint">Pré-rempli avec ton Elo actuel si ton nom est suivi dans le classement, modifiable sinon. L’IA
-      (Stockfish) est calibrée approximativement sur ce nombre : moins précise en dessous de 1300 (elle pioche alors
+    <p class="hint">Pré-rempli avec ton Elo actuel si ton nom est suivi dans le classement, modifiable sinon. Hulotte
+      (le moteur Stockfish) est calibrée approximativement sur ce nombre : moins précise en dessous de 1300 (elle pioche alors
       parmi plusieurs bons coups plutôt que de vraiment jouer plus faible), très largement suffisante au-dessus de 2500.</p>
     <h3>Couleur</h3>
     <div id="ai-color"></div>
@@ -358,7 +359,7 @@
       <button id="rv-branch-new" class="btn">+ Nouvelle branche depuis ce coup</button>
       <div id="rv-edit" class="rv-edit" style="display:none">
         <div id="rv-edit-status" class="hint"></div>
-        <div class="hint">L’IA joue (avec l’Elo de chaque joueur) :</div>
+        <div class="hint">Hulotte joue (avec l’Elo de chaque joueur) :</div>
         <div id="rv-edit-ai"></div>
         <div class="btnrow">
           <button id="rv-edit-undo" class="btn">Annuler le coup</button>
@@ -378,33 +379,33 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=30"></script>
-<script src="js/memo.js?v=30"></script>
-<script src="js/util.js?v=30"></script>
-<script src="js/clock.js?v=30"></script>
-<script src="js/board.js?v=30"></script>
-<script src="js/elo.js?v=30"></script>
-<script src="js/eloChart.js?v=30"></script>
-<script src="js/eloview.js?v=30"></script>
-<script src="js/records.js?v=30"></script>
-<script src="js/puzzles.js?v=30"></script>
-<script src="js/gameview.js?v=30"></script>
-<script src="js/pendule.js?v=30"></script>
-<script src="js/local.js?v=30"></script>
-<script src="js/engineStrength.js?v=30"></script>
-<script src="js/engine.js?v=30"></script>
-<script src="js/analysis.js?v=30"></script>
-<script src="js/coach.js?v=30"></script>
-<script src="js/ai.js?v=30"></script>
-<script src="js/room.js?v=30"></script>
-<script src="js/net.js?v=30"></script>
-<script src="js/online.js?v=30"></script>
-<script src="js/memoview.js?v=30"></script>
-<script src="js/multichess.js?v=30"></script>
-<script src="js/multiboard.js?v=30"></script>
-<script src="js/multi.js?v=30"></script>
-<script src="js/multiroom.js?v=30"></script>
-<script src="js/multionline.js?v=30"></script>
-<script src="js/app.js?v=30"></script>
+<script src="js/chess.js?v=31"></script>
+<script src="js/memo.js?v=31"></script>
+<script src="js/util.js?v=31"></script>
+<script src="js/clock.js?v=31"></script>
+<script src="js/board.js?v=31"></script>
+<script src="js/elo.js?v=31"></script>
+<script src="js/eloChart.js?v=31"></script>
+<script src="js/eloview.js?v=31"></script>
+<script src="js/records.js?v=31"></script>
+<script src="js/puzzles.js?v=31"></script>
+<script src="js/gameview.js?v=31"></script>
+<script src="js/pendule.js?v=31"></script>
+<script src="js/local.js?v=31"></script>
+<script src="js/engineStrength.js?v=31"></script>
+<script src="js/engine.js?v=31"></script>
+<script src="js/analysis.js?v=31"></script>
+<script src="js/coach.js?v=31"></script>
+<script src="js/ai.js?v=31"></script>
+<script src="js/room.js?v=31"></script>
+<script src="js/net.js?v=31"></script>
+<script src="js/online.js?v=31"></script>
+<script src="js/memoview.js?v=31"></script>
+<script src="js/multichess.js?v=31"></script>
+<script src="js/multiboard.js?v=31"></script>
+<script src="js/multi.js?v=31"></script>
+<script src="js/multiroom.js?v=31"></script>
+<script src="js/multionline.js?v=31"></script>
+<script src="js/app.js?v=31"></script>
 </body>
 </html>

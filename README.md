@@ -15,7 +15,7 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   nom d'utilisateur, mode **spectateur** avec le même code, abandon / nulle, pendule. **Si l'hôte se déconnecte, un autre
   participant prend automatiquement le relais** (les joueurs passent avant les spectateurs), la pendule est figée pendant
   la bascule, et chacun retrouve son siège. Un joueur qui revient (« Reprendre ») retrouve sa place.
-- **Partie contre l'IA** (Stockfish, calibré approximativement sur l'Elo visé) : choisis ta couleur, le niveau
+- **Partie contre Hulotte** (la chouette, jouée par Stockfish calibré approximativement sur l'Elo visé) : choisis ta couleur, le niveau
   de l'IA (pré-rempli avec ton Elo actuel si ton nom est suivi), avec ou sans pendule. L'IA ne compte jamais pour
   le classement : ta note sert à régler sa force, dans un seul sens. Le niveau est modifiable **en cours de
   partie** (menu « Niveau de l'IA », s'applique au coup suivant).
@@ -62,6 +62,8 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   (3 joueurs) ou la 8e rangée (4 joueurs) ; un joueur sans coup légal est éliminé (mat ou pat) et ses pièces
   disparaissent ; un roi laissé en prise peut être capturé ; le dernier en jeu gagne. Pas de pendule, d'Elo ni
   d'enregistrement pour ces parties.
+- **Pièces qui glissent** de leur case de départ à leur case d'arrivée à chaque coup (parties, revue, problèmes,
+  échecs à plusieurs).
 - **Revoir les coups précédents en cours de partie** : boutons ‹ › dans la barre d'outils ; l'échiquier montre
   l'ancienne position sans pouvoir jouer (la partie et la pendule continuent), toucher l'échiquier ou › jusqu'au bout
   revient à la position actuelle.
@@ -275,7 +277,7 @@ public/js/multionline.js  échecs à plusieurs en ligne (créer / rejoindre, con
 public/js/engine.js  enveloppe Web Worker autour du moteur Stockfish
 public/js/analysis.js classement des coups, précision, commentaires de Hulotte (module pur, testable sous Node)
 public/js/coach.js   Hulotte dans l'écran de revue : lancement de l'analyse, bulle, courbe, moments clés
-public/js/ai.js      mode de jeu « contre l'IA »
+public/js/ai.js      mode de jeu « contre Hulotte » (Stockfish)
 public/js/eloChart.js courbe Elo (SVG, sans dépendance)
 public/js/eloview.js écran « Classement » et stockage du classement (navigateur)
 public/js/net.js     réseau pair-à-pair, bascule d'hôte

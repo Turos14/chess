@@ -28,7 +28,7 @@
     U.soundControl(U.$('ai-sound'));
 
     U.on(U.$('ai-start'), 'click', function () {
-      if (!Engine.supported()) { U.toast('Ce navigateur ne permet pas de lancer l’IA (Web Worker indisponible).'); return; }
+      if (!Engine.supported()) { U.toast('Ce navigateur ne permet pas de lancer Hulotte (Web Worker indisponible).'); return; }
       var color = colorSeg.get();
       if (color === 'r') color = (Math.random() < 0.5) ? 'w' : 'b';
       var elo = Math.round(Number(eloInput.value));
@@ -47,7 +47,7 @@
     var aiColor = Chess.other(cfg.color);
     var names = {};
     names[cfg.color] = cfg.name;
-    names[aiColor] = 'IA (' + cfg.elo + ')';
+    names[aiColor] = 'Hulotte (' + cfg.elo + ')';
 
     function finish(result, reason, winner) {
       if (over) return;
@@ -86,8 +86,8 @@
       },
       trackElo: function () { return false; },
       head: function () {
-        var s = 'Contre l’IA (' + cfg.elo + ')' + (cfg.c960 ? ' · Fischer 960' : '') + ' · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
-        return thinking ? s + ' · l’IA réfléchit…' : s;
+        var s = 'Contre Hulotte (' + cfg.elo + ')' + (cfg.c960 ? ' · Fischer 960' : '') + ' · ' + TimeForm.describe(cfg.tc) + (paused ? ' · PAUSE' : '');
+        return thinking ? s + ' · Hulotte réfléchit…' : s;
       },
       status: function (color) {
         var res = ctrl.getResult();
@@ -110,10 +110,10 @@
       },
       menuItems: function () {
         var items = [];
-        items.push({ label: 'Niveau de l’IA (' + cfg.elo + ')', fn: function () { changeElo(); } });
+        items.push({ label: 'Niveau de Hulotte (' + cfg.elo + ')', fn: function () { changeElo(); } });
         if (!ctrl.getResult()) {
           items.push({ label: 'Abandonner', danger: true, fn: function () {
-            U.confirm('Abandonner ?', 'Tu perdras la partie contre l’IA.', 'Abandonner', 'Annuler',
+            U.confirm('Abandonner ?', 'Tu perdras la partie contre Hulotte.', 'Abandonner', 'Annuler',
               function () { finish(cfg.color === 'w' ? '0-1' : '1-0', 'resign', aiColor); });
           } });
         } else {
@@ -131,19 +131,19 @@
       input.type = 'number'; input.min = Elo.MIN_RATING; input.max = Elo.MAX_RATING;
       input.value = cfg.elo; input.style.width = '100%'; input.setAttribute('inputmode', 'numeric');
       node.appendChild(input);
-      node.appendChild(U.el('p', 'hint', 'S’applique au prochain coup de l’IA.'));
+      node.appendChild(U.el('p', 'hint', 'S’applique au prochain coup de Hulotte.'));
       U.dialog({
-        title: 'Niveau de l’IA', node: node,
+        title: 'Niveau de Hulotte', node: node,
         buttons: [
           { label: 'Annuler' },
           { label: 'Valider', primary: true, fn: function () {
             var v = Math.round(Number(input.value));
             if (!isFinite(v)) return;
             cfg.elo = Math.min(Elo.MAX_RATING, Math.max(Elo.MIN_RATING, v));
-            names[aiColor] = 'IA (' + cfg.elo + ')';
+            names[aiColor] = 'Hulotte (' + cfg.elo + ')';
             if (engineHandle) engineHandle.setStrength(cfg.elo);
             GameView.refresh();
-            U.toast('Niveau de l’IA : ' + cfg.elo);
+            U.toast('Niveau de Hulotte : ' + cfg.elo);
           } }
         ]
       });
@@ -162,10 +162,10 @@
         engineHandle.bestMove(game.fen(), function (mv) {
           if (destroyed || over) return;
           thinking = false;
-          if (!mv) { U.toast('L’IA n’a pas pu trouver de coup.'); GameView.refresh(); return; }
+          if (!mv) { U.toast('Hulotte n’a pas trouvé de coup.'); GameView.refresh(); return; }
           if (clock && clock.check()) { flag(clock.flagged); return; }
           var rec = game.move(mv.from, mv.to, mv.promo);
-          if (!rec) { U.toast('Coup de l’IA refusé (incohérence du moteur).'); GameView.refresh(); return; }
+          if (!rec) { U.toast('Coup de Hulotte refusé (incohérence du moteur).'); GameView.refresh(); return; }
           U.fx('move');
           afterMove();
           GameView.refresh();

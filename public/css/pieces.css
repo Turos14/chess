@@ -45,3 +45,6 @@
 .pc-gB { background-image: url(../pieces/gB.svg); }
 .pc-gN { background-image: url(../pieces/gN.svg); }
 .pc-gP { background-image: url(../pieces/gP.svg); }
+
+/* Pièce qui glisse vers sa case d'arrivée (board.js) : même taille qu'une case, au-dessus de l'échiquier */
+.pc.pc-anim { width: 12.5%; height: 12.5%; z-index: 5; -webkit-transition: left .2s ease-out, top .2s ease-out; transition: left .2s ease-out, top .2s ease-out; }

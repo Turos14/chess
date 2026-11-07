@@ -18,6 +18,7 @@
       this.sq.push(e); this.pc.push(pc); this.cf.push(cf); this.cr.push(cr);
     }
     this.onSquare = null;
+    this.prevBoard = null; this.prevLast = ''; this.anim = null;
     U.on(container, 'click', function (ev) {
       var n = ev.target;
       while (n && n !== container) {
@@ -62,6 +63,40 @@
       this.cf[s].textContent = st.coords && dr === 7 ? FILES.charAt(f) : '';
       this.cr[s].textContent = st.coords && dc === 0 ? (8 - r) : '';
     }
+    // Glissement : la pièce qui vient d'arriver (nouveau « dernier coup », case de départ vidée) part de sa case de
+    // départ. Rien quand on saute plusieurs coups ou qu'on revient en arrière (la pièce n'est pas passée de from à to).
+    var key = st.last ? st.last.from + '-' + st.last.to : '', prev = this.prevBoard;
+    this._stopAnim();
+    if (key && key !== this.prevLast && prev && prev[st.last.from] && !st.board[st.last.from] && st.board[st.last.to] &&
+        prev[st.last.from].charAt(0) === st.board[st.last.to].charAt(0)) {
+      this._slide(st.last.from, st.last.to);
+    }
+    this.prevBoard = st.board.slice();
+    this.prevLast = key;
+  };
+
+  var SLIDE_MS = 200;
+
+  Board.prototype._slide = function (from, to) {
+    var dest = this.pc[to], ghost = U.el('div', dest.className + ' pc-anim'), self = this;
+    ghost.style.left = this.sq[from].style.left;
+    ghost.style.top = this.sq[from].style.top;
+    dest.style.visibility = 'hidden';
+    this.el.appendChild(ghost);
+    ghost.offsetHeight;                // force un reflow pour que la transition parte bien de la case de départ
+    ghost.style.left = this.sq[to].style.left;
+    ghost.style.top = this.sq[to].style.top;
+    this.anim = { ghost: ghost, dest: dest, timer: setTimeout(function () { self._stopAnim(); }, SLIDE_MS + 40) };
+  };
+
+  // Termine tout de suite un glissement en cours (nouveau rendu, ou fin de l'animation).
+  Board.prototype._stopAnim = function () {
+    var a = this.anim;
+    if (!a) return;
+    this.anim = null;
+    clearTimeout(a.timer);
+    if (a.ghost.parentNode) a.ghost.parentNode.removeChild(a.ghost);
+    a.dest.style.visibility = '';
   };
 
   window.Board = Board;

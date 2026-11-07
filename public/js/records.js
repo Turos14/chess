@@ -320,7 +320,7 @@
     if (!edit) return;
     var g = edit.game, res = g.status(), status = U.$('rv-edit-status');
     var turnName = g.turn() === 'w' ? (rv.rec.white || 'Blancs') : (rv.rec.black || 'Noirs');
-    status.textContent = edit.thinking ? 'L’IA (' + turnName + ') réfléchit…' :
+    status.textContent = edit.thinking ? 'Hulotte (' + turnName + ') réfléchit…' :
       (res.over ? 'Terminé : ' + GameView.reasonText(res.reason).toLowerCase() : 'Trait aux ' + (g.turn() === 'w' ? 'Blancs' : 'Noirs') + ' (' + turnName + ')');
     aiSeg.set(edit.ai);
     U.$('rv-edit-undo').disabled = !edit.moves.length || edit.thinking;
@@ -399,12 +399,12 @@
         if (!edit || edit.destroyed) return;
         edit.thinking = false;
         if (!aiPlays(g.turn())) { renderEdit(); return; }     // camp retiré à l'IA pendant sa réflexion
-        if (!mv) { U.toast('L’IA n’a pas trouvé de coup.'); renderEdit(); return; }
+        if (!mv) { U.toast('Hulotte n’a pas trouvé de coup.'); renderEdit(); return; }
         playEditMove(mv.from, mv.to, mv.promo);
       });
     }
     if (edit.engineHandle) { go(); return; }
-    if (!Engine.supported()) { edit.thinking = false; edit.ai = 'none'; U.toast('IA indisponible sur ce navigateur (Web Worker).'); renderEdit(); return; }
+    if (!Engine.supported()) { edit.thinking = false; edit.ai = 'none'; U.toast('Hulotte est indisponible sur ce navigateur (Web Worker).'); renderEdit(); return; }
     Engine.create(function (err, h) {
       if (!edit || edit.destroyed) { if (h) h.destroy(); return; }
       if (err) { edit.thinking = false; edit.ai = 'none'; U.toast(err.message); renderEdit(); return; }
