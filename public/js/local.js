@@ -115,7 +115,7 @@
         }
         return items;
       },
-      quit: function () { GameView.close(); App.show('home'); }
+      quit: function () { GameView.close(); App.show('partie'); }
     };
     GameView.open(ctrl);
   }

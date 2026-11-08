@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=32">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=32">
-<link rel="icon" href="icons/icon-192.png?v=32">
-<link rel="stylesheet" href="css/style.css?v=32">
-<link rel="stylesheet" href="css/pieces.css?v=32">
+<link rel="manifest" href="manifest.json?v=33">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=33">
+<link rel="icon" href="icons/icon-192.png?v=33">
+<link rel="stylesheet" href="css/style.css?v=33">
+<link rel="stylesheet" href="css/pieces.css?v=33">
 </head>
 <body>
 
@@ -28,16 +28,24 @@
 <div id="scr-home" class="screen page active">
   <div class="home">
     <h1 class="logo">Échecs</h1>
+    <button class="btn big" data-go="partie">Partie</button>
+    <button class="btn big" data-go="puzzles">Problèmes</button>
     <button class="btn big" data-go="pendule-setup">Pendule</button>
+    <button class="btn big" data-go="elo">Classement Elo</button>
+    <button class="btn big" data-go="memo">Aide-mémoire</button>
+    <p class="hint center">Pour le plein écran sur iPhone / iPad : Partager → « Sur l’écran d’accueil ».</p>
+  </div>
+</div>
+
+<!-- Sous-menu « Partie » -->
+<div id="scr-partie" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie</h1></div>
+  <div class="home sub">
     <button class="btn big" data-go="local-setup">Partie d’échecs</button>
     <button class="btn big" data-go="ai-setup">Jouer contre Hulotte</button>
     <button class="btn big" data-go="online">Partie en ligne</button>
     <button class="btn big" data-go="records">Parties enregistrées <span id="rec-count" class="badge"></span></button>
-    <button class="btn big" data-go="elo">Classement Elo</button>
-    <button class="btn big" data-go="puzzles">Problèmes</button>
     <button class="btn big" data-go="multi-setup">Échecs à plusieurs</button>
-    <button class="btn big" data-go="memo">Aide-mémoire</button>
-    <p class="hint center">Pour le plein écran sur iPhone / iPad : Partager → « Sur l’écran d’accueil ».</p>
   </div>
 </div>
 
@@ -67,7 +75,7 @@
 
 <!-- Partie locale : réglages -->
 <div id="scr-local-setup" class="screen page">
-  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie d’échecs</h1></div>
+  <div class="topbar"><button class="back" data-go="partie">‹ Retour</button><h1>Partie d’échecs</h1></div>
   <div class="content">
     <h3>Joueurs</h3>
     <div class="fieldrow"><input id="lc-w" class="txt" maxlength="20" placeholder="Blancs" autocomplete="off"><input id="lc-b" class="txt" maxlength="20" placeholder="Noirs" autocomplete="off"></div>
@@ -88,7 +96,7 @@
 
 <!-- Partie contre l'IA : réglages -->
 <div id="scr-ai-setup" class="screen page">
-  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie contre Hulotte</h1></div>
+  <div class="topbar"><button class="back" data-go="partie">‹ Retour</button><h1>Partie contre Hulotte</h1></div>
   <div class="content">
     <div class="coach mood-happy"><div class="coach-row"><div id="ai-owl" class="owl"></div><div class="bubble">Hou hou ! Je suis Hulotte. Choisis mon niveau et ta couleur : je joue contre toi.</div></div></div>
     <h3>Toi</h3>
@@ -112,7 +120,7 @@
 
 <!-- Partie en ligne -->
 <div id="scr-online" class="screen page">
-  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Partie en ligne</h1></div>
+  <div class="topbar"><button class="back" data-go="partie">‹ Retour</button><h1>Partie en ligne</h1></div>
   <div class="content">
     <div id="on-status" class="hint center"></div>
     <div id="on-resume"></div>
@@ -143,7 +151,7 @@
 
 <!-- Échecs à plusieurs : réglages -->
 <div id="scr-multi-setup" class="screen page">
-  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Échecs à plusieurs</h1></div>
+  <div class="topbar"><button class="back" data-go="partie">‹ Retour</button><h1>Échecs à plusieurs</h1></div>
   <div class="content">
     <h3>Variante</h3>
     <div id="mu-variant"></div>
@@ -179,7 +187,7 @@
 
 <!-- Parties enregistrées -->
 <div id="scr-records" class="screen page">
-  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Parties enregistrées</h1></div>
+  <div class="topbar"><button class="back" data-go="partie">‹ Retour</button><h1>Parties enregistrées</h1></div>
   <div class="content"><div id="rec-list"></div></div>
 </div>
 
@@ -379,33 +387,33 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=32"></script>
-<script src="js/memo.js?v=32"></script>
-<script src="js/util.js?v=32"></script>
-<script src="js/clock.js?v=32"></script>
-<script src="js/board.js?v=32"></script>
-<script src="js/elo.js?v=32"></script>
-<script src="js/eloChart.js?v=32"></script>
-<script src="js/eloview.js?v=32"></script>
-<script src="js/records.js?v=32"></script>
-<script src="js/puzzles.js?v=32"></script>
-<script src="js/gameview.js?v=32"></script>
-<script src="js/pendule.js?v=32"></script>
-<script src="js/local.js?v=32"></script>
-<script src="js/engineStrength.js?v=32"></script>
-<script src="js/engine.js?v=32"></script>
-<script src="js/analysis.js?v=32"></script>
-<script src="js/coach.js?v=32"></script>
-<script src="js/ai.js?v=32"></script>
-<script src="js/room.js?v=32"></script>
-<script src="js/net.js?v=32"></script>
-<script src="js/online.js?v=32"></script>
-<script src="js/memoview.js?v=32"></script>
-<script src="js/multichess.js?v=32"></script>
-<script src="js/multiboard.js?v=32"></script>
-<script src="js/multi.js?v=32"></script>
-<script src="js/multiroom.js?v=32"></script>
-<script src="js/multionline.js?v=32"></script>
-<script src="js/app.js?v=32"></script>
+<script src="js/chess.js?v=33"></script>
+<script src="js/memo.js?v=33"></script>
+<script src="js/util.js?v=33"></script>
+<script src="js/clock.js?v=33"></script>
+<script src="js/board.js?v=33"></script>
+<script src="js/elo.js?v=33"></script>
+<script src="js/eloChart.js?v=33"></script>
+<script src="js/eloview.js?v=33"></script>
+<script src="js/records.js?v=33"></script>
+<script src="js/puzzles.js?v=33"></script>
+<script src="js/gameview.js?v=33"></script>
+<script src="js/pendule.js?v=33"></script>
+<script src="js/local.js?v=33"></script>
+<script src="js/engineStrength.js?v=33"></script>
+<script src="js/engine.js?v=33"></script>
+<script src="js/analysis.js?v=33"></script>
+<script src="js/coach.js?v=33"></script>
+<script src="js/ai.js?v=33"></script>
+<script src="js/room.js?v=33"></script>
+<script src="js/net.js?v=33"></script>
+<script src="js/online.js?v=33"></script>
+<script src="js/memoview.js?v=33"></script>
+<script src="js/multichess.js?v=33"></script>
+<script src="js/multiboard.js?v=33"></script>
+<script src="js/multi.js?v=33"></script>
+<script src="js/multiroom.js?v=33"></script>
+<script src="js/multionline.js?v=33"></script>
+<script src="js/app.js?v=33"></script>
 </body>
 </html>

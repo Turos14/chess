@@ -121,7 +121,7 @@
         }
         return items;
       },
-      quit: function () { destroyEngine(); GameView.close(); App.show('home'); }
+      quit: function () { destroyEngine(); GameView.close(); App.show('partie'); }
     };
 
     // Change le niveau de l'IA en cours de partie : s'applique à partir du prochain coup qu'elle joue.

@@ -13,7 +13,7 @@
     for (i = 0; i < list.length; i++) if (list[i].id === 'scr-' + name) newEl = list[i];
     current = name;
     window.scrollTo(0, 0);
-    if (name === 'home') {
+    if (name === 'partie') {
       var n = Rec.count();
       U.$('rec-count').textContent = n ? n : '';
     } else if (name === 'records') Rec.renderList();

@@ -276,3 +276,4 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .mu-namerow { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin: 6px 0; }
 .mu-namerow .pdot { margin-right: 10px; }
 #mu-start { margin-top: 18px; }
+.home.sub { padding-top: 24px; }
