@@ -34,6 +34,34 @@ var del = buildIssue({ kind: 'delete', ids: 'gh-1, gh-2', title: 'Doublon' });
 assert.deepStrictEqual(del.labels, ['delete-puzzle']);
 assert.strictEqual(C.field(del.body, 'Identifiant(s) du/des problème(s)'), 'gh-1 gh-2');
 
+// Mentions et références croisées neutralisées (titre et corps), texte d'origine restitué par puzzle-common.
+var Z = '\u200b';
+var evil = 'cc @Turos14 et @org/team, #12, Turos14/chess#34, GH-56, https://github.com/Turos14/chess/issues/78 et /pull/9';
+var ev = buildIssue({ kind: 'propose', fen: '7k/6pp/8/8/8/8/8/5R1K w - - 0 1', solution: 'f1f8', title: 'Vu @bob #5', author: '@Turos14', category: 'Mats #1', description: evil });
+function assertNeutral(t) {
+  assert(!/@[^\u200b]/.test(t), 'mention active : ' + t);
+  assert(!/#\d/.test(t), 'référence #n active : ' + t);
+  assert(!/GH-\d/i.test(t), 'GH-n actif : ' + t);
+  assert(!/github\.com/i.test(t), 'URL github.com active : ' + t);
+}
+assertNeutral(ev.title); assertNeutral(ev.body);
+assert(ev.title.indexOf('@' + Z + 'bob') > 0 && ev.title.indexOf('#' + Z + '5') > 0);
+assert(ev.body.indexOf('Turos14/chess#' + Z + '34') > 0);
+assert(ev.body.indexOf('github' + Z + '.com/Turos14/chess/issues/78') > 0);
+var evr = C.readPuzzleFields(ev.body).puzzle;
+assert.strictEqual(evr.description, evil);
+assert.strictEqual(evr.title, 'Vu @bob #5');
+assert.strictEqual(evr.category, 'Mats #1');
+assert.strictEqual(C.field(ev.body, 'Pseudo (optionnel)'), '@Turos14');
+assert(!/\u200b/.test(JSON.stringify(evr)));
+// Un ZWSP saisi par le visiteur est retiré (pas de contournement ni d'ambiguïté).
+assert.strictEqual(C.readPuzzleFields(buildIssue({ kind: 'propose', fen: '7k/6pp/8/8/8/8/8/5R1K w - - 0 1', solution: 'f1f8', title: 'a' + Z + 'b' }).body).puzzle.title, 'ab');
+var evd = buildIssue({ kind: 'delete', ids: 'seed-1', title: 'cf. #7 @x', reason: 'voir GH-8' });
+assertNeutral(evd.title); assertNeutral(evd.body);
+var eve = buildIssue({ kind: 'edit', id: '123', fen: '7k/8/8/8/8/8/8/K7 w - - 0 1', solution: 'a1a2', reason: '@x #3' });
+assertNeutral(eve.title); assertNeutral(eve.body);
+assert.strictEqual(C.field(eve.body, 'Raison de la modification (optionnel)'), '@x #3');
+
 // Refus
 assert(buildIssue({ kind: 'propose', fen: '', solution: 'e2e4' }).error);
 assert(buildIssue({ kind: 'propose', fen: Array(200).join('x'), solution: 'e2e4' }).error);

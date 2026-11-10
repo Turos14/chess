@@ -16,12 +16,17 @@ function sh(cmd) { return cp.execSync(cmd, { stdio: 'pipe', encoding: 'utf8' });
 
 function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+// Le relais (relais/lib/ticket.js) insère des espaces de largeur nulle (U+200B) dans les textes libres pour
+// neutraliser mentions et références croisées GitHub : on les retire à la lecture pour que les données publiées
+// restent propres (sans effet sur les tickets créés via les formulaires GitHub, qui n'en contiennent pas).
+function clean(v) { return v.replace(/\u200b/g, ''); }
+
 // Le corps d'un ticket créé via un formulaire GitHub est formaté en "### <Label>\n\n<valeur>" par champ.
 function field(body, label) {
   var re = new RegExp('### ' + escapeRe(label) + '\\s*\\n+([^\\n]*)');
   var m = body.match(re);
   if (!m) return '';
-  var v = m[1].replace(/^\s+|\s+$/g, '');
+  var v = clean(m[1]).replace(/^\s+|\s+$/g, '');
   return v === '_No response_' ? '' : v;
 }
 
@@ -30,7 +35,7 @@ function fieldBlock(body, label) {
   var re = new RegExp('### ' + escapeRe(label) + '[ \\t]*\\r?\\n([\\s\\S]*?)(?=\\r?\\n### |$)');
   var m = body.match(re);
   if (!m) return '';
-  var v = m[1].replace(/\r\n/g, '\n').replace(/^\s+|\s+$/g, '');
+  var v = clean(m[1]).replace(/\r\n/g, '\n').replace(/^\s+|\s+$/g, '');
   return v === '_No response_' ? '' : v;
 }
 

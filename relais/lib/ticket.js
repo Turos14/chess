@@ -25,6 +25,23 @@ function block(v) {
     .replace(/^[ \t]*#{3,}/gm, '#').replace(/^\s+|\s+$/g, '');
 }
 
+// Neutralisation des mentions et références croisées dans les textes libres du visiteur : le ticket est créé avec
+// le jeton de Turos14, donc sans cela un « @nom » notifierait quelqu'un et « #12 », « owner/repo#12 », « GH-12 » ou
+// une URL d'issue/PR GitHub créeraient un lien (et une mention croisée visible dans l'autre ticket). On insère un
+// espace de largeur nulle (U+200B, ZWSP) qui casse la détection de GitHub sans changer l'aspect du texte :
+//   « @ » -> « @ZWSP »   « # » suivi d'un chiffre -> « #ZWSP »   « GH- » suivi d'un chiffre -> « GH-ZWSP »
+//   « github.com » -> « githubZWSP.com » (aucune URL github.com ne peut plus devenir un lien).
+// Le ZWSP saisi par le visiteur est d'abord retiré, pour que l'opération soit réversible sans ambiguïté :
+// scripts/puzzle-common.js retire tous les ZWSP à la lecture, les données publiées restent propres.
+var ZWSP = '\u200b';
+function neutralize(v) {
+  return str(v).replace(/\u200b/g, '')
+    .replace(/@/g, '@' + ZWSP)
+    .replace(/#(?=\d)/g, '#' + ZWSP)
+    .replace(/(GH-)(?=\d)/gi, '$1' + ZWSP)
+    .replace(/github(?=\.com)/gi, function (m) { return m + ZWSP; });
+}
+
 function check(name, value, required) {
   if (required && !value) return 'Champ manquant : ' + name + '.';
   if (value.length > LIMITS[name]) return 'Champ trop long : ' + name + ' (' + LIMITS[name] + ' caractères maximum).';
@@ -46,6 +63,7 @@ function puzzleFields(d) {
   if (d.difficulty && !difficulty) return { error: 'Niveau de difficulté invalide.' };
   if (!/^[1-8pnbrqkPNBRQK\/]+ [wb] [-A-Ha-hKQkq]+ [-a-h1-8]+( \d+ \d+)?$/.test(fen)) return { error: 'FEN invalide.' };
   if (!/^([a-h][1-8][a-h][1-8][qrbn]?)( [a-h][1-8][a-h][1-8][qrbn]?)*$/i.test(solution)) return { error: 'Solution invalide (coups UCI attendus, ex : e2e4).' };
+  title = neutralize(title); category = neutralize(category); description = neutralize(description);
   return {
     title: title,
     fields: [['FEN de départ', fen], ['Solution', solution], ['Titre (optionnel)', title]],
@@ -62,6 +80,7 @@ function buildIssue(d) {
     if (p.error) return p;
     var author = line(d.author) || 'anonyme';
     if ((err = check('author', author))) return { error: err };
+    author = neutralize(author);
     return {
       title: '[Problème] ' + (p.title || 'sans titre'),
       body: body(p.fields.concat([['Pseudo (optionnel)', author]], p.tail)),
@@ -76,8 +95,9 @@ function buildIssue(d) {
     if ((err = check('reason', reason))) return { error: err };
     p = puzzleFields(d);
     if (p.error) return p;
+    reason = neutralize(reason);
     return {
-      title: '[Modification] ' + (p.title || 'Problème #' + id) + ' (' + id + ')',
+      title: neutralize('[Modification] ' + (p.title || 'Problème #' + id) + ' (' + id + ')'),
       body: body([['Identifiant du problème', id]].concat(p.fields, p.tail.slice(0, 2), [['Raison de la modification (optionnel)', reason]], p.tail.slice(2))),
       labels: ['edit-puzzle']
     };
@@ -89,8 +109,8 @@ function buildIssue(d) {
     var why = line(d.reason);
     if ((err = check('reason', why))) return { error: err };
     return {
-      title: '[Suppression] ' + (line(d.title).slice(0, LIMITS.title) || ids),
-      body: body([['Identifiant(s) du/des problème(s)', ids], ['Raison (optionnel)', why]]),
+      title: '[Suppression] ' + (neutralize(line(d.title).slice(0, LIMITS.title)) || ids),
+      body: body([['Identifiant(s) du/des problème(s)', ids], ['Raison (optionnel)', neutralize(why)]]),
       labels: ['delete-puzzle']
     };
   }
