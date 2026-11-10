@@ -11,8 +11,14 @@ existantes (`scripts/puzzle-*.js`) les traitent sans changement.
   - proposition → étiquette `puzzle-pending` ; ajouter **`puzzle-approved`** pour la publier ;
   - modification → `edit-puzzle` ; ajouter **`edit-approved`** ;
   - suppression → `delete-puzzle` ; ajouter **`delete-approved`**.
-- Garde-fous : seules les requêtes venant du site sont acceptées (CORS), limite de 5 envois / 10 min par adresse,
-  champs bornés en taille. La FEN et la solution sont revérifiées par l'Action avant publication.
+- Garde-fous : seules les requêtes venant du site sont acceptées (CORS ; un POST sans en-tête `Origin` est refusé en
+  403), limite de 5 envois / 10 min par adresse **et** plafond global de 20 tickets / 24 h (voir « Limites
+  partagées »), diagnostic `?check=1` limité à 3 / 10 min par adresse, champs bornés en taille. La FEN et la
+  solution sont revérifiées par l'Action avant publication.
+- Mentions et références croisées : dans les textes libres (titre, pseudo, catégorie, description, raison), `@nom`,
+  `#12`, `GH-12`, `owner/repo#12` et les URL `github.com` sont neutralisés par un espace de largeur nulle (U+200B),
+  invisible, pour qu'un ticket créé avec le jeton de Turos14 ne notifie ni ne référence personne.
+  `scripts/puzzle-common.js` retire ces caractères à la lecture : `puzzles.json` reste propre.
 
 ## Mise en ligne (une seule fois)
 
@@ -35,6 +41,22 @@ Ensuite, chaque push sur `main` met le relais à jour automatiquement (Vercel su
 Variables facultatives : `GITHUB_REPO` (défaut `Turos14/chess`), `ALLOWED_ORIGINS` (défaut
 `https://turos14.github.io`, plusieurs séparées par des virgules — ajouter `http://localhost:3000` pour tester
 en local).
+
+## Limites partagées (Upstash Redis, recommandé)
+
+Sans stockage partagé, les limites sont comptées en mémoire de chaque instance Vercel (remises à zéro à chaque
+démarrage à froid) : le relais fonctionne, mais la protection est approximative. Pour des compteurs partagés :
+
+1. Vercel → le projet du relais → **Storage** (ou *Marketplace*) → **Upstash** → *Redis* → créer une base
+   (offre gratuite, région proche de celle des fonctions) et la **connecter au projet**.
+2. Vercel y ajoute seule les variables **`KV_REST_API_URL`** et **`KV_REST_API_TOKEN`** (les noms
+   `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` sont aussi compris). Puis *Redeploy*.
+3. Vérification : si Redis est injoignable ou mal configuré, le journal de la fonction affiche
+   « Limite : Redis indisponible, repli sur la mémoire » et le relais continue avec la limite en mémoire.
+
+Variable facultative : **`MAX_PER_DAY`** (défaut `20`) = plafond global de tickets créés par 24 h, toutes adresses
+confondues (dépassé : réponse 429 « réessaie demain »). Compteurs : par adresse (première valeur de
+`x-forwarded-for`, posée par Vercel) 5 envois / 10 min, diagnostic 3 / 10 min.
 
 **Renouveler la clé** : quand le jeton expire, l'envoi depuis l'appli affiche « GitHub a refusé la demande
 (HTTP 401) » et propose de passer par GitHub. Créer un nouveau jeton (étape 1), le coller dans Vercel → Settings →
