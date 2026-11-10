@@ -1,22 +1,19 @@
 /* Point d'entrée du relais (fonction Vercel, Node 18+) : POST /api/submit depuis l'appli, sans compte GitHub.
  * Crée le ticket GitHub correspondant avec une clé gardée secrète côté serveur (variable GITHUB_TOKEN : jeton
  * « fine-grained » limité au dépôt, permission Issues en lecture/écriture). Configuration : voir relais/README.md.
- * Garde-fous : origine autorisée (CORS), champ piège anti-robot, limite d'envois par adresse IP (en mémoire,
- * approximative — le vrai filet reste l'approbation manuelle avant toute publication). */
+ * Garde-fous : origine obligatoire et autorisée pour POST (CORS), champ piège anti-robot, limite d'envois par IP
+ * + plafond global par jour (lib/limit.js : Redis partagé si configuré, sinon mémoire — approximatif ; le vrai
+ * filet reste l'approbation manuelle avant toute publication). */
 'use strict';
 var buildIssue = require('../lib/ticket.js').buildIssue;
+var limit = require('../lib/limit.js');
 
 var REPO = process.env.GITHUB_REPO || 'Turos14/chess';
 var ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://turos14.github.io').split(',').map(function (s) { return s.trim(); });
-var WINDOW_MS = 10 * 60 * 1000, MAX_PER_WINDOW = 5;
-var hits = {};   // ip -> [horodatages]
-
-function allowed(ip, now) {
-  var list = (hits[ip] || []).filter(function (t) { return now - t < WINDOW_MS; });
-  if (list.length >= MAX_PER_WINDOW) { hits[ip] = list; return false; }
-  list.push(now); hits[ip] = list;
-  return true;
-}
+var memory = limit.createMemory();   // repli si Redis n'est pas configuré ou injoignable
+function limiter() { return limit.create({ env: process.env, memory: memory }); }
+// Sur Vercel, x-forwarded-for est posé par la plateforme : la première valeur est l'adresse du visiteur.
+function clientIp(req) { return String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'inconnue'; }
 
 function githubHeaders() {
   return {
@@ -44,11 +41,16 @@ module.exports = async function handler(req, res) {
   } else if (origin) {
     return send(res, 403, { error: 'Origine non autorisée.' });
   }
+  // Un POST sans en-tête Origin (curl, script…) n'est pas un visiteur de l'appli : refusé.
+  if (req.method === 'POST' && !origin) return send(res, 403, { error: 'Origine manquante.' });
   if (req.method === 'OPTIONS') { res.statusCode = 204; return res.end(); }
   if (req.method === 'GET') {
     // Diagnostic sans rien créer : GET /api/submit?check=1 teste la clé GitHub en lecture sur le dépôt
     // (401 = clé invalide ou expirée, 404 = clé sans accès au dépôt). La clé elle-même n'est jamais renvoyée.
     if (!/[?&]check=1\b/.test(req.url || '')) return send(res, 200, { ok: true, service: 'relais des problèmes' });
+    // Même type de limite par IP que l'envoi (plus stricte) : le diagnostic consomme le quota de l'API du jeton.
+    var cl = await limiter().check('check', clientIp(req));
+    if (!cl.ok) return send(res, 429, { error: 'Trop de diagnostics, réessaie dans quelques minutes.' });
     if (!process.env.GITHUB_TOKEN) return send(res, 200, { ok: false, token: 'absent' });
     try {
       var c = await fetch('https://api.github.com/repos/' + REPO + '/issues?per_page=1', { headers: githubHeaders() });
@@ -69,11 +71,14 @@ module.exports = async function handler(req, res) {
   if (!data || typeof data !== 'object') return send(res, 400, { error: 'Demande illisible.' });
   if (data.website) return send(res, 200, { ok: true });   // champ piège rempli : robot, on ignore en silence
 
-  var ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'inconnue';
-  if (!allowed(ip, Date.now())) return send(res, 429, { error: 'Trop d’envois, réessaie dans quelques minutes.' });
-
+  // Validation d'abord : une demande invalide ne crée rien et ne consomme pas le plafond global.
   var issue = buildIssue(data);
   if (issue.error) return send(res, 400, { error: issue.error });
+
+  var lim = await limiter().check('submit', clientIp(req));
+  if (!lim.ok) {
+    return send(res, 429, { error: lim.scope === 'day' ? 'Trop de propositions aujourd’hui, réessaie demain.' : 'Trop d’envois, réessaie dans quelques minutes.' });
+  }
 
   var r;
   try {

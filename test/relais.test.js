@@ -78,10 +78,10 @@ global.fetch = function (url, opts) {
   // Comme le vrai GitHub avec une clé « fine-grained » : étiquettes ignorées à la création.
   return Promise.resolve({ ok: true, status: 201, json: function () { return Promise.resolve({ number: 101, html_url: 'https://github.com/Turos14/chess/issues/101', labels: [] }); } });
 };
-function call(method, origin, body, ip) {
+function call(method, origin, body, ip, url) {
   return new Promise(function (resolve) {
     var res = { headers: {}, statusCode: 200, setHeader: function (k, v) { this.headers[k] = v; }, end: function (s) { resolve({ status: this.statusCode, headers: this.headers, json: s ? JSON.parse(s) : null }); } };
-    handler({ method: method, headers: { origin: origin, 'x-forwarded-for': ip || '1.2.3.4' }, body: body }, res);
+    handler({ method: method, url: url, headers: { origin: origin, 'x-forwarded-for': ip || '1.2.3.4' }, body: body }, res);
   });
 }
 var ORIGIN = 'https://turos14.github.io';
@@ -104,6 +104,21 @@ var ORIGIN = 'https://turos14.github.io';
   r = await call('POST', ORIGIN, { kind: 'delete', ids: 'gh-1', website: 'spam' });   // champ piège
   assert(r.json.ok && sent.length === 1);
   for (var i = 0; i < 6; i++) r = await call('POST', ORIGIN, { kind: 'delete', ids: 'gh-1' }, '9.9.9.9');
+  assert.strictEqual(r.status, 429);
+  // POST sans Origin refusé (403) ; OPTIONS et GET de santé restent ouverts sans Origin.
+  var n0 = sent.length;
+  r = await call('POST', undefined, { kind: 'delete', ids: 'gh-1' }, '7.7.7.7');
+  assert.strictEqual(r.status, 403); assert.strictEqual(sent.length, n0);
+  assert.strictEqual((await call('OPTIONS', undefined)).status, 204);
+  r = await call('GET', undefined); assert.strictEqual(r.status, 200); assert(r.json.ok);
+  // Diagnostic ?check=1 limité par IP (3 / 10 min) : les suivants ne touchent plus GitHub.
+  sent.length = 0;
+  for (i = 0; i < 3; i++) r = await call('GET', undefined, undefined, '8.8.8.8', '/api/submit?check=1');
+  assert.strictEqual(r.status, 200); assert.strictEqual(sent.length, 6);
+  r = await call('GET', undefined, undefined, '8.8.8.8', '/api/submit?check=1');
+  assert.strictEqual(r.status, 429); assert.strictEqual(sent.length, 6);
+  // x-forwarded-for : seule la première adresse compte.
+  r = await call('GET', undefined, undefined, '8.8.8.8, 5.5.5.5', '/api/submit?check=1');
   assert.strictEqual(r.status, 429);
   console.log('relais OK');
 })().catch(function (e) { console.error(e); process.exit(1); });
