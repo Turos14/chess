@@ -33,6 +33,7 @@
     <h1>Administration</h1>
     <nav class="tabs" id="tabs">
       <button type="button" class="tab on" data-tab="mod">Modération <span class="badge" id="modBadge"></span></button>
+      <button type="button" class="tab" data-tab="live">En direct <span class="badge" id="liveBadge"></span></button>
       <button type="button" class="tab" data-tab="stats">Statistiques</button>
       <button type="button" class="tab" data-tab="log">Journal</button>
     </nav>
@@ -46,6 +47,20 @@
       <p class="hint note">Approuver pose l’étiquette ; la publication est faite par les Actions GitHub quelques minutes après.</p>
       <div class="row"><button type="button" class="btn" id="reloadQueue">Actualiser</button></div>
       <div id="queue"></div>
+    </div>
+
+    <div id="tab-live" class="pane hidden">
+      <p class="hint note">Parties partagées par les joueurs qui ont accepté ; sans noms. Rien n’est gardé au-delà de 15 min (en cours) / 1 h (terminées).</p>
+      <div class="live-bar">
+        <button type="button" class="btn" id="reloadLive">Actualiser</button>
+        <span class="hint" id="liveAge" aria-live="off"></span>
+      </div>
+      <div class="live-filters" id="liveFilters">
+        <div class="chips" id="liveStatus" role="group" aria-label="État"></div>
+        <div class="chips" id="liveMode" role="group" aria-label="Mode"></div>
+      </div>
+      <p id="liveError" class="error"></p>
+      <div id="live" class="live-grid"></div>
     </div>
 
     <div id="tab-stats" class="pane hidden">
@@ -72,6 +87,8 @@
 </section>
 
 <script src="https://turos14.github.io/chess/js/chess.js"></script>
+<script src="https://turos14.github.io/chess/js/multichess.js"></script>
+<script src="https://turos14.github.io/chess/js/multiboard.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>
