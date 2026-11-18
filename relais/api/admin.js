@@ -1,5 +1,5 @@
 /* API de l'admin du relais : /api/admin?a=<action> (une seule fonction Vercel), appelée par la page /admin/.
- * Actions : login, logout, me, queue, approve, refuse, stats, log (voir relais/README.md). Même origine que la
+ * Actions : login, logout, me, queue, approve, refuse, stats, log, live (voir relais/README.md). Même origine que la
  * page : pas d'en-têtes CORS. Session = cookie signé HttpOnly (lib/admin.js) ; tout POST exige l'en-tête
  * `X-Admin: 1` et une Origin identique à l'hôte (protection CSRF en plus de SameSite=Strict). L'admin ne fait que
  * poser des étiquettes (approbation) ou refuser (commentaire + fermeture) : la publication reste faite par les
@@ -9,15 +9,16 @@ var admin = require('../lib/admin.js');
 var limit = require('../lib/limit.js');
 var redis = require('../lib/redis.js');
 var stats = require('../lib/stats.js');
+var live = require('../lib/live.js');
 
-var ACTIONS = { login: 'POST', logout: 'POST', me: 'GET', queue: 'GET', approve: 'POST', refuse: 'POST', stats: 'GET', log: 'GET' };
-var DAY_MS = 24 * 60 * 60 * 1000, MAX_RANGE_DAYS = 400, LOG_MAX = 500, LOG_READ = 100;
+var ACTIONS = { login: 'POST', logout: 'POST', me: 'GET', queue: 'GET', approve: 'POST', refuse: 'POST', stats: 'GET', log: 'GET', live: 'GET' };
+var DAY_MS = 24 * 60 * 60 * 1000, MAX_RANGE_DAYS = 400, LOG_MAX = 500, LOG_READ = 100, LIVE_MAX = 200;
 
 function create(deps) {
   deps = deps || {};
   var env = deps.env || process.env;
   var memory = deps.memory || limit.createMemory();
-  var memLog = [];   // journal de repli si Redis n'est pas configuré
+  var memLog = [], memLiveView = 0;   // journal de repli si Redis n'est pas configuré
   function now() { return deps.now ? deps.now() : Date.now(); }
   function fetchFn() { return (deps.fetch || fetch).apply(null, arguments); }
   function store() { return deps.store !== undefined ? deps.store : redis.createStore(env, { fetch: deps.fetch }); }
@@ -126,6 +127,47 @@ function create(deps) {
     return { from: from, to: to, days: out };
   }
 
+  // Parties en direct : les LIVE_MAX plus récentes encore valides (en cours < 15 min, terminées < 1 h).
+  async function liveGames() {
+    var st = store(), t = now();
+    if (!st) return [];
+    var res = await st.pipeline([
+      ['ZREMRANGEBYSCORE', 'live:idx', '-inf', t - live.ENDED_MS],
+      ['ZREVRANGEBYSCORE', 'live:idx', '+inf', '-inf', 'LIMIT', 0, LIVE_MAX]
+    ]);
+    var gids = res[1] || [];
+    if (!gids.length) return [];
+    var vals = await st.pipeline([['MGET'].concat(gids.map(function (g) { return 'live:' + g; })), ['MGET'].concat(gids.map(function (g) { return 'live:st:' + g; }))]);
+    var games = [];
+    gids.forEach(function (gid, i) {
+      var g;
+      try { g = JSON.parse(vals[0][i]); } catch (e) { g = null; }
+      if (!g || typeof g !== 'object' || typeof g.at !== 'number') return;
+      if (t - g.at > (g.end ? live.ENDED_MS : live.PLAYING_MS)) return;
+      var o = { gid: gid, m: g.m, 'var': g['var'] };
+      if (g.sf !== undefined) o.sf = g.sf;
+      if (g.teams !== undefined) o.teams = g.teams;
+      o.mv = Array.isArray(g.mv) ? g.mv : [];
+      if (g.tc !== undefined) o.tc = g.tc;
+      if (g.end !== undefined) o.end = g.end;
+      var started = Number(vals[1][i]);
+      o.startedAt = started > 0 && started <= g.at ? started : g.at;
+      o.updatedAt = g.at;
+      games.push(o);
+    });
+    games.sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    return games.slice(0, LIVE_MAX);
+  }
+  // Journalise « live_view » au plus une fois par minute.
+  async function logLiveView() {
+    var st = store(), t = now();
+    if (!st) { if (t - memLiveView >= 60000) { memLiveView = t; await journal({ action: 'live_view' }); } return; }
+    try {
+      var r = await st.pipeline([['SET', 'admin:liveview', '1', 'NX', 'EX', 60]]);
+      if (r[0] === 'OK') await journal({ action: 'live_view' });
+    } catch (e) { console.error('Journal admin non écrit :', e.message); }
+  }
+
   return async function handler(req, res) {
     var u = new URL(req.url || '/', 'http://localhost');
     var action = u.searchParams.get('a') || '';
@@ -159,6 +201,11 @@ function create(deps) {
       if (action === 'logout') { res.setHeader('Set-Cookie', admin.clearCookie()); return send(res, 200, { ok: true }); }
       if (action === 'me') return send(res, 200, { ok: true });
       if (action === 'log') return send(res, 200, { ok: true, entries: await readLog() });
+      if (action === 'live') {
+        var games = await liveGames();
+        await logLiveView();
+        return send(res, 200, { ok: true, now: now(), games: games });
+      }
       if (action === 'stats') {
         var r = await statsRange(u.searchParams);
         if (r.error) return send(res, r.error[0], { error: r.error[1] });

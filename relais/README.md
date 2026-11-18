@@ -78,6 +78,25 @@ L'appli envoie des compteurs d'usage à `POST /api/stats` (JSON en `text/plain`,
 - **Limites** : 30 requêtes / 10 min par adresse, et plafond global **`STATS_MAX_PER_DAY`** (défaut `50000`
   requêtes par jour) ; dépassé : `429`, rien compté. Sans Redis configuré : `204`, rien n'est enregistré.
 
+## Parties en direct (`api/live.js`)
+
+Les joueurs qui ont **accepté** (choix demandé au premier lancement, modifiable dans « Règles ») envoient leurs parties
+à `POST /api/live` (JSON en `text/plain`, origine obligatoire et dans `ALLOWED_ORIGINS`, réponse `204`) ; l'admin les
+voit en direct dans l'onglet « En direct » (`GET /api/admin?a=live`).
+
+- **Reçu et stocké** (`lib/live.js`) : identifiant aléatoire de partie (`gid`), mode (`local`, `ai`, `online`,
+  `multi_local`, `multi_online`), variante, position de départ 960, équipes, liste des coups (UCI, ou « de-vers » en
+  parties à plusieurs, 700 maximum), pendule, fin de partie (raison et gagnant) et instants de début / dernière mise à jour.
+- **Jamais reçu ni stocké** : nom, pseudo, message de chat, code de salle, identifiant d'appareil, adresse IP (l'IP ne sert
+  qu'aux limites d'envoi, clés Redis éphémères). Tout champ inconnu est ignoré ; un corps invalide donne `400`.
+- **Durées** : clé Redis `live:<gid>` avec expiration de **15 min** sans mise à jour (partie en cours) ou **1 h** (partie
+  terminée) ; `live:st:<gid>` (début, 24 h) ; index `live:idx` nettoyé à chaque lecture. Un envoi `{ v:1, gid, stop:true }`
+  (partage retiré) supprime tout de suite la partie. Rien n'est gardé au-delà.
+- **Limites** : 120 requêtes / 10 min par adresse, et plafond global **`LIVE_MAX_PER_DAY`** (défaut `50000` requêtes par
+  jour) ; dépassé : `429`. Sans Redis configuré : `204`, rien n'est enregistré.
+- **Lecture admin** : les 200 parties les plus récentes (tri par dernière mise à jour décroissante) ; l'action `live_view`
+  est écrite dans le journal au plus une fois par minute.
+
 ## Admin (`/admin/`, `api/admin.js`)
 
 Page de modération à `https://<projet>.vercel.app/admin/` (fichiers statiques de `admin/`, en-têtes de sécurité et CSP
@@ -93,7 +112,7 @@ Variables d'environnement :
 - **`ADMIN_PASSWORD`** : **obligatoire pour activer l'admin** (sans elle, l'API répond 503). Mot de passe long et
   unique, jamais réutilisé ailleurs. Changer le mot de passe déconnecte toutes les sessions.
 - `ADMIN_SESSION_SECRET` (facultatif) : clé de signature des sessions ; sinon dérivée du mot de passe.
-- `STATS_MAX_PER_DAY` (voir plus haut), `GITHUB_TOKEN` et `GITHUB_REPO` comme pour `/api/submit`.
+- `STATS_MAX_PER_DAY` et `LIVE_MAX_PER_DAY` (voir plus haut), `GITHUB_TOKEN` et `GITHUB_REPO` comme pour `/api/submit`.
 
 Session : cookie `admin_session` signé (HMAC-SHA256), `HttpOnly; Secure; SameSite=Strict`, valable 2 h. Connexion
 limitée à 5 essais / 15 min par adresse. Tout `POST` exige l'en-tête `X-Admin: 1` et, si `Origin` est présent, qu'elle
@@ -108,6 +127,7 @@ soit celle du site (protection CSRF). Réponses JSON `{ ok: true, … }` ou `{ e
 | POST | `approve` | `{ number }` : pose `puzzle-approved` / `edit-approved` / `delete-approved` |
 | POST | `refuse` | `{ number, reason }` : commente « Refusé par la modération : … » puis ferme le ticket (non planifié) |
 | GET | `stats` | `from`, `to` (AAAA-MM-JJ, 400 jours maximum, défaut 30 derniers jours) : compteurs par jour |
+| GET | `live` | parties en direct : `{ now, games: [{ gid, m, var, sf?, teams?, mv, tc?, end?, startedAt, updatedAt }] }` (200 plus récentes ; en cours < 15 min, terminées < 1 h) |
 | GET | `log` | 100 dernières actions du journal (`admin:log`, Redis, 500 conservées, **sans adresse IP**) |
 
 **L'admin ne fait que poser des étiquettes** (ou refuser et fermer) : la publication d'un problème reste faite par les

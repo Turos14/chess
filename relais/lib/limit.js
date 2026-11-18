@@ -5,7 +5,8 @@
  * zéro au démarrage à froid : approximatif mais le relais continue de fonctionner).
  * Types de demande : 'submit' (par IP : 5 / 10 min, puis plafond global par jour), 'check' (par IP : 3 / 10 min,
  * pour que le diagnostic ne puisse pas épuiser le quota de l'API GitHub du jeton), 'stats' (par IP : 30 / 10 min,
- * puis plafond global STATS_MAX_PER_DAY, défaut 50000 / jour) et 'login' (connexion admin : 5 / 15 min par IP).
+ * puis plafond global STATS_MAX_PER_DAY, défaut 50000 / jour), 'live' (parties en direct, par IP : 120 / 10 min,
+ * puis plafond global LIVE_MAX_PER_DAY, défaut 50000 / jour) et 'login' (connexion admin : 5 / 15 min par IP).
  * L'accès Redis lui-même est dans lib/redis.js.
  * Module sans effet de bord : le fetch, l'horloge et la mémoire sont injectables (test/relaislimit.test.js). */
 'use strict';
@@ -19,6 +20,7 @@ var LIMITS = {
   submit: { max: 5, key: 'submit', windowS: WINDOW_S, day: { mem: 'day', redis: 'relais:day', env: 'MAX_PER_DAY', def: 20 } },
   check: { max: 3, key: 'check', windowS: WINDOW_S },
   stats: { max: 30, key: 'stats', windowS: WINDOW_S, day: { mem: 'statsday', redis: 'relais:statsday', env: 'STATS_MAX_PER_DAY', def: 50000 } },
+  live: { max: 120, key: 'live', windowS: WINDOW_S, day: { mem: 'liveday', redis: 'relais:liveday', env: 'LIVE_MAX_PER_DAY', def: 50000 } },
   login: { max: 5, key: 'login', windowS: 15 * 60 }
 };
 
