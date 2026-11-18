@@ -81,8 +81,12 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 - **Relais (`relais/`)** : 2e projet, fonction Vercel qui crée les tickets à la place des visiteurs sans compte
   GitHub (`lib/ticket.js` produit le même corps de ticket que les templates — `test/relais.test.js` vérifie qu'il
   est relu par `puzzle-common.js`). Ses propositions portent `puzzle-pending` et ne sont publiées qu'à l'ajout de
-  `puzzle-approved`. Côté appli, `RELAY_URL` (vide = tickets GitHub comme avant). Le relais n'est déployé que par
-  Vercel (pas par `deploy.yml`) ; c'est le seul code hors `public/` exécuté en production. Les ids sont
+  `puzzle-approved`. Limites d'envois dans `lib/limit.js` (Upstash Redis via son API REST, repli en mémoire ;
+  `fetch`, horloge et mémoire injectables pour `test/relaislimit.test.js`). Node 18+ (pas la contrainte ES5),
+  toujours sans dépendance npm. Côté appli, `RELAY_URL` en tête de `puzzles.js` (surchargeable par
+  `window.PUZZLE_RELAY` ; vide = tickets GitHub comme avant). Le relais n'est pas publié par `deploy.yml` mais
+  Vercel suit `main` : un push sur `main` le met aussi en production ; c'est le seul code hors `public/` exécuté
+  en production. Configuration Vercel (variables, Redis) : `relais/README.md`. Les ids sont
   `gh-<n° de ticket>` (et `seed-N` pour les problèmes de départ). `test/puzzles.test.js` valide ce fichier :
   si l'Action change le format d'un champ, le test doit suivre.
 - **Pièces** : SVG Cburnett dans `public/pieces/`, branchés par `public/css/pieces.css`
