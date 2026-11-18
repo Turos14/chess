@@ -52,7 +52,9 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   tourner `room.js` (arbitre : règles, pendule, sièges liés à un identifiant client persistant) et diffuse
   l'état ; en cas de départ de l'hôte, un autre participant reprend l'identifiant (bascule d'hôte).
   Le chat écrit (`chat.js`, utilisé par `room.js` et `multiroom.js` ; fenêtre `chatview.js`, branchée via `ctrl.chat`)
-  voyage dans ce même état : ne jamais y exposer le `cid` d'un auteur (il donne droit au siège).
+  voyage dans ce même état : ne jamais y exposer le `cid` d'un auteur (il donne droit au siège) ; masquage et
+  « ignorer » se font donc par nom, côté appareil récepteur. `rules.js` porte tous les textes de règles de l'appli
+  (écran `rules` + `Rules.dialog(id)` depuis les menus de partie) : y mettre à jour toute règle modifiée dans les moteurs.
 - **IA** : Stockfish.js 10 vendu dans `public/vendor/` (choisi exprès : pas de fichier NNUE), lancé en Web Worker
   par `engine.js`. Cette version n'a pas `UCI_Elo` : la force est calibrée par `engineStrength.js`
   (Skill Level + coup aléatoire parmi les meilleurs sous ~1300) ; temps de réflexion tiré entre 1 et 2 s par coup. Les parties contre l'IA ne modifient

@@ -21,6 +21,7 @@
     else if (name === 'elo') EloView.render();
     else if (name === 'puzzles') Puzzles.renderList();
     else if (name === 'memo') MemoView.renderList();
+    else if (name === 'rules') Rules.mount(U.$('rules-list'));
     else if (name === 'multi-setup') MultiOnline.refreshSetup();
     if (!newEl) return;
 

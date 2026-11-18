@@ -177,6 +177,7 @@
   M.menu = function () {
     var g = ctrl.game, buttons = [];
     (ctrl.menuItems ? ctrl.menuItems() : []).forEach(function (it) { buttons.push(it); });
+    buttons.push({ label: 'Règles', fn: function () { Rules.dialog(Rules.sectionFor(ctrl)); } });
     buttons.push({ label: 'Afficher les coups possibles : ' + (U.getSetting('hints') ? 'oui' : 'non'), fn: function () { U.setSetting('hints', !U.getSetting('hints')); M.refresh(); } });
     buttons.push({ label: 'Quitter la partie', danger: true, fn: function () { M.quit(); } });
     buttons.push({ label: 'Reprendre', primary: true });

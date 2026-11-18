@@ -16,11 +16,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d22">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json?v=34">
-<link rel="apple-touch-icon" href="icons/icon-180.png?v=34">
-<link rel="icon" href="icons/icon-192.png?v=34">
-<link rel="stylesheet" href="css/style.css?v=34">
-<link rel="stylesheet" href="css/pieces.css?v=34">
+<link rel="manifest" href="manifest.json?v=35">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=35">
+<link rel="icon" href="icons/icon-192.png?v=35">
+<link rel="stylesheet" href="css/style.css?v=35">
+<link rel="stylesheet" href="css/pieces.css?v=35">
 </head>
 <body>
 
@@ -33,8 +33,15 @@
     <button class="btn big" data-go="pendule-setup">Pendule</button>
     <button class="btn big" data-go="elo">Classement Elo</button>
     <button class="btn big" data-go="memo">Aide-mémoire</button>
+    <button class="btn big" data-go="rules">Règles</button>
     <p class="hint center">Pour le plein écran sur iPhone / iPad : Partager → « Sur l’écran d’accueil ».</p>
   </div>
+</div>
+
+<!-- Règles -->
+<div id="scr-rules" class="screen page">
+  <div class="topbar"><button class="back" data-go="home">‹ Retour</button><h1>Règles</h1></div>
+  <div class="content"><div id="rules-list"></div></div>
 </div>
 
 <!-- Sous-menu « Partie » -->
@@ -387,35 +394,36 @@
 <div id="modal"><div id="modal-box" class="box"></div></div>
 <div id="toast"></div>
 
-<script src="js/chess.js?v=34"></script>
-<script src="js/memo.js?v=34"></script>
-<script src="js/util.js?v=34"></script>
-<script src="js/clock.js?v=34"></script>
-<script src="js/board.js?v=34"></script>
-<script src="js/elo.js?v=34"></script>
-<script src="js/eloChart.js?v=34"></script>
-<script src="js/eloview.js?v=34"></script>
-<script src="js/records.js?v=34"></script>
-<script src="js/puzzles.js?v=34"></script>
-<script src="js/gameview.js?v=34"></script>
-<script src="js/pendule.js?v=34"></script>
-<script src="js/local.js?v=34"></script>
-<script src="js/engineStrength.js?v=34"></script>
-<script src="js/engine.js?v=34"></script>
-<script src="js/analysis.js?v=34"></script>
-<script src="js/coach.js?v=34"></script>
-<script src="js/ai.js?v=34"></script>
-<script src="js/chat.js?v=34"></script>
-<script src="js/chatview.js?v=34"></script>
-<script src="js/room.js?v=34"></script>
-<script src="js/net.js?v=34"></script>
-<script src="js/online.js?v=34"></script>
-<script src="js/memoview.js?v=34"></script>
-<script src="js/multichess.js?v=34"></script>
-<script src="js/multiboard.js?v=34"></script>
-<script src="js/multi.js?v=34"></script>
-<script src="js/multiroom.js?v=34"></script>
-<script src="js/multionline.js?v=34"></script>
-<script src="js/app.js?v=34"></script>
+<script src="js/chess.js?v=35"></script>
+<script src="js/memo.js?v=35"></script>
+<script src="js/util.js?v=35"></script>
+<script src="js/clock.js?v=35"></script>
+<script src="js/board.js?v=35"></script>
+<script src="js/elo.js?v=35"></script>
+<script src="js/eloChart.js?v=35"></script>
+<script src="js/eloview.js?v=35"></script>
+<script src="js/records.js?v=35"></script>
+<script src="js/puzzles.js?v=35"></script>
+<script src="js/gameview.js?v=35"></script>
+<script src="js/pendule.js?v=35"></script>
+<script src="js/local.js?v=35"></script>
+<script src="js/engineStrength.js?v=35"></script>
+<script src="js/engine.js?v=35"></script>
+<script src="js/analysis.js?v=35"></script>
+<script src="js/coach.js?v=35"></script>
+<script src="js/ai.js?v=35"></script>
+<script src="js/rules.js?v=35"></script>
+<script src="js/chat.js?v=35"></script>
+<script src="js/chatview.js?v=35"></script>
+<script src="js/room.js?v=35"></script>
+<script src="js/net.js?v=35"></script>
+<script src="js/online.js?v=35"></script>
+<script src="js/memoview.js?v=35"></script>
+<script src="js/multichess.js?v=35"></script>
+<script src="js/multiboard.js?v=35"></script>
+<script src="js/multi.js?v=35"></script>
+<script src="js/multiroom.js?v=35"></script>
+<script src="js/multionline.js?v=35"></script>
+<script src="js/app.js?v=35"></script>
 </body>
 </html>

@@ -16,7 +16,8 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   participant prend automatiquement le relais** (les joueurs passent avant les spectateurs), la pendule est figée pendant
   la bascule, et chacun retrouve son siège. Un joueur qui revient (« Reprendre ») retrouve sa place.
   **Chat écrit** (bouton « Chat », compteur de messages non lus) entre joueurs et spectateurs, aussi dans les échecs à
-  plusieurs en ligne.
+  plusieurs en ligne ; règles de conduite à la première ouverture, chat masquable et participants ignorables (sur l'appareil).
+- **Règles** : écran « Règles » depuis l'accueil, et « Règles » dans le menu d'une partie (ouvre la variante jouée).
 - **Partie contre Hulotte** (la chouette, jouée par Stockfish calibré approximativement sur l'Elo visé) : choisis ta couleur, le niveau
   de l'IA (pré-rempli avec ton Elo actuel si ton nom est suivi), avec ou sans pendule. L'IA ne compte jamais pour
   le classement : ta note sert à régler sa force, dans un seul sens. Le niveau est modifiable **en cours de
@@ -273,7 +274,8 @@ public/js/chess.js   moteur de règles + calcul du matériel, testable sous Node
 public/js/records.js enregistrement, revue, branches (variantes, avec poursuite par l'IA)
 public/js/room.js    salle de jeu côté hôte (sièges, pendule, nulle, abandon), testable sous Node
 public/js/chat.js    chat des parties en ligne côté hôte (nettoyage, limite, historique), testable sous Node
-public/js/chatview.js  fenêtre de chat des parties en ligne
+public/js/chatview.js  fenêtre de chat des parties en ligne (règles de conduite, masquer, ignorer par nom)
+public/js/rules.js   écran « Règles » et fenêtre de règles du menu de partie (textes de docs/regles-appli-echecs.pdf)
 public/js/elo.js     calcul de classement Elo (module pur, testable sous Node)
 public/js/engineStrength.js  calibration Elo -> réglages du moteur (module pur, testable sous Node)
 public/js/multichess.js  règles des échecs à 3 (Yalta) et à 4 (croix), module pur testable sous Node

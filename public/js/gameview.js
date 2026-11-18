@@ -296,6 +296,7 @@
     items.push({ label: 'Réglages', fn: function () { V.settings(); } });
     (ctrl.menuItems ? ctrl.menuItems() : []).forEach(function (i) { items.push(i); });
     items.push({ label: Rec.active() ? 'Arrêter l’enregistrement' : 'Enregistrer la suite de la partie', fn: function () { Rec.toggle(ctrl); V.refresh(); } });
+    items.push({ label: 'Règles', fn: function () { Rules.dialog(Rules.sectionFor(ctrl)); } });
     items.push({ label: U.fs.active() ? 'Quitter le plein écran' : 'Plein écran', fn: function () { U.fs.toggle(); } });
     items.push({ label: 'Quitter la partie', danger: true, fn: function () { V.quit(); } });
     var buttons = items.map(function (it) {
