@@ -32,7 +32,7 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 
 ## Architecture
 
-- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js`, `analysis.js`, `multichess.js`, `multiroom.js` utilisent un
+- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js`, `analysis.js`, `multichess.js`, `multiroom.js`, `chat.js` utilisent un
   wrapper UMD `(function (root, factory) {…})` : sans DOM, chargeables sous Node (`require`) et testés dans
   `test/`. Tous les autres fichiers de `public/js/` sont des IIFE qui posent un global sur `window`
   (`U`, `Board`, `GameView`, `Local`, `Online`, `AI`, `Rec`, `EloView`, `Puzzles`, `App`…) et dépendent de
@@ -51,6 +51,8 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 - **En ligne** : pair-à-pair WebRTC via PeerJS (`net.js`, salle `echecs-v1-<CODE>`). L'appareil hôte fait
   tourner `room.js` (arbitre : règles, pendule, sièges liés à un identifiant client persistant) et diffuse
   l'état ; en cas de départ de l'hôte, un autre participant reprend l'identifiant (bascule d'hôte).
+  Le chat écrit (`chat.js`, utilisé par `room.js` et `multiroom.js` ; fenêtre `chatview.js`, branchée via `ctrl.chat`)
+  voyage dans ce même état : ne jamais y exposer le `cid` d'un auteur (il donne droit au siège).
 - **IA** : Stockfish.js 10 vendu dans `public/vendor/` (choisi exprès : pas de fichier NNUE), lancé en Web Worker
   par `engine.js`. Cette version n'a pas `UCI_Elo` : la force est calibrée par `engineStrength.js`
   (Skill Level + coup aléatoire parmi les meilleurs sous ~1300) ; temps de réflexion tiré entre 1 et 2 s par coup. Les parties contre l'IA ne modifient

@@ -15,6 +15,8 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   nom d'utilisateur, mode **spectateur** avec le même code, abandon / nulle, pendule. **Si l'hôte se déconnecte, un autre
   participant prend automatiquement le relais** (les joueurs passent avant les spectateurs), la pendule est figée pendant
   la bascule, et chacun retrouve son siège. Un joueur qui revient (« Reprendre ») retrouve sa place.
+  **Chat écrit** (bouton « Chat », compteur de messages non lus) entre joueurs et spectateurs, aussi dans les échecs à
+  plusieurs en ligne.
 - **Partie contre Hulotte** (la chouette, jouée par Stockfish calibré approximativement sur l'Elo visé) : choisis ta couleur, le niveau
   de l'IA (pré-rempli avec ton Elo actuel si ton nom est suivi), avec ou sans pendule. L'IA ne compte jamais pour
   le classement : ta note sert à régler sa force, dans un seul sens. Le niveau est modifiable **en cours de
@@ -168,6 +170,9 @@ fonctionnalité entière (comme le classement Elo) peut sembler ne pas marcher a
 - **Bascule d'hôte** : si l'hôte disparaît (fermeture, coupure, veille), chaque appareil retente d'enregistrer cet
   identifiant avec un délai aléatoire croissant ; le premier devient hôte et repart du dernier état reçu, les autres se
   reconnectent à lui. Les sièges sont liés à un identifiant client mémorisé sur l'appareil (pas à la connexion).
+- **Chat** : les messages passent par les mêmes canaux pair-à-pair. L'hôte les nettoie (200 caractères max, 5 messages
+  / 10 s par participant), garde les 50 derniers dans l'état diffusé (ils survivent donc à une bascule d'hôte) et
+  n'envoie jamais l'identifiant client de l'auteur, seulement « c'est moi » à chacun (`chat.js`, `chatview.js`).
 - Limites : la partie n'existe que tant qu'au moins un participant est connecté ; les appareils doivent gérer WebRTC
   (iOS 11+, Android 5+). Sans accès au serveur PeerJS, le mode en ligne échoue, le reste de l'app fonctionne.
 - Serveur PeerJS personnel (facultatif) : définir `window.PEER_CONFIG = { host: '…', port: 443, path: '/', secure: true }`
@@ -267,6 +272,8 @@ public/index.html    écrans
 public/js/chess.js   moteur de règles + calcul du matériel, testable sous Node
 public/js/records.js enregistrement, revue, branches (variantes, avec poursuite par l'IA)
 public/js/room.js    salle de jeu côté hôte (sièges, pendule, nulle, abandon), testable sous Node
+public/js/chat.js    chat des parties en ligne côté hôte (nettoyage, limite, historique), testable sous Node
+public/js/chatview.js  fenêtre de chat des parties en ligne
 public/js/elo.js     calcul de classement Elo (module pur, testable sous Node)
 public/js/engineStrength.js  calibration Elo -> réglages du moteur (module pur, testable sous Node)
 public/js/multichess.js  règles des échecs à 3 (Yalta) et à 4 (croix), module pur testable sous Node

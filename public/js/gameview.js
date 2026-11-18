@@ -3,7 +3,8 @@
  *   game, clock (ChessClock|null), names {w,b}, view {mode:'white'|'black'|'auto', faceToFace},
  *   canMove(color) -> bool, attemptMove(from, to, promo), getResult() -> {result,reason,winner}|null,
  *   head() -> texte d'en-tête, status(color) -> texte sous le nom, menuItems() -> [{label, fn, danger}],
- *   pausable (bool), onPause(), quit(), mode ('local'|'online'|'spectator'), trackElo() -> bool (comptabiliser en Elo)
+ *   pausable (bool), onPause(), quit(), mode ('local'|'online'|'spectator'), trackElo() -> bool (comptabiliser en Elo),
+ *   chat (facultatif, en ligne : objet ChatView, ajoute le bouton « Chat »)
  */
 (function () {
   'use strict';
@@ -135,6 +136,11 @@
     el.tools.appendChild(U.button('Vue', 'tbtn', function () { V.flip(); }));
     el.recBtn = U.button('Enreg.', 'tbtn', function () { Rec.toggle(ctrl); V.refresh(); });
     el.tools.appendChild(el.recBtn);
+    el.chatBtn = null;
+    if (ctrl.chat) {
+      el.chatBtn = U.button('Chat', 'tbtn', function () { if (ctrl && ctrl.chat) ctrl.chat.open(); });
+      el.tools.appendChild(el.chatBtn);
+    }
     el.tools.appendChild(U.button('Menu', 'tbtn', function () { V.menu(); }));
   }
 
@@ -233,6 +239,7 @@
     if (el.prevBtn) { el.prevBtn.disabled = !n || viewPly === 0; el.nextBtn.disabled = !reviewing(); }
     el.rec.textContent = Rec.active() ? '● REC' : '';
     if (el.recBtn) U.toggleClass(el.recBtn, 'recon', Rec.active());
+    if (el.chatBtn) { el.chatBtn.textContent = ctrl.chat.label(); U.toggleClass(el.chatBtn, 'unread', ctrl.chat.unread() > 0); }
     tick();
     if (res && !shownResult) { shownResult = true; V.gameOver(res); }
   };

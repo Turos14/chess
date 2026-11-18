@@ -104,12 +104,18 @@
     var game = new Chess.Game(), st = null, clock = null, session = null;
     var opened = false, alive = true, connErr = null, myColor = null, curEpoch = -1, lastV = -1;
     var seenDeclined = null, offerPrompt = false, announced = false;
+    var chat = ChatView.create({
+      send: function (text) { return send({ t: 'chat', text: text }); },
+      sideName: function (c) { return U.colorName(c); },
+      sideDot: function (c) { return c === 'w' ? '#fff' : '#111'; },
+      onChange: function () { GameView.refresh(); }
+    });
 
     var ctrl = {
       mode: 'online', myColor: null, game: game, clock: null,
       names: { w: 'Connexion…', b: 'Connexion…' },
       view: { mode: 'white', faceToFace: false },
-      pausable: false,
+      pausable: false, chat: chat,
       quitText: 'Tu pourras reprendre la partie depuis l’écran « Partie en ligne ».',
       canMove: function (color) {
         return alive && !!myColor && color === myColor && ctrl.game.turn() === myColor && !ctrl.getResult() &&
@@ -239,6 +245,7 @@
       if (seenDeclined === null) seenDeclined = s.declined;
       else if (s.declined > seenDeclined) { seenDeclined = s.declined; if (myColor) U.toast('Nulle refusée'); }
       offer(s);
+      chat.update(s.chat);
       U.store.set('online-session', { code: session.code, cid: cid, name: sess.name, role: myColor ? 'player' : 'spectator', color: myColor, tc: s.tc, lastState: s, startElo: sess.startElo });
       GameView.refresh();
     }

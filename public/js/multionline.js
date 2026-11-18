@@ -120,8 +120,14 @@
 
     function makeCtrl(s) {
       var g = new MultiChess.Game(s.variant, { teams: s.teams });
+      var chat = ChatView.create({
+        send: function (text) { return send({ t: 'chat', text: text }); },
+        sideName: function (c) { return Multi.colorName(s.variant, c); },
+        sideDot: function (c) { return Multi.dotColor(s.variant, c); },
+        onChange: function () { if (opened) Multi.refresh(); }
+      });
       return {
-        mode: 'online', game: g, names: [], view: { mode: 'fixed', color: s.you != null ? s.you : 0 },
+        mode: 'online', game: g, chat: chat, names: [], view: { mode: 'fixed', color: s.you != null ? s.you : 0 },
         canMove: function (color) {
           return alive && mySeat !== null && color === mySeat && ctrl.game.turn === mySeat && full() && !ctrl.game.over && !connErr;
         },
@@ -207,6 +213,7 @@
       }
       st = s;
       for (i = 0; i < g.n; i++) ctrl.names[i] = s.players[i] || 'En attente…';
+      ctrl.chat.update(s.chat);
       U.store.set('multi-session', { code: session.code, cid: cid, name: sess.name, role: mySeat !== null ? 'player' : 'spectator', color: mySeat,
         variant: s.variant, teams: s.teams, lastState: s });
       if (!opened) {

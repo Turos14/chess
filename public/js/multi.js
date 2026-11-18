@@ -4,7 +4,8 @@
  *   game (MultiChess.Game), names [nom par camp], view {mode:'fixed'|'turn', color (camp vu en bas si fixe)},
  *   canMove(color) -> bool, attemptMove(from, to, promo), resign(color), quit(), head() -> texte d'en-tête,
  *   menuItems() -> [{label, fn, danger}], myColors() -> camps joués sur cet appareil, mode ('local'|'online'),
- *   note(color) -> texte ajouté au statut du joueur (facultatif : « déconnecté » en ligne)
+ *   note(color) -> texte ajouté au statut du joueur (facultatif : « déconnecté » en ligne),
+ *   chat (facultatif, en ligne : objet ChatView, affiche le bouton « Chat »)
  * Règles : multichess.js. Pas de pendule, d'Elo ni d'enregistrement pour ces parties (v1). */
 (function () {
   'use strict';
@@ -45,6 +46,7 @@
     var host = U.$('mu-board');
     board = new MultiBoard(host, ctrl.game.v);
     board.onCell = onCell;
+    U.$('mu-chat').style.display = ctrl.chat ? '' : 'none';
     App.show('multi');
     App.setLive(true);
     U.wake.on();
@@ -144,6 +146,7 @@
     }
     U.$('mu-prev').disabled = !n || viewPly === 0;
     U.$('mu-next').disabled = !reviewing();
+    if (ctrl.chat) { U.$('mu-chat').textContent = ctrl.chat.label(); U.toggleClass(U.$('mu-chat'), 'unread', ctrl.chat.unread() > 0); }
     if (g.over && !shownOver) { shownOver = true; gameOver(); }
   };
 
@@ -288,5 +291,6 @@
     U.on(U.$('mu-next'), 'click', function () { M.review(1); });
     U.on(U.$('mu-rot'), 'click', function () { if (ctrl) rotateView(); });
     U.on(U.$('mu-menu'), 'click', function () { if (ctrl) M.menu(); });
+    U.on(U.$('mu-chat'), 'click', function () { if (ctrl && ctrl.chat) ctrl.chat.open(); });
   };
 })();
