@@ -117,4 +117,4 @@ function buildIssue(d) {
   return { error: 'Type de demande inconnu.' };
 }
 
-module.exports = { buildIssue: buildIssue, LIMITS: LIMITS };
+module.exports = { buildIssue: buildIssue, LIMITS: LIMITS, neutralize: neutralize };

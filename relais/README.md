@@ -61,3 +61,49 @@ confondues (dépassé : réponse 429 « réessaie demain »). Compteurs : par ad
 **Renouveler la clé** : quand le jeton expire, l'envoi depuis l'appli affiche « GitHub a refusé la demande
 (HTTP 401) » et propose de passer par GitHub. Créer un nouveau jeton (étape 1), le coller dans Vercel → Settings →
 Environment Variables → `GITHUB_TOKEN`, puis *Redeploy*.
+
+## Statistiques anonymes (`api/stats.js`)
+
+L'appli envoie des compteurs d'usage à `POST /api/stats` (JSON en `text/plain`, origine obligatoire et dans
+`ALLOWED_ORIGINS`, réponse `204`). Elles sont activées par défaut et le joueur peut les couper.
+
+- **Stocké** : seulement des compteurs agrégés **par jour UTC**, dans Redis (hash `stats:d:AAAA-MM-JJ`, champs du
+  type `e=game_start|m=local`, et `req` = nombre de requêtes ; ensemble `stats:days`). Événements : ouverture de
+  l'appli (avec navigateur, système, version, appli installée ou non), parties lancées / terminées (mode, variante,
+  issue), problèmes ouverts / résolus, connexions en ligne réussies ou en erreur, nombre de messages de chat.
+- **Jamais stocké** : nom ou pseudo, texte des messages de chat, coups, contenu de partie, identifiant d'appareil,
+  adresse IP. L'IP ne sert qu'aux limites d'envoi (clés Redis éphémères). Tout événement ou valeur hors liste est
+  ignoré (`lib/stats.js`).
+- **Conservation illimitée** : aucune expiration sur les compteurs.
+- **Limites** : 30 requêtes / 10 min par adresse, et plafond global **`STATS_MAX_PER_DAY`** (défaut `50000`
+  requêtes par jour) ; dépassé : `429`, rien compté. Sans Redis configuré : `204`, rien n'est enregistré.
+
+## Admin (`/admin/`, `api/admin.js`)
+
+Page de modération à `https://<projet>.vercel.app/admin/` (fichiers statiques de `admin/`, en-têtes de sécurité et CSP
+posés par `vercel.json`). Elle appelle `/api/admin?a=<action>` (même origine, pas de CORS).
+
+Variables d'environnement :
+
+- **`ADMIN_PASSWORD`** : **obligatoire pour activer l'admin** (sans elle, l'API répond 503). Mot de passe long et
+  unique, jamais réutilisé ailleurs. Changer le mot de passe déconnecte toutes les sessions.
+- `ADMIN_SESSION_SECRET` (facultatif) : clé de signature des sessions ; sinon dérivée du mot de passe.
+- `STATS_MAX_PER_DAY` (voir plus haut), `GITHUB_TOKEN` et `GITHUB_REPO` comme pour `/api/submit`.
+
+Session : cookie `admin_session` signé (HMAC-SHA256), `HttpOnly; Secure; SameSite=Strict`, valable 2 h. Connexion
+limitée à 5 essais / 15 min par adresse. Tout `POST` exige l'en-tête `X-Admin: 1` et, si `Origin` est présent, qu'elle
+soit celle du site (protection CSRF). Réponses JSON `{ ok: true, … }` ou `{ error }`.
+
+| Méthode | `a=` | Rôle |
+|---|---|---|
+| POST | `login` | `{ password }` : ouvre la session (401 faux, 429 trop d'essais, 503 admin non configuré) |
+| POST | `logout` | ferme la session |
+| GET | `me` | vérifie la session |
+| GET | `queue` | tickets ouverts en attente (`puzzle-pending`, `edit-puzzle`, `delete-puzzle` sans l'étiquette d'approbation), découpés en champs ; les PR sont exclues |
+| POST | `approve` | `{ number }` : pose `puzzle-approved` / `edit-approved` / `delete-approved` |
+| POST | `refuse` | `{ number, reason }` : commente « Refusé par la modération : … » puis ferme le ticket (non planifié) |
+| GET | `stats` | `from`, `to` (AAAA-MM-JJ, 400 jours maximum, défaut 30 derniers jours) : compteurs par jour |
+| GET | `log` | 100 dernières actions du journal (`admin:log`, Redis, 500 conservées, **sans adresse IP**) |
+
+**L'admin ne fait que poser des étiquettes** (ou refuser et fermer) : la publication d'un problème reste faite par les
+Actions GitHub existantes, comme avec une étiquette posée à la main. Aucun accès au code ni aux fichiers du dépôt.
