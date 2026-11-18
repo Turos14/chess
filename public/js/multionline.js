@@ -237,7 +237,7 @@
     session = new Net.Session({
       code: sess.code, cid: cid, name: sess.name, role: sess.role, color: sess.color, prefix: PREFIX,
       mode: mode, lastState: sess.lastState || null,
-      makeRoom: function (p) { return new MultiRoom({ code: p.code, variant: sess.variant, teams: sess.teams, send: p.send, restore: p.restore }); },
+      makeRoom: function (p) { return new MultiRoom({ code: p.code, cid: p.cid, variant: sess.variant, teams: sess.teams, send: p.send, restore: p.restore }); },
       on: {
         state: apply,
         error: function (msg) { U.toast(msg); rebuild(); },

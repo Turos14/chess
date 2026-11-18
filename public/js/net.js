@@ -188,7 +188,7 @@
       restore = { state: this.lastState, frozen: this.frozen };
     }
     var params = {
-      code: this.code, tc: o.tc, startFen: o.startFen, restore: restore,
+      code: this.code, cid: this.cid, tc: o.tc, startFen: o.startFen, restore: restore,
       send: function (cid, msg) {
         if (cid === self.cid) { self._deliver(msg); return; }
         var h = self.hostConns[cid];

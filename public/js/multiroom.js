@@ -5,9 +5,9 @@
  * La partie commence quand tous les sièges sont pris. Pas de pendule (v1). Un joueur déconnecté peut être retiré par
  * les autres (« kick » = abandon forcé), sinon la partie resterait bloquée à son tour. */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./multichess.js'));
-  else root.MultiRoom = factory(root.MultiChess);
-})(this, function (MultiChess) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./multichess.js'), require('./chat.js'));
+  else root.MultiRoom = factory(root.MultiChess, root.Chat);
+})(this, function (MultiChess, Chat) {
   'use strict';
 
   function clean(n, def) {
@@ -16,7 +16,7 @@
   }
   function fail(message) { var e = new Error(message); e.userMessage = message; return e; }
 
-  // opts : { code, variant, teams, send(cid, msg), restore: {state} }
+  // opts : { code, variant, teams, send(cid, msg), now(), cid (celui de l'hôte), restore: {state} }
   function MultiRoom(opts) {
     var r = opts.restore && opts.restore.state;
     this.code = opts.code;
@@ -32,6 +32,7 @@
     this.conns = {};
     this.v = 1;
     this.epoch = 0;
+    this.chat = new Chat.Log(r && r.chat, opts.now, opts.cid);
     if (r) this._restore(r);
   }
 
@@ -64,7 +65,8 @@
       code: this.code, v: this.v, epoch: this.epoch, variant: this.variant, teams: this.teams,
       you: this.seatOf(cid), players: players, connected: connected, spectators: spectators,
       actions: this.game.history.map(function (a) { return a.resign != null ? { resign: a.resign } : { from: a.from, to: a.to, promo: a.promo }; }),
-      status: { over: this.game.over, winners: this.game.winners }
+      status: { over: this.game.over, winners: this.game.winners },
+      chat: this.chat.viewFor(cid)
     };
   };
 
@@ -113,6 +115,7 @@
   MultiRoom.prototype.handle = function (cid, msg) {
     if (!this.conns[cid]) return;
     var seat = this.seatOf(cid);
+    if (msg.t === 'chat') { this._chat(cid, seat, msg.text); return; }
     try {
       if (seat === null) throw fail('Tu ne joues pas cette partie');
       if (this.game.over) throw fail('La partie est terminée');
@@ -132,6 +135,14 @@
     } catch (e) {
       if (e && e.userMessage) this._fail(cid, e.userMessage); else throw e;
     }
+  };
+
+  // Joueurs (même éliminés) et spectateurs peuvent écrire, à tout moment.
+  MultiRoom.prototype._chat = function (cid, seat, text) {
+    var name = seat !== null ? this.seats[seat].name : (this.spectators[cid] ? this.spectators[cid].name : 'Spectateur');
+    var err = this.chat.post(cid, { name: name, side: seat }, text);
+    if (err) { this.send(cid, { t: 'error', message: err }); return; }
+    this._bump();
   };
 
   MultiRoom.prototype.destroy = function () { this.conns = {}; };

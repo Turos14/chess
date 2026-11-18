@@ -3,9 +3,9 @@
  * Les participants sont identifiés par un identifiant client (cid) persistant, pas par l'ID de connexion :
  * ainsi un joueur garde son siège quand l'hôte change (bascule) ou quand il recharge la page. */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./chess.js'));
-  else root.Room = factory(root.Chess);
-})(this, function (Chess) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./chess.js'), require('./chat.js'));
+  else root.Room = factory(root.Chess, root.Chat);
+})(this, function (Chess, Chat) {
   'use strict';
 
   function other(c) { return c === 'w' ? 'b' : 'w'; }
@@ -20,7 +20,8 @@
     return { base: base, inc: inc };
   }
 
-  // opts : { code, tc, startFen (Fischer 960, sinon position classique), send(cid, msg), now(), restore: {state, frozen:{w,b}} }
+  // opts : { code, tc, startFen (Fischer 960, sinon position classique), send(cid, msg), now(), cid (celui de l'hôte),
+  //         restore: {state, frozen:{w,b}} }
   function Room(opts) {
     this.code = opts.code;
     this.send = opts.send;
@@ -37,6 +38,7 @@
     this.v = 1;
     this.epoch = 0;
     this.timer = null;
+    this.chat = new Chat.Log(opts.restore && opts.restore.state.chat, this.now, opts.cid);
     if (opts.restore) this._restore(opts.restore.state, opts.restore.frozen);
   }
 
@@ -94,7 +96,8 @@
       eloStart: { w: this.seats.w ? this.seats.w.eloStart : null, b: this.seats.b ? this.seats.b.eloStart : null },
       status: this.result || { over: false },
       drawOffer: this.drawOffer,
-      declined: this.declined
+      declined: this.declined,
+      chat: this.chat.viewFor(cid)
     };
   };
 
@@ -153,6 +156,7 @@
         case 'move': this._move(cid, color, msg); break;
         case 'resign': this._resign(color); break;
         case 'draw': this._draw(color, msg.action); break;
+        case 'chat': this._chat(cid, color, msg.text); break;
         default: break;
       }
     } catch (e) {
@@ -210,6 +214,14 @@
     } else if (action === 'decline') {
       if (this.drawOffer === other(color)) { this.drawOffer = null; this.declined++; this._bump(); }
     }
+  };
+
+  // Joueurs et spectateurs peuvent écrire, même partie terminée ou en attente d'adversaire.
+  Room.prototype._chat = function (cid, color, text) {
+    var name = color ? this.seats[color].name : (this.spectators[cid] ? this.spectators[cid].name : 'Spectateur');
+    var err = this.chat.post(cid, { name: name, side: color }, text);
+    if (err) { this.send(cid, { t: 'error', message: err }); return; }
+    this._bump();
   };
 
   Room.prototype._end = function (result, reason, winner) {
