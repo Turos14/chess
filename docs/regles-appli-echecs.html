@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Règles à ajouter dans l'appli d'échecs</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+  body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 10.2pt; line-height: 1.45; color: #1d2230; margin: 0; }
+  h1 { font-size: 21pt; margin: 0 0 4px; color: #1b3a5c; }
+  .sub { color: #5b6475; margin: 0 0 14px; }
+  h2 { font-size: 13.5pt; color: #1b3a5c; border-bottom: 2px solid #c9d6e6; padding-bottom: 3px; margin: 20px 0 8px; page-break-after: avoid; }
+  h3 { font-size: 11pt; margin: 12px 0 4px; page-break-after: avoid; }
+  p { margin: 4px 0 6px; }
+  ul { margin: 4px 0 8px; padding-left: 20px; }
+  li { margin: 2px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; page-break-inside: avoid; }
+  th, td { border: 1px solid #cfd6e0; padding: 4px 7px; text-align: left; vertical-align: top; }
+  th { background: #eef3f9; }
+  .where { background: #f3f7fc; border-left: 4px solid #4a7fc0; padding: 5px 9px; margin: 6px 0 8px; font-size: 9.4pt; color: #2b3a52; page-break-inside: avoid; }
+  .warn { background: #fff6e6; border-left: 4px solid #d99a20; padding: 5px 9px; margin: 6px 0 8px; font-size: 9.4pt; page-break-inside: avoid; }
+  .toc { columns: 2; font-size: 9.6pt; margin: 6px 0 4px; }
+  .toc div { margin: 1px 0; }
+  .sec { page-break-inside: auto; }
+</style>
+</head>
+<body>
+
+<h1>Règles à ajouter dans l'appli</h1>
+<p class="sub">Appli d'échecs Turos14 · contenu proposé pour un futur écran « Règles » · version du 18 novembre 2026</p>
+
+<p>Aujourd'hui, l'appli applique ces règles sans les expliquer, sauf un court paragraphe sur l'écran des échecs à
+plusieurs et le libellé de la case Fischer 960. Ce document rassemble tout ce qu'il faudrait afficher, en reprenant
+<b>exactement ce que fait l'appli</b>. Chaque partie indique où l'afficher dans l'appli (encadrés bleus). Les encadrés
+orange signalent les écarts avec les règles officielles (FIDE), à expliquer aux joueurs ou à corriger.</p>
+
+<div class="toc">
+  <div>1. Échecs classiques</div><div>2. Fins de partie et nulles</div><div>3. Pendule</div>
+  <div>4. Fischer 960 (version de l'appli)</div><div>5. Échecs à 3 (Yalta)</div><div>6. Échecs à 4</div>
+  <div>7. Parties en ligne</div><div>8. Règles du chat</div><div>9. Classement Elo</div>
+  <div>10. Parties contre Hulotte (IA)</div><div>11. Problèmes</div><div>12. Mise en place</div>
+</div>
+
+<div class="sec">
+<h2>1. Échecs classiques</h2>
+<h3>But du jeu</h3>
+<p>Deux joueurs, les Blancs et les Noirs, jouent chacun leur tour ; les Blancs commencent. Le but est de mettre le roi
+adverse <b>échec et mat</b> : il est attaqué et aucun coup ne peut le sauver.</p>
+<h3>L'échiquier</h3>
+<p>8 × 8 cases, la case du coin en bas à droite de chaque joueur est claire. Les colonnes vont de a à h, les rangées de
+1 à 8 (rangée 1 = côté Blancs). La dame se place sur la case de sa couleur (dame blanche en d1, dame noire en d8).</p>
+<h3>Déplacement des pièces</h3>
+<table>
+  <tr><th>Pièce</th><th>Déplacement</th></tr>
+  <tr><td>Roi</td><td>D'une case dans n'importe quelle direction. Ne peut jamais aller sur une case attaquée.</td></tr>
+  <tr><td>Dame</td><td>D'autant de cases que voulu, en ligne droite ou en diagonale, sans sauter de pièce.</td></tr>
+  <tr><td>Tour</td><td>D'autant de cases que voulu, horizontalement ou verticalement, sans sauter de pièce.</td></tr>
+  <tr><td>Fou</td><td>D'autant de cases que voulu en diagonale, sans sauter de pièce (il reste toujours sur sa couleur de case).</td></tr>
+  <tr><td>Cavalier</td><td>En « L » : deux cases dans une direction puis une sur le côté. Seule pièce qui peut sauter les autres.</td></tr>
+  <tr><td>Pion</td><td>Avance d'une case tout droit (deux depuis sa case de départ si les deux sont libres). Prend en
+    diagonale, d'une case vers l'avant. Ne recule jamais.</td></tr>
+</table>
+<p>On prend une pièce adverse en arrivant sur sa case. On ne peut jamais prendre une pièce de son camp, ni le roi.</p>
+<h3>Coups spéciaux</h3>
+<ul>
+  <li><b>Roque</b> : le roi va de deux cases vers une tour, et la tour passe juste de l'autre côté du roi. Interdit si le
+    roi ou cette tour a déjà bougé, si une pièce se trouve entre eux, si le roi est en échec, ou s'il traverse ou atteint
+    une case attaquée. Petit roque côté roi (O-O), grand roque côté dame (O-O-O).
+    <i>Dans l'appli : toucher le roi puis sa case d'arrivée.</i></li>
+  <li><b>Prise en passant</b> : quand un pion adverse avance de deux cases et arrive juste à côté d'un de vos pions, ce
+    pion peut le prendre comme s'il n'avait avancé que d'une case. Uniquement au coup qui suit, sinon le droit est perdu.</li>
+  <li><b>Promotion</b> : un pion qui atteint la dernière rangée est remplacé par une dame, une tour, un fou ou un
+    cavalier de sa couleur, au choix. <i>Dans l'appli, une fenêtre propose les quatre pièces.</i></li>
+</ul>
+<h3>Échec</h3>
+<p>Un roi attaqué est « en échec ». Le joueur doit parer l'échec tout de suite (déplacer le roi, prendre la pièce qui
+attaque ou s'interposer). Un coup qui laisse ou met son propre roi en échec est interdit : l'appli ne le propose pas.</p>
+<div class="where">Dans l'appli : écran « Règles » accessible depuis l'accueil, et lien « Règles » dans le menu de
+partie. Un petit schéma par pièce aiderait les débutants (les SVG de <code>public/pieces/</code> peuvent servir).</div>
+</div>
+
+<div class="sec">
+<h2>2. Fins de partie et nulles</h2>
+<table>
+  <tr><th>Fin</th><th>Règle appliquée par l'appli</th><th>Résultat</th></tr>
+  <tr><td>Échec et mat</td><td>Le joueur au trait est en échec et n'a aucun coup légal.</td><td>Victoire de l'autre</td></tr>
+  <tr><td>Pat</td><td>Le joueur au trait n'est <b>pas</b> en échec mais n'a aucun coup légal.</td><td>Nulle</td></tr>
+  <tr><td>Matériel insuffisant</td><td>Plus assez de pièces pour mater (ex. roi contre roi, roi + fou ou roi + cavalier contre roi).</td><td>Nulle automatique</td></tr>
+  <tr><td>Triple répétition</td><td>La même position se répète trois fois (même joueur au trait, mêmes droits de roque et de prise en passant).</td><td>Nulle automatique</td></tr>
+  <tr><td>Règle des 50 coups</td><td>50 coups de chaque camp sans prise ni mouvement de pion.</td><td>Nulle automatique</td></tr>
+  <tr><td>Accord mutuel</td><td>Un joueur propose la nulle, l'autre accepte. Proposer quand l'adversaire a déjà proposé vaut acceptation.</td><td>Nulle</td></tr>
+  <tr><td>Abandon</td><td>Menu → « Abandonner ».</td><td>Victoire de l'autre</td></tr>
+  <tr><td>Temps écoulé</td><td>La pendule d'un joueur atteint zéro.</td><td>Victoire de l'autre</td></tr>
+</table>
+<div class="warn">Écarts avec la FIDE à signaler : (1) en compétition, la triple répétition et les 50 coups doivent être
+<i>réclamés</i> par un joueur ; l'appli déclare la nulle automatiquement (comme la plupart des sites en ligne).
+(2) Si le temps est écoulé mais que l'adversaire n'a plus de quoi mater, la FIDE donne nulle ; l'appli donne la
+victoire à l'adversaire. Soit l'expliquer, soit corriger <code>room.js</code> et la pendule locale.</div>
+</div>
+
+<div class="sec">
+<h2>3. Pendule</h2>
+<ul>
+  <li>Chaque joueur a un temps de base, plus un <b>incrément</b> éventuel : quelques secondes ajoutées après chacun de
+    ses coups (cadence « Fischer »). La même cadence peut être différente pour les deux camps en partie locale.</li>
+  <li>Seule la pendule du joueur au trait tourne. En ligne, elle démarre <b>après le premier coup des Blancs</b>.</li>
+  <li>Alerte sonore et vibrations sous 10 secondes pour le joueur concerné.</li>
+  <li>En partie locale, la pause arrête les deux pendules. En ligne, il n'y a pas de pause ; si l'hôte se déconnecte,
+    la pendule est figée pendant la bascule vers un autre appareil.</li>
+  <li>Écran « Pendule » seul : sert pour une partie sur un vrai échiquier, sans arbitrage des coups.</li>
+</ul>
+<div class="where">Dans l'appli : rappel court sous le formulaire de cadence (« base + incrément par coup »).</div>
+</div>
+
+<div class="sec">
+<h2>4. Fischer 960 (version de l'appli)</h2>
+<ul>
+  <li>Les pièces de la première rangée sont placées au hasard : les fous sur des cases de couleurs différentes, le roi
+    entre les deux tours. Les pions restent sur leur rangée habituelle.</li>
+  <li><b>Particularité de l'appli :</b> le placement est tiré <b>séparément pour chaque camp</b> (les Blancs et les
+    Noirs n'ont pas forcément la même disposition) et <b>le roque est interdit</b> pendant toute la partie.</li>
+  <li>Toutes les autres règles (prise en passant, promotion, nulles, pendule) sont identiques aux échecs classiques.</li>
+</ul>
+<div class="warn">Écart : dans le Fischer 960 officiel, les deux camps ont la même disposition en miroir et le roque
+existe (roi et tour arrivent sur les cases du roque classique). Le moteur <code>chess.js</code> sait déjà jouer ce
+roque ; seule la création de partie (<code>Chess.start960</code>) l'écarte. Le dire clairement aux joueurs, par exemple
+en renommant l'option « 960 libre, sans roque ».</div>
+</div>
+
+<div class="sec">
+<h2>5. Échecs à 3 (Yalta)</h2>
+<ul>
+  <li>Trois joueurs : Blancs, Noirs, Rouges, sur un échiquier hexagonal de 96 cases ; chacun a 4 rangées de 8 colonnes
+    et les pièces habituelles. On joue à tour de rôle dans l'ordre des couleurs.</li>
+  <li>Le centre est formé de 6 cases qui se touchent par un seul coin : <b>une diagonale qui traverse le centre peut
+    continuer de deux façons</b> (fou, dame, roi et prises de pion).</li>
+  <li><b>Pas de roque ni de prise en passant.</b> Un pion avance vers le centre puis dans le camp où il est entré ; il
+    est <b>promu en atteignant la dernière rangée d'un autre camp</b>.</li>
+  <li>Un joueur qui n'a <b>aucun coup légal à son tour est éliminé</b> (qu'il soit mat ou pat) et <b>ses pièces
+    disparaissent</b> de l'échiquier.</li>
+  <li>Un roi laissé en prise (par exemple après le coup d'un troisième joueur) <b>peut être capturé</b> : son camp est
+    alors éliminé.</li>
+  <li>Le dernier joueur en jeu gagne. S'il ne reste que des rois, la partie est nulle.</li>
+</ul>
+</div>
+
+<div class="sec">
+<h2>6. Échecs à 4</h2>
+<ul>
+  <li>Quatre joueurs : Rouges, Bleus, Jaunes, Verts, sur un échiquier en croix de 14 × 14 cases (coins de 3 × 3
+    retirés). On joue à tour de rôle dans cet ordre.</li>
+  <li>Mêmes règles qu'à 3 : pas de roque ni de prise en passant, élimination du joueur sans coup légal (ses pièces
+    disparaissent), roi en prise capturable, nulle s'il ne reste que des rois.</li>
+  <li><b>Promotion</b> sur la 8<sup>e</sup> rangée comptée depuis son camp, c'est-à-dire au milieu de l'échiquier.</li>
+  <li><b>Option équipes 2 contre 2</b> : les camps opposés sont alliés (Rouges + Jaunes contre Bleus + Verts). Un joueur
+    ne peut pas prendre les pièces de son allié. <b>La première équipe qui perd un joueur a perdu.</b></li>
+  <li>Sans équipes : chacun pour soi, le dernier en jeu gagne.</li>
+</ul>
+<div class="where">Dans l'appli : le paragraphe actuel sous « Échecs à plusieurs » peut renvoyer vers ces deux
+parties, avec un schéma de l'échiquier de chaque variante. Pas de pendule, d'Elo ni d'enregistrement pour ces
+parties (à indiquer aussi).</div>
+</div>
+
+<div class="sec">
+<h2>7. Parties en ligne</h2>
+<ul>
+  <li>Le créateur reçoit un <b>code de 5 caractères</b> à donner à son adversaire. Les appareils sont reliés <b>directement
+    (pair-à-pair)</b> : aucun serveur ne voit les coups ni les messages.</li>
+  <li>Couleur au choix (Blancs, Noirs ou au hasard) pour le créateur ; l'adversaire prend la place restante. Une partie
+    complète refuse un nouveau joueur, qui peut la <b>regarder en spectateur</b> avec le même code.</li>
+  <li><b>Hôte</b> : l'appareil du créateur arbitre (règles, pendule). S'il part, un autre participant prend le relais
+    automatiquement (les joueurs avant les spectateurs) et chacun garde sa place.</li>
+  <li><b>Reprise</b> : un joueur qui quitte peut revenir avec « Reprendre » sur l'écran « Partie en ligne ». La partie
+    n'existe que tant qu'au moins un participant reste connecté.</li>
+  <li><b>Nulle</b> : une proposition à la fois ; elle est annulée dès qu'un coup est joué. Le refus est signalé.</li>
+  <li><b>Échecs à plusieurs en ligne</b> : la partie commence quand tous les sièges sont pris. Un joueur déconnecté peut
+    être <b>retiré par les autres</b> (il est éliminé), sinon la partie resterait bloquée à son tour.</li>
+</ul>
+</div>
+
+<div class="sec">
+<h2>8. Règles du chat (nouveau)</h2>
+<h3>Fonctionnement</h3>
+<ul>
+  <li>Bouton « Chat » dans les parties en ligne, à deux et à plusieurs. Un nombre s'affiche sur le bouton quand des
+    messages ne sont pas lus, et un aperçu apparaît en haut de l'écran.</li>
+  <li>Les messages sont <b>visibles par tous les participants</b> de la partie : joueurs et spectateurs. Il n'y a pas
+    de message privé.</li>
+  <li>Les messages passent <b>de pair à pair</b> (pas de serveur) et ne sont pas conservés après la partie. Les 50
+    derniers restent visibles pendant la partie, même après un changement d'hôte.</li>
+  <li>Limites : <b>200 caractères</b> par message, <b>5 messages par 10 secondes</b> au maximum par personne.</li>
+  <li>On peut écrire avant le début de la partie, pendant, et après la fin.</li>
+</ul>
+<h3>Règles de conduite à afficher</h3>
+<ul>
+  <li>Rester courtois : pas d'insultes, de moqueries, de propos haineux ou de harcèlement.</li>
+  <li>Ne pas partager d'informations personnelles (adresse, téléphone, mots de passe…), ni les siennes ni celles des autres.</li>
+  <li><b>Spectateurs : ne pas conseiller les joueurs pendant la partie</b> (pas de coups suggérés) ; les commentaires
+    sont bienvenus une fois la partie finie.</li>
+  <li>Pas de spam ni de liens douteux.</li>
+  <li>« gg » (bonne partie) en fin de partie est apprécié !</li>
+</ul>
+<div class="warn">À prévoir : le chat n'est <b>pas modéré</b> (aucun serveur ne voit les messages). Pour les parties
+avec des enfants ou des inconnus, ajouter dans l'appli un réglage « Masquer le chat » et un bouton « Ignorer un
+participant » (filtrage sur l'appareil qui reçoit). Afficher les règles de conduite à la première ouverture du chat.</div>
+</div>
+
+<div class="sec">
+<h2>9. Classement Elo</h2>
+<ul>
+  <li>Calculé <b>sur chaque appareil</b> (non partagé) pour les noms de joueurs suivis ; note de départ <b>1200</b>
+    (une autre note de départ peut être déclarée à la première partie).</li>
+  <li>Comptent : les parties locales et en ligne entre deux <b>noms différents</b>, terminées (résultat connu).
+    Les échecs à plusieurs et les parties contre l'IA ne comptent jamais.</li>
+  <li>Variation selon l'expérience du joueur : facteur K = <b>40</b> pour moins de 20 parties, <b>30</b> de 20 à 39,
+    <b>20</b> ensuite. Battre un joueur mieux classé rapporte plus de points.</li>
+</ul>
+</div>
+
+<div class="sec">
+<h2>10. Parties contre Hulotte (IA)</h2>
+<ul>
+  <li>On choisit sa couleur, le niveau visé (en Elo, approximatif) et une pendule éventuelle. Le niveau peut être changé
+    en cours de partie.</li>
+  <li>L'IA réfléchit 1 à 2 secondes par coup. Sous ~1300, elle joue volontairement des coups imparfaits pour rester
+    battable.</li>
+  <li>Ces parties ne modifient <b>jamais</b> le classement Elo.</li>
+  <li>Analyse « Hulotte » des parties enregistrées : chaque coup reçoit une appréciation (meilleur coup, imprécision,
+    erreur, gaffe…) et une précision par joueur. Ce sont des indications, pas des règles.</li>
+</ul>
+</div>
+
+<div class="sec">
+<h2>11. Problèmes</h2>
+<ul>
+  <li>Trouver la suite de coups demandée (souvent « mat en N ») ; le premier mauvais coup est signalé. Les problèmes
+    résolus sont retenus sur l'appareil.</li>
+  <li>Chacun peut <b>proposer</b>, <b>modifier</b> ou demander la <b>suppression</b> d'un problème. La position et la
+    solution sont revérifiées automatiquement, puis <b>validées à la main par Turos14</b> avant publication pour tous.</li>
+  <li>À afficher : pas de contenu offensant dans le titre ou la description, une solution unique et correcte, créditer
+    l'auteur ou la source si le problème vient d'ailleurs.</li>
+</ul>
+</div>
+
+<div class="sec">
+<h2>12. Mise en place suggérée</h2>
+<table>
+  <tr><th>Où</th><th>Quoi</th></tr>
+  <tr><td>Accueil</td><td>Nouvel écran « Règles » avec un sommaire : parties 1 à 6 pour le jeu, 7 à 11 pour l'appli.</td></tr>
+  <tr><td>Menu de partie</td><td>Entrée « Règles » qui ouvre directement la variante en cours (classique, 960, à 3, à 4).</td></tr>
+  <tr><td>Fenêtre de chat</td><td>Règles de conduite (partie 8) affichées à la première ouverture, puis lien « Règles du chat ».</td></tr>
+  <tr><td>Réglages</td><td>« Masquer le chat », « Ignorer un participant ».</td></tr>
+  <tr><td>Code</td><td>Textes dans un fichier dédié (ex. <code>public/js/rules.js</code>, ES5) et un écran géré par
+    <code>App.show</code>, avec le <code>?v=N</code> à incrémenter.</td></tr>
+</table>
+</div>
+
+</body>
+</html>
