@@ -83,6 +83,11 @@ L'appli envoie des compteurs d'usage à `POST /api/stats` (JSON en `text/plain`,
 Page de modération à `https://<projet>.vercel.app/admin/` (fichiers statiques de `admin/`, en-têtes de sécurité et CSP
 posés par `vercel.json`). Elle appelle `/api/admin?a=<action>` (même origine, pas de CORS).
 
+**Installer l'admin comme une appli** : dans Chrome / Edge, bouton « Installer » de l'en-tête (ou menu → Applications →
+Installer ce site en tant qu'application) ; sur iPhone / iPad, Partager → « Sur l'écran d'accueil ». Manifeste
+`admin/manifest.webmanifest` et icônes `admin/icons/` (logo : cavalier sur disque en damier). Volontairement **sans
+service worker** : la page affiche des données de modération, rien n'est gardé en cache hors ligne. Test : `test/adminpwa.test.js`.
+
 Variables d'environnement :
 
 - **`ADMIN_PASSWORD`** : **obligatoire pour activer l'admin** (sans elle, l'API répond 503). Mot de passe long et

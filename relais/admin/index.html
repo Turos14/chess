@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Administration — Échecs</title>
+<meta name="theme-color" content="#1b1d22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Admin Échecs">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -27,6 +36,7 @@
       <button type="button" class="tab" data-tab="stats">Statistiques</button>
       <button type="button" class="tab" data-tab="log">Journal</button>
     </nav>
+    <button type="button" class="btn ghost hidden" id="installBtn">Installer</button>
     <button type="button" class="btn ghost" id="logoutBtn">Déconnexion</button>
   </header>
   <div id="flash" class="flash hidden" role="status"></div>

@@ -91,6 +91,23 @@
     api('logout', { post: true }).catch(function () {}).then(function () { showLogin(); });
   });
 
+  // ---------- installation (appli dans sa propre fenêtre) ----------
+  // Pas de service worker ici : la page affiche des données de modération, rien ne doit être gardé en cache.
+  var installOffer = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    installOffer = e;
+    $('installBtn').classList.remove('hidden');
+  });
+  window.addEventListener('appinstalled', function () { installOffer = null; $('installBtn').classList.add('hidden'); });
+  $('installBtn').addEventListener('click', function () {
+    if (!installOffer) return;
+    var o = installOffer;
+    installOffer = null;
+    $('installBtn').classList.add('hidden');
+    o.prompt();
+  });
+
   // ---------- onglets ----------
   function selectTab(name) {
     var tabs = document.querySelectorAll('.tab');

@@ -1,13 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Icône : cavalier blanc (Cburnett, voir ../pieces/LICENSE.txt) sur un disque en damier. Plein cadre (fond opaque) et
-       contenu dans le cercle central de 80 % : valable pour les icônes « maskable » (Android) comme pour iOS. -->
   <rect width="512" height="512" fill="#1b1d22"/>
-  <g>
-    <rect x="56" y="56" width="400" height="400" fill="#b58863"/>
-    <g fill="#f0d9b5"><rect x="56" y="56" width="50" height="50"/><rect x="156" y="56" width="50" height="50"/><rect x="256" y="56" width="50" height="50"/><rect x="356" y="56" width="50" height="50"/><rect x="106" y="106" width="50" height="50"/><rect x="206" y="106" width="50" height="50"/><rect x="306" y="106" width="50" height="50"/><rect x="406" y="106" width="50" height="50"/><rect x="56" y="156" width="50" height="50"/><rect x="156" y="156" width="50" height="50"/><rect x="256" y="156" width="50" height="50"/><rect x="356" y="156" width="50" height="50"/><rect x="106" y="206" width="50" height="50"/><rect x="206" y="206" width="50" height="50"/><rect x="306" y="206" width="50" height="50"/><rect x="406" y="206" width="50" height="50"/><rect x="56" y="256" width="50" height="50"/><rect x="156" y="256" width="50" height="50"/><rect x="256" y="256" width="50" height="50"/><rect x="356" y="256" width="50" height="50"/><rect x="106" y="306" width="50" height="50"/><rect x="206" y="306" width="50" height="50"/><rect x="306" y="306" width="50" height="50"/><rect x="406" y="306" width="50" height="50"/><rect x="56" y="356" width="50" height="50"/><rect x="156" y="356" width="50" height="50"/><rect x="256" y="356" width="50" height="50"/><rect x="356" y="356" width="50" height="50"/><rect x="106" y="406" width="50" height="50"/><rect x="206" y="406" width="50" height="50"/><rect x="306" y="406" width="50" height="50"/><rect x="406" y="406" width="50" height="50"/></g>
-    <rect x="56" y="56" width="400" height="400" fill="#1b1d22" opacity=".28"/>
+  <g transform="translate(56 56)">
+    <rect width="400" height="400" rx="36" fill="#b58863"/>
+    <g fill="#f0d9b5"><rect x="0" y="0" width="100" height="100"/><rect x="200" y="0" width="100" height="100"/><rect x="100" y="100" width="100" height="100"/><rect x="300" y="100" width="100" height="100"/><rect x="0" y="200" width="100" height="100"/><rect x="200" y="200" width="100" height="100"/><rect x="100" y="300" width="100" height="100"/><rect x="300" y="300" width="100" height="100"/></g>
+    <circle cx="200" cy="200" r="120" fill="#fff" stroke="#000" stroke-width="16"/>
+    <path d="M200 80a120 120 0 0 1 0 240z" fill="#000"/>
   </g>
-  <circle cx="256" cy="256" r="331" fill="none" stroke="#1b1d22" stroke-width="270"/>
-  <circle cx="256" cy="256" r="192" fill="none" stroke="#f0d9b5" stroke-width="8"/>
-  <g transform="translate(105 108) scale(6.7)" stroke-width="1.5"><g fill="none" fill-rule="evenodd" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path fill="#fff" d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21"/><path fill="#fff" d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3"/><path fill="#000" d="M9.5 25.5a.5.5 0 1 1-1 0 .5.5 0 1 1 1 0m5.433-9.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5"/></g></g>
 </svg>

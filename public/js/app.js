@@ -70,49 +70,6 @@
     else if (current === 'multi') Multi.quit();
   }, false);
 
-  /* ---------- Installation (PWA) et mode hors ligne ---------- */
-  function isInstalled() {
-    try {
-      return !!window.navigator.standalone || (window.matchMedia && (window.matchMedia('(display-mode: standalone)').matches ||
-        window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: minimal-ui)').matches));
-    } catch (e) { return false; }
-  }
-
-  function initInstall() {
-    var btn = U.$('install-btn'), hint = U.$('install-hint'), offer = null;
-    if (isInstalled()) { hint.style.display = 'none'; return; }
-    // Chrome, Edge, Opera, Samsung Internet : le navigateur propose l'installation, on la lance depuis notre bouton
-    window.addEventListener('beforeinstallprompt', function (e) {
-      e.preventDefault();
-      offer = e;
-      btn.style.display = '';
-      hint.style.display = 'none';
-    }, false);
-    window.addEventListener('appinstalled', function () {
-      offer = null;
-      btn.style.display = 'none';
-      hint.style.display = 'none';
-      U.toast('Appli installée');
-    }, false);
-    U.on(btn, 'click', function () {
-      if (!offer) return;
-      var e = offer;
-      offer = null;
-      btn.style.display = 'none';
-      try { e.prompt(); } catch (err) { /* ignore */ }
-    });
-  }
-
-  // Service worker (sw.js) : version du cache = le « ?v=N » de ce script, donc il change avec chaque mise à jour
-  function registerWorker() {
-    if (!('serviceWorker' in navigator)) return;
-    var list = document.getElementsByTagName('script'), i, m = null;
-    for (i = 0; i < list.length && !m; i++) m = /(?:^|\/)app\.js\?v=(\d+)/.exec(list[i].getAttribute('src') || '');
-    window.addEventListener('load', function () {
-      try { navigator.serviceWorker.register('sw.js' + (m ? '?v=' + m[1] : '')).then(null, function () { /* ignore */ }); } catch (e) { /* ignore */ }
-    }, false);
-  }
-
   function ready() {
     var btns = document.querySelectorAll('[data-go]'), i;
     for (i = 0; i < btns.length; i++) {
@@ -131,8 +88,6 @@
     MemoView.initScreen();
     Multi.initScreen();
     MultiOnline.init();
-    initInstall();
-    registerWorker();
     App.show('home');
     Stats.track('app_open');
   }

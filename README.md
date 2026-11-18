@@ -122,18 +122,6 @@ L'app est **100 % statique** : copier le dossier `public/` sur n'importe quel h�
 Aussi hébergée automatiquement par **GitHub Pages** via `.github/workflows/deploy.yml` (publie `public/` à chaque
 push sur `main`) : **https://turos14.github.io/chess/**. Une deuxième copie, indépendante du NAS.
 
-## Installer l'appli (PWA)
-
-- **Chrome, Edge, Opera, Samsung Internet** : bouton « Installer l'appli » sur l'accueil (ou icône d'installation dans la
-  barre d'adresse, ou menu → Applications → Installer ce site en tant qu'application). L'appli s'ouvre dans sa propre
-  fenêtre (`display: standalone`, avec la barre de titre sous Windows).
-- **iPhone / iPad** : Safari → Partager → « Sur l'écran d'accueil » (Apple ne propose pas de bouton installable par le site).
-- Icône : `public/icons/icon.svg` (cavalier Cburnett sur un disque en damier, valable « maskable »), exportée en PNG 180 /
-  192 / 512 (même fichier pour `any` et `maskable`). Pour la modifier, redessiner le SVG puis régénérer les trois PNG.
-- **Hors ligne** : `public/sw.js` (service worker) range le site en cache. Stratégie « réseau d'abord » : en ligne on a
-  toujours la dernière version, hors ligne la copie en cache ; seul le mode en ligne (WebRTC) a besoin du réseau.
-  Le cache porte le `?v=N` de `app.js` et les anciens sont supprimés. Test : `test/pwa.test.js`.
-
 ## Mises à jour et cache
 
 Le serveur ne renvoie **aucun en-tête `Cache-Control`** pour les fichiers statiques (vérifié en production) : les
@@ -292,7 +280,6 @@ public/js/chat.js    chat des parties en ligne côté hôte (nettoyage, limite, 
 public/js/chatview.js  fenêtre de chat des parties en ligne (règles de conduite, masquer, ignorer par nom)
 public/js/statsdata.js  statistiques anonymes : navigateur / système et événements autorisés (module pur, testable sous Node)
 public/js/stats.js   statistiques anonymes : file d'événements et envoi groupé au relais
-public/sw.js         service worker (installation, hors ligne), enregistré par app.js
 public/js/rules.js   écran « Règles » et fenêtre de règles du menu de partie (textes de docs/regles-appli-echecs.pdf)
 public/js/elo.js     calcul de classement Elo (module pur, testable sous Node)
 public/js/engineStrength.js  calibration Elo -> réglages du moteur (module pur, testable sous Node)
