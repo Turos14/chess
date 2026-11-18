@@ -90,6 +90,8 @@
     MultiOnline.init();
     App.show('home');
     Stats.track('app_open');
+    // Consentement au partage des parties en direct, demandé une seule fois (après l'affichage de l'accueil)
+    if (!Live.asked()) setTimeout(function () { if (!Live.asked() && !GameView.isLive() && !Multi.isLive()) Live.ask(); }, 600);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, false);

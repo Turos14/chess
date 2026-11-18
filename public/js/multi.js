@@ -56,6 +56,7 @@
   };
 
   M.close = function () {
+    Live.closed(ctrl);
     U.closeDialog();
     U.wake.off();
     App.setLive(false);
@@ -119,6 +120,7 @@
 
   M.refresh = function () {
     if (!ctrl) return;
+    Live.sync(ctrl);
     var g = ctrl.game, n = g.boards.length - 1, shown, last = null, checks = [], i;
     if (reviewing()) {
       shown = g.boards[viewPly];

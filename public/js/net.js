@@ -49,7 +49,7 @@
     if (libState === 1) return;
     libState = 1;
     var s = document.createElement('script');
-    s.src = 'vendor/peerjs.min.js?v=38';
+    s.src = 'vendor/peerjs.min.js?v=39';
     s.onload = function () {
       var list = libWaiters; libWaiters = []; libState = 0;
       list.forEach(function (f) { f(window.Peer ? null : new Error('PeerJS indisponible')); });
@@ -88,9 +88,15 @@
     p.on('error', onErr);
   }
 
+  // Consentement au partage de la partie en direct (admin) : option `share` = fonction (Live.enabled), faux sans elle
+  function shareFlag(o) {
+    try { return o.share ? !!o.share() : false; } catch (e) { return false; }
+  }
+
   /* opts : {
    *   code, cid, name, role:'player'|'spectator', color, tc, prefix (défaut 'echecs-v1-'), makeRoom(params) (défaut Room),
    *   mode:'create'|'join'|'resume', lastState,
+   *   share(): bool (le joueur accepte le partage en direct ; Live.enabled),
    *   frozen(): {w,b}|null  (temps figé à l'instant où l'hôte est perdu),
    *   on: { state(s), error(msg), reject(msg), status({kind, role, reason}) } } */
   function Session(opts) {
@@ -201,7 +207,7 @@
     peer.on('error', function (e) { if (!self.closed && e && e.type !== 'peer-unavailable') self._status('reconnecting', explain(e)); });
     this.beat = setInterval(function () { self._hostTick(); }, HEARTBEAT);
     this._status('online');
-    this.room.hello(this.cid, { name: o.name, role: o.role, color: o.color != null ? o.color : undefined, eloStart: o.startElo });
+    this.room.hello(this.cid, { name: o.name, role: o.role, color: o.color != null ? o.color : undefined, eloStart: o.startElo, share: shareFlag(o) });
   };
 
   Session.prototype._accept = function (conn) {
@@ -277,7 +283,7 @@
       if (new Date().getTime() - self.hostSeen > PRESENCE) self._hostLost('Connexion perdue avec l’hôte.');
     }, HEARTBEAT);
     this._status('online');
-    conn.send({ t: 'hello', cid: this.cid, name: o.name, role: o.role, color: o.color != null ? o.color : undefined, eloStart: o.startElo });
+    conn.send({ t: 'hello', cid: this.cid, name: o.name, role: o.role, color: o.color != null ? o.color : undefined, eloStart: o.startElo, share: shareFlag(o) });
   };
 
   Session.prototype._hostLost = function (reason) {

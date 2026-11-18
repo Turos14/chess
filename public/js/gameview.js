@@ -117,6 +117,7 @@
   };
 
   V.close = function () {
+    Live.closed(ctrl);
     clearInterval(timer);
     timer = null;
     U.closeDialog();
@@ -208,6 +209,7 @@
   /* ---------- Rendu ---------- */
   V.refresh = function () {
     if (!ctrl) return;
+    Live.sync(ctrl);
     var g = ctrl.game, orient = V.orient(), res = ctrl.getResult();
     if (sel >= 0) {
       var p = g.board()[sel];

@@ -5,9 +5,9 @@
  * La partie commence quand tous les sièges sont pris. Pas de pendule (v1). Un joueur déconnecté peut être retiré par
  * les autres (« kick » = abandon forcé), sinon la partie resterait bloquée à son tour. */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./multichess.js'), require('./chat.js'));
-  else root.MultiRoom = factory(root.MultiChess, root.Chat);
-})(this, function (MultiChess, Chat) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./multichess.js'), require('./chat.js'), require('./livedata.js'));
+  else root.MultiRoom = factory(root.MultiChess, root.Chat, root.LiveData);
+})(this, function (MultiChess, Chat, LiveData) {
   'use strict';
 
   function clean(n, def) {
@@ -32,6 +32,7 @@
     this.conns = {};
     this.v = 1;
     this.epoch = 0;
+    this.gid = r && r.gid ? r.gid : LiveData.newGid();   // identifiant aléatoire pour le direct (stable lors d'une bascule d'hôte)
     this.chat = new Chat.Log(r && r.chat, opts.now, opts.cid);
     if (r) this._restore(r);
   }
@@ -39,7 +40,7 @@
   MultiRoom.prototype._restore = function (s) {
     var g = MultiChess.replay(this.variant, { teams: this.teams }, s.actions || []);
     if (g) this.game = g;
-    for (var i = 0; i < this.n; i++) this.seats[i] = s.players && s.players[i] ? { name: s.players[i], cid: null } : null;
+    for (var i = 0; i < this.n; i++) this.seats[i] = s.players && s.players[i] ? { name: s.players[i], cid: null, share: !!s.shares && s.shares[i] === true } : null;
     this.epoch = (s.epoch || 0) + 1;
     this.v = (s.v || 1) + 1;
   };
@@ -55,14 +56,17 @@
   };
 
   MultiRoom.prototype.stateFor = function (cid) {
-    var self = this, k, spectators = 0, players = [], connected = [], i;
+    var self = this, k, spectators = 0, players = [], connected = [], shares = [], live = true, i;
     for (k in this.spectators) if (this.conns[k]) spectators++;
     for (i = 0; i < this.n; i++) {
       players.push(this.seats[i] ? this.seats[i].name : null);
       connected.push(!!this.seats[i] && !!this.seats[i].cid && !!self.conns[this.seats[i].cid]);
+      shares.push(!!this.seats[i] && this.seats[i].share === true);
+      if (!shares[i]) live = false;
     }
     return {
       code: this.code, v: this.v, epoch: this.epoch, variant: this.variant, teams: this.teams,
+      gid: this.gid, live: live, shares: shares,    // direct (admin) : `live` = tous les sièges occupés ont accepté le partage
       you: this.seatOf(cid), players: players, connected: connected, spectators: spectators,
       actions: this.game.history.map(function (a) { return a.resign != null ? { resign: a.resign } : { from: a.from, to: a.to, promo: a.promo }; }),
       status: { over: this.game.over, winners: this.game.winners },
@@ -95,7 +99,9 @@
         this.send(cid, { t: 'reject', message: 'Cette partie est déjà complète. Tu peux la regarder en spectateur.' });
         return false;
       }
-      this.seats[seat] = { name: name, cid: cid };
+      // Consentement au direct : conservé si une reconnexion ne le renvoie pas
+      var prevShare = this.seats[seat] && this.seats[seat].share === true;
+      this.seats[seat] = { name: name, cid: cid, share: typeof msg.share === 'boolean' ? msg.share : prevShare };
       delete this.spectators[cid];
     } else {
       this.spectators[cid] = { name: name };

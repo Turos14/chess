@@ -3,9 +3,9 @@
  * Les participants sont identifiés par un identifiant client (cid) persistant, pas par l'ID de connexion :
  * ainsi un joueur garde son siège quand l'hôte change (bascule) ou quand il recharge la page. */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./chess.js'), require('./chat.js'));
-  else root.Room = factory(root.Chess, root.Chat);
-})(this, function (Chess, Chat) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./chess.js'), require('./chat.js'), require('./livedata.js'));
+  else root.Room = factory(root.Chess, root.Chat, root.LiveData);
+})(this, function (Chess, Chat, LiveData) {
   'use strict';
 
   function other(c) { return c === 'w' ? 'b' : 'w'; }
@@ -38,6 +38,7 @@
     this.v = 1;
     this.epoch = 0;
     this.timer = null;
+    this.gid = opts.restore && opts.restore.state.gid ? opts.restore.state.gid : LiveData.newGid();   // identifiant aléatoire pour le direct (stable lors d'une bascule d'hôte)
     this.chat = new Chat.Log(opts.restore && opts.restore.state.chat, this.now, opts.cid);
     if (opts.restore) this._restore(opts.restore.state, opts.restore.frozen);
   }
@@ -47,8 +48,8 @@
     var g = Chess.replay(s.startFen || Chess.START, s.moves || []);
     if (g) this.game = g;
     this.tc = normalizeTc(s.tc);
-    this.seats.w = s.players.w ? { name: s.players.w, cid: null, eloStart: s.eloStart && s.eloStart.w } : null;
-    this.seats.b = s.players.b ? { name: s.players.b, cid: null, eloStart: s.eloStart && s.eloStart.b } : null;
+    this.seats.w = s.players.w ? { name: s.players.w, cid: null, eloStart: s.eloStart && s.eloStart.w, share: s.shares ? s.shares.w === true : false } : null;
+    this.seats.b = s.players.b ? { name: s.players.b, cid: null, eloStart: s.eloStart && s.eloStart.b, share: s.shares ? s.shares.b === true : false } : null;
     this.result = s.status && s.status.over ? s.status : null;
     this.declined = s.declined || 0;
     this.epoch = (s.epoch || 0) + 1;
@@ -94,6 +95,11 @@
       // Elo de départ auto-déclaré par chaque joueur (utilisé seulement si son nom n'a jamais été suivi) : transite
       // par l'état synchronisé, sinon hôte et invité calculeraient chacun un résultat différent pour la même partie.
       eloStart: { w: this.seats.w ? this.seats.w.eloStart : null, b: this.seats.b ? this.seats.b.eloStart : null },
+      // Direct (admin) : identifiant aléatoire de la partie ; `live` = les deux sièges sont occupés et ont accepté le partage.
+      // `shares` (consentements par siège, sans nom) sert à la reprise après une bascule d'hôte.
+      gid: this.gid,
+      shares: { w: !!this.seats.w && this.seats.w.share === true, b: !!this.seats.b && this.seats.b.share === true },
+      live: !!this.seats.w && !!this.seats.b && this.seats.w.share === true && this.seats.b.share === true,
       status: this.result || { over: false },
       drawOffer: this.drawOffer,
       declined: this.declined,
@@ -131,7 +137,10 @@
       // Un reconnexion/reprise peut ne pas renvoyer l'Elo de départ (ex. un vieux client) : on garde alors
       // celui déjà établi pour ce siège plutôt que de l'effacer.
       var prevStart = this.seats[color] && typeof this.seats[color].eloStart === 'number' ? this.seats[color].eloStart : null;
-      this.seats[color] = { name: name, cid: cid, eloStart: typeof msg.eloStart === 'number' ? msg.eloStart : prevStart };
+      // Idem pour le consentement au direct : une reconnexion sans `share` garde la valeur connue.
+      var prevShare = this.seats[color] && this.seats[color].share === true;
+      this.seats[color] = { name: name, cid: cid, eloStart: typeof msg.eloStart === 'number' ? msg.eloStart : prevStart,
+        share: typeof msg.share === 'boolean' ? msg.share : prevShare };
       delete this.spectators[cid];
     } else {
       this.spectators[cid] = { name: name };

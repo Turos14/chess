@@ -109,17 +109,36 @@
       ['p', 'Pour améliorer l’appli et les parties en ligne, elle envoie de petits compteurs anonymes au serveur de l’appli. Cette option est activée par défaut.'],
       ['h', 'Ce qui est envoyé'],
       ['ul', [
-        'Des événements : ouverture de l’appli, début et fin d’une partie (mode, variante, type de fin), problème ouvert ou résolu, connexion en ligne réussie ou en erreur (type d’erreur), message de chat envoyé (sans son contenu).',
+        'Des événements : ouverture de l’appli, début et fin d’une partie (mode, variante, type de fin, sans les coups), problème ouvert ou résolu, connexion en ligne réussie ou en erreur (type d’erreur), message de chat envoyé (sans son contenu).',
         'Le type de navigateur et de système (par exemple « Chrome » et « Android »), le numéro de version de l’appli et si elle est installée sur l’écran d’accueil.'
       ]],
       ['h', 'Ce qui n’est jamais envoyé'],
       ['ul', [
-        'Ni nom ou pseudo, ni message de chat, ni coup ni contenu de partie, ni code de partie, ni identifiant de ton appareil.',
+        'Ni nom ou pseudo, ni message de chat, ni coup ni contenu de partie (les coups ne partent que dans les parties en direct si tu les as acceptées, voir la section suivante), ni code de partie, ni identifiant de ton appareil.',
         'Ton adresse IP n’est pas conservée dans les statistiques : le serveur ne s’en sert que pour limiter le nombre d’envois (conservée quelques minutes seulement).',
         'Les compteurs sont agrégés par jour : rien ne permet de te reconnaître d’une visite à l’autre.'
       ]],
       ['h', 'Les couper'],
       ['p', 'Décoche « Envoyer des statistiques anonymes » sous la liste de l’écran « Règles ». L’appli ne contacte alors plus le serveur de statistiques.']
+    ] },
+    { id: 'live', title: 'Parties en direct', blocks: [
+      ['p', 'Si tu l’acceptes, l’administrateur de l’appli peut voir en direct tes parties en cours (locales, contre l’IA et en ligne) pour repérer les bugs et modérer. Le choix t’est demandé au premier lancement et reste modifiable à tout moment : décoche « Partager mes parties en direct » sous la liste de l’écran « Règles ». Sans réponse ou en cas de refus, rien n’est envoyé.'],
+      ['h', 'Ce qui est envoyé'],
+      ['ul', [
+        'Les coups de la partie, le mode (local, IA, en ligne, à plusieurs), la variante, la pendule choisie et le résultat, avec un numéro de partie tiré au hasard.',
+        'Les joueurs apparaissent seulement comme « Blancs » et « Noirs » (ou le nom du camp) : le numéro de partie n’est lié ni à ton appareil ni à un nom.'
+      ]],
+      ['h', 'Ce qui n’est jamais envoyé'],
+      ['ul', [
+        'Ni nom ou pseudo, ni message du chat, ni code de salle, ni identifiant de ton appareil.',
+        'Ton adresse IP n’est pas conservée : le serveur ne s’en sert que pour limiter le nombre d’envois (quelques minutes seulement).'
+      ]],
+      ['h', 'Qui le voit et combien de temps'],
+      ['ul', [
+        'Seul l’administrateur voit ces parties. Rien n’est gardé au-delà de 15 minutes sans nouveau coup, ni au-delà d’une heure après la fin de la partie.',
+        'En ligne, la partie n’est partagée que si les deux joueurs ont accepté (chez les spectateurs, rien n’est envoyé). À plusieurs, tous les joueurs doivent avoir accepté.',
+        'Si tu retires ton accord, les parties que tu avais partagées sont retirées du direct.'
+      ]]
     ] },
     { id: 'elo', title: 'Classement Elo', blocks: [
       ['ul', [
@@ -194,6 +213,9 @@
     var opt = U.checkbox('Envoyer des statistiques anonymes', Stats.enabled(), function (on) { Stats.setEnabled(on); });
     U.addClass(opt, 'rules-stats');
     host.appendChild(opt);
+    var liveOpt = U.checkbox('Partager mes parties en direct avec l’administrateur (sans noms)', Live.enabled(), function (on) { Live.setEnabled(on); });
+    U.addClass(liveOpt, 'rules-stats');
+    host.appendChild(liveOpt);
   };
 
   R.dialog = function (id, buttons) {

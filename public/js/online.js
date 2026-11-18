@@ -235,6 +235,8 @@
         if (lm && lm.piece.charAt(0) !== myColor) U.fx('move');
       }
       st = s;
+      // Direct : seul l'hôte envoie la partie, et seulement si les deux joueurs ont accepté (jamais un spectateur)
+      ctrl.liveGid = s.live && myColor && session.isHost() ? s.gid : null;
       ctrl.names.w = s.players.w || 'En attente…';
       ctrl.names.b = s.players.b || 'En attente…';
       if (s.clock && s.tc) {
@@ -295,7 +297,7 @@
 
     session = new Net.Session({
       code: sess.code, cid: cid, name: sess.name, role: sess.role, color: sess.color, tc: sess.tc || null,
-      startElo: sess.startElo, mode: mode, lastState: sess.lastState || null,
+      startElo: sess.startElo, mode: mode, lastState: sess.lastState || null, share: Live.enabled,
       frozen: function () { return clock ? { w: clock.get('w'), b: clock.get('b') } : null; },
       on: {
         state: apply,

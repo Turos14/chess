@@ -214,6 +214,8 @@
         }
       }
       st = s;
+      // Direct : seul l'hôte envoie la partie, et seulement si tous les joueurs ont accepté (jamais un spectateur)
+      ctrl.liveGid = s.live && mySeat !== null && session.isHost() ? s.gid : null;
       for (i = 0; i < g.n; i++) ctrl.names[i] = s.players[i] || 'En attente…';
       ctrl.chat.update(s.chat);
       U.store.set('multi-session', { code: session.code, cid: cid, name: sess.name, role: mySeat !== null ? 'player' : 'spectator', color: mySeat,
@@ -245,7 +247,7 @@
 
     session = new Net.Session({
       code: sess.code, cid: cid, name: sess.name, role: sess.role, color: sess.color, prefix: PREFIX,
-      mode: mode, lastState: sess.lastState || null,
+      mode: mode, lastState: sess.lastState || null, share: Live.enabled,
       makeRoom: function (p) { return new MultiRoom({ code: p.code, cid: p.cid, variant: sess.variant, teams: sess.teams, send: p.send, restore: p.restore }); },
       on: {
         state: apply,

@@ -299,6 +299,7 @@ textarea.pgn { width: 100%; height: 200px; background: #14161a; color: #eee; fon
 .btn.rules-head { width: 100%; text-align: left; }
 .btn.rules-head.open { background: #2f4f7a; }
 .rules-stats { margin-top: 14px; }
+.rules-stats + .rules-stats { margin-top: 8px; }
 .rules-body, .rules-dlg { text-align: left; font-size: 14px; line-height: 1.45; color: #d5d9e2; }
 .rules-dlg { max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .rules-body { padding: 6px 4px 4px; }

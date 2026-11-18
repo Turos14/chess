@@ -73,6 +73,12 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 - **Statistiques anonymes** : `stats.js` (global `Stats.track(e, props)`) met en file des événements filtrés par `statsdata.js` (liste
   autorisée, identique à celle du serveur) et les poste au relais (`window.STATS_URL`, rien en local) ; désactivable par
   `U.store` `stats-off`. Ne jamais y mettre de nom, message, coup ni identifiant.
+- **Parties en direct (admin)** : `livedata.js` (pur, testé) construit le corps envoyé par `live.js` (global `Live`) à `window.LIVE_URL`
+  (`/api/live` du relais), après chaque coup (regroupé, 2 s), à la fin (`end`) et à la sortie (`quit`). **Jamais de nom, de pseudo, de
+  chat ni de code de salle dans ce corps** (test dédié). Envoi seulement si l'utilisateur a accepté (`live-share`, question posée une
+  fois au premier lancement par `app.js`, case dans « Règles »). En ligne : chaque client envoie `share` dans son `hello`, les salles
+  (`room.js`, `multiroom.js`) exposent `gid` (stable à la bascule d'hôte) et `live` (tous les sièges ont accepté), et seul l'hôte
+  envoie (`ctrl.liveGid`). Écrans de partie : `GameView.refresh/close`, `Multi.refresh/close` appellent `Live.sync/closed`.
 - **Elo** : calcul pur dans `elo.js`, stockage/écrans dans `eloview.js` ; appelé par `gameview.js` en fin de partie.
 - **Navigation** : `app.js` (`App.show`) gère les écrans et transitions ; robuste aux clics rapides, ne pas
   contourner.
