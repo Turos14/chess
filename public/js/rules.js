@@ -82,7 +82,7 @@
     ] },
     { id: 'online', title: 'Parties en ligne', blocks: [
       ['ul', [
-        'Le créateur reçoit un code de 5 caractères à donner à son adversaire. Les appareils sont reliés directement (pair-à-pair) : aucun serveur ne voit les coups ni les messages.',
+        'Le créateur reçoit un code de 5 caractères à donner à son adversaire. Les appareils sont reliés directement (pair-à-pair) : les coups et les messages ne passent par aucun serveur.',
         'Le créateur choisit sa couleur (Blancs, Noirs ou au hasard). Une partie complète refuse un nouveau joueur, qui peut la regarder en spectateur avec le même code.',
         'Hôte : l’appareil du créateur arbitre la partie (règles, pendule). S’il part, un autre participant prend le relais automatiquement et chacun garde sa place.',
         'Reprise : un joueur qui quitte peut revenir avec « Reprendre » sur l’écran « Partie en ligne ». La partie n’existe que tant qu’au moins un participant reste connecté.',
@@ -104,6 +104,22 @@
         'Masquer le chat : dans la fenêtre de chat, « Réglages » cache tous les messages sur cet appareil.',
         'Ignorer quelqu’un : touche son message, puis « Ignorer ». Ses messages ne s’affichent plus sur cet appareil (par nom).'
       ]]
+    ] },
+    { id: 'stats', title: 'Statistiques anonymes', blocks: [
+      ['p', 'Pour améliorer l’appli et les parties en ligne, elle envoie de petits compteurs anonymes au serveur de l’appli. Cette option est activée par défaut.'],
+      ['h', 'Ce qui est envoyé'],
+      ['ul', [
+        'Des événements : ouverture de l’appli, début et fin d’une partie (mode, variante, type de fin), problème ouvert ou résolu, connexion en ligne réussie ou en erreur (type d’erreur), message de chat envoyé (sans son contenu).',
+        'Le type de navigateur et de système (par exemple « Chrome » et « Android »), le numéro de version de l’appli et si elle est installée sur l’écran d’accueil.'
+      ]],
+      ['h', 'Ce qui n’est jamais envoyé'],
+      ['ul', [
+        'Ni nom ou pseudo, ni message de chat, ni coup ni contenu de partie, ni code de partie, ni identifiant de ton appareil.',
+        'Ton adresse IP n’est pas conservée dans les statistiques : le serveur ne s’en sert que pour limiter le nombre d’envois (conservée quelques minutes seulement).',
+        'Les compteurs sont agrégés par jour : rien ne permet de te reconnaître d’une visite à l’autre.'
+      ]],
+      ['h', 'Les couper'],
+      ['p', 'Décoche « Envoyer des statistiques anonymes » sous la liste de l’écran « Règles ». L’appli ne contacte alors plus le serveur de statistiques.']
     ] },
     { id: 'elo', title: 'Classement Elo', blocks: [
       ['ul', [
@@ -175,6 +191,9 @@
       host.appendChild(wrap);
       if (sec.id === openId) toggle(true);
     });
+    var opt = U.checkbox('Envoyer des statistiques anonymes', Stats.enabled(), function (on) { Stats.setEnabled(on); });
+    U.addClass(opt, 'rules-stats');
+    host.appendChild(opt);
   };
 
   R.dialog = function (id, buttons) {

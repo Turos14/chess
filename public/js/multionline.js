@@ -97,6 +97,7 @@
     if (active) active.stop();
     var cid = myCid(), session = null, st = null, ctrl = null;
     var opened = false, alive = true, connErr = null, mySeat = null, curEpoch = -1, lastV = -1;
+    var stat = Stats.netSession('multi');
 
     function full() { return !!st && st.players.every(function (p) { return !!p; }); }
     function missing() { return st ? st.players.filter(function (p) { return !p; }).length : 0; }
@@ -121,6 +122,7 @@
     function makeCtrl(s) {
       var g = new MultiChess.Game(s.variant, { teams: s.teams });
       var chat = ChatView.create({
+        g: 'multi',
         send: function (text) { return send({ t: 'chat', text: text }); },
         sideName: function (c) { return Multi.colorName(s.variant, c); },
         sideDot: function (c) { return Multi.dotColor(s.variant, c); },
@@ -248,11 +250,12 @@
       on: {
         state: apply,
         error: function (msg) { U.toast(msg); rebuild(); },
-        reject: function (msg) { if (!opened) failed(msg); else U.toast(msg); },
+        reject: function (msg) { stat.reject(msg, opened); if (!opened) failed(msg); else U.toast(msg); },
         status: function (e) {
           if (!alive) return;
-          if (e.kind === 'reconnecting') { connErr = e.reason || 'reconnexion'; if (opened) Multi.refresh(); }
-          else if (e.kind === 'failed') failed(e.reason);
+          if (e.kind === 'online') stat.ok(e.role || (session.isHost() ? 'host' : 'guest'));
+          if (e.kind === 'reconnecting') { stat.error(e.reason, opened); connErr = e.reason || 'reconnexion'; if (opened) Multi.refresh(); }
+          else if (e.kind === 'failed') { stat.error(e.reason, opened); failed(e.reason); }
           else if (e.kind === 'online' && opened) { connErr = null; Multi.refresh(); }
         }
       }

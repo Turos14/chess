@@ -1,6 +1,6 @@
 /* Fenêtre de chat des parties en ligne (à deux : online.js, à plusieurs : multionline.js). Les messages arrivent dans
  * l'état diffusé par l'hôte (chat.js) ; on n'envoie que le texte, l'hôte ajoute nom et camp.
- * ChatView.create(opts) — opts : { send(text) -> bool, sideName(c) -> texte, sideDot(c) -> couleur CSS, onChange() }
+ * ChatView.create(opts) — opts : { g ('duo'|'multi', pour les statistiques), send(text) -> bool, sideName(c) -> texte, sideDot(c) -> couleur CSS, onChange() }
  * Retourne { update(liste), open(), label() -> texte du bouton, unread() }. */
 (function () {
   'use strict';
@@ -81,7 +81,7 @@
     function submit() {
       var text = input.value.replace(/^\s+|\s+$/g, '');
       if (!text) return;
-      if (opts.send(text)) input.value = '';
+      if (opts.send(text)) { input.value = ''; Stats.track('chat_msg', { g: opts.g }); }
       input.focus();
     }
 

@@ -218,6 +218,7 @@
     sv = { puzzle: p, game: Chess.replay(p.fen, []), sel: -1, solIdx: 0, state: 'playing', orient: null };
     if (!sv.game) { U.toast('Problème illisible.'); return; }
     sv.orient = sv.game.turn();
+    Stats.track('puzzle_open');
     if (!boardInst) { boardInst = new Board(U.$('pzs-board')); boardInst.onSquare = onSolveSquare; }
     sv.board = boardInst;
     U.$('pzs-title').textContent = p.title || ('Problème #' + p.id);
@@ -300,6 +301,7 @@
     if (sv.solIdx >= sv.puzzle.solution.length) {
       sv.state = 'solved';
       markSolved(sv.puzzle.id);
+      Stats.track('puzzle_solved');
       U.fx('end');
       return true;
     }

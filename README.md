@@ -17,6 +17,9 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   la bascule, et chacun retrouve son siège. Un joueur qui revient (« Reprendre ») retrouve sa place.
   **Chat écrit** (bouton « Chat », compteur de messages non lus) entre joueurs et spectateurs, aussi dans les échecs à
   plusieurs en ligne ; règles de conduite à la première ouverture, chat masquable et participants ignorables (sur l'appareil).
+- **Statistiques anonymes** (activées par défaut, désactivables sous la liste de l'écran « Règles ») : compteurs d'usage
+  envoyés par lots au relais (ouvertures, parties, problèmes, erreurs de connexion en ligne, navigateur / système, version) ;
+  jamais de nom, de message, de coup ni d'identifiant d'appareil. Rien n'est envoyé en développement local.
 - **Règles** : écran « Règles » depuis l'accueil, et « Règles » dans le menu d'une partie (ouvre la variante jouée).
 - **Partie contre Hulotte** (la chouette, jouée par Stockfish calibré approximativement sur l'Elo visé) : choisis ta couleur, le niveau
   de l'IA (pré-rempli avec ton Elo actuel si ton nom est suivi), avec ou sans pendule. L'IA ne compte jamais pour
@@ -275,6 +278,8 @@ public/js/records.js enregistrement, revue, branches (variantes, avec poursuite 
 public/js/room.js    salle de jeu côté hôte (sièges, pendule, nulle, abandon), testable sous Node
 public/js/chat.js    chat des parties en ligne côté hôte (nettoyage, limite, historique), testable sous Node
 public/js/chatview.js  fenêtre de chat des parties en ligne (règles de conduite, masquer, ignorer par nom)
+public/js/statsdata.js  statistiques anonymes : navigateur / système et événements autorisés (module pur, testable sous Node)
+public/js/stats.js   statistiques anonymes : file d'événements et envoi groupé au relais
 public/js/rules.js   écran « Règles » et fenêtre de règles du menu de partie (textes de docs/regles-appli-echecs.pdf)
 public/js/elo.js     calcul de classement Elo (module pur, testable sous Node)
 public/js/engineStrength.js  calibration Elo -> réglages du moteur (module pur, testable sous Node)

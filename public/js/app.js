@@ -89,6 +89,7 @@
     Multi.initScreen();
     MultiOnline.init();
     App.show('home');
+    Stats.track('app_open');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, false);

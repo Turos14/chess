@@ -104,7 +104,9 @@
     var game = new Chess.Game(), st = null, clock = null, session = null;
     var opened = false, alive = true, connErr = null, myColor = null, curEpoch = -1, lastV = -1;
     var seenDeclined = null, offerPrompt = false, announced = false;
+    var stat = Stats.netSession('duo');
     var chat = ChatView.create({
+      g: 'duo',
       send: function (text) { return send({ t: 'chat', text: text }); },
       sideName: function (c) { return U.colorName(c); },
       sideDot: function (c) { return c === 'w' ? '#fff' : '#111'; },
@@ -298,11 +300,12 @@
       on: {
         state: apply,
         error: function (msg) { U.toast(msg); },
-        reject: function (msg) { if (!opened) { failed(msg); } else U.toast(msg); },
+        reject: function (msg) { stat.reject(msg, opened); if (!opened) { failed(msg); } else U.toast(msg); },
         status: function (e) {
           if (!alive) return;
-          if (e.kind === 'reconnecting') { connErr = e.reason || 'reconnexion'; if (opened) GameView.refresh(); }
-          else if (e.kind === 'failed') failed(e.reason);
+          if (e.kind === 'online') stat.ok(e.role || (session.isHost() ? 'host' : 'guest'));
+          if (e.kind === 'reconnecting') { stat.error(e.reason, opened); connErr = e.reason || 'reconnexion'; if (opened) GameView.refresh(); }
+          else if (e.kind === 'failed') { stat.error(e.reason, opened); failed(e.reason); }
           else if (e.kind === 'online' && opened) { connErr = null; GameView.refresh(); }
         }
       }

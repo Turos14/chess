@@ -97,6 +97,8 @@
   }
 
   /* ---------- Ouverture ---------- */
+  function variantOf() { return ctrl.game && ctrl.game.startFen && ctrl.game.startFen !== Chess.START ? '960' : 'classic'; }
+
   V.open = function (c) {
     ctrl = c;
     Rec.reset();
@@ -111,6 +113,7 @@
     V.refresh();
     clearInterval(timer);
     timer = setInterval(tick, 100);
+    Stats.track('game_start', { m: ctrl.mode, 'var': variantOf() });
   };
 
   V.close = function () {
@@ -281,6 +284,7 @@
   /* ---------- Fin de partie ---------- */
   V.gameOver = function (res) {
     U.fx('end');
+    Stats.track('game_end', { m: ctrl.mode, r: res.reason });
     var text = V.resultText(res, ctrl.names);
     U.closeDialog();
     if (typeof ctrl.trackElo === 'function' && ctrl.trackElo()) {

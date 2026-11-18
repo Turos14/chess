@@ -52,6 +52,7 @@
     U.wake.on();
     layout();
     M.refresh();
+    Stats.track('game_start', { m: 'multi_' + ctrl.mode, 'var': ctrl.game.variant });
   };
 
   M.close = function () {
@@ -170,6 +171,7 @@
 
   function gameOver() {
     U.fx('end');
+    Stats.track('game_end', { m: 'multi_' + ctrl.mode, r: 'multi' });
     U.dialog({ title: 'Partie terminée', text: M.resultText(ctrl.game, ctrl.names),
       buttons: [{ label: 'Voir l’échiquier' }, { label: 'Quitter', primary: true, fn: function () { ctrl.quit(); } }] });
   }
