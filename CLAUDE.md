@@ -26,7 +26,9 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   production. L'utilisateur teste sur le site en ligne : une fois un changement terminé et `npm test` vert,
   fusionner `origin/main` dans la branche de travail puis pousser sur `main` sans attendre de confirmation.
 - **Cache-busting manuel** : toute modification de `public/js` ou `public/css` doit incrémenter le `?v=N`
-  partout dans `public/index.html` **et** dans `public/js/net.js` (chargement de `peerjs.min.js`).
+  partout dans `public/index.html` **et** dans `public/js/net.js` (chargement de `peerjs.min.js`). Le service worker
+  `public/sw.js` (réseau d'abord, repli sur le cache hors ligne) prend sa version de ce même `?v=N` (lu sur `app.js`) :
+  rien d'autre à faire, mais un nouveau fichier statique doit être référencé dans `index.html` pour être mis en cache.
 - Toutes les données utilisateur (parties, classement Elo, problèmes résolus, aide-mémoire) sont en `localStorage`, propres
   à l'appareil. Seule exception partagée : `public/data/puzzles.json`.
 
