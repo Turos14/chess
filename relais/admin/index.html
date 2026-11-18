@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Administration — Échecs</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<section id="login" class="login hidden">
+  <form id="loginForm" class="card login-card" autocomplete="off">
+    <h1>Administration</h1>
+    <p class="hint">Accès réservé à la modération de l’appli d’échecs.</p>
+    <label for="pw">Mot de passe</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button type="submit" class="btn primary" id="loginBtn">Se connecter</button>
+    <p id="loginError" class="error" role="alert"></p>
+  </form>
+</section>
+
+<section id="app" class="hidden">
+  <header class="top">
+    <h1>Administration</h1>
+    <nav class="tabs" id="tabs">
+      <button type="button" class="tab on" data-tab="mod">Modération <span class="badge" id="modBadge"></span></button>
+      <button type="button" class="tab" data-tab="stats">Statistiques</button>
+      <button type="button" class="tab" data-tab="log">Journal</button>
+    </nav>
+    <button type="button" class="btn ghost" id="logoutBtn">Déconnexion</button>
+  </header>
+  <div id="flash" class="flash hidden" role="status"></div>
+
+  <main>
+    <div id="tab-mod" class="pane">
+      <p class="hint note">Approuver pose l’étiquette ; la publication est faite par les Actions GitHub quelques minutes après.</p>
+      <div class="row"><button type="button" class="btn" id="reloadQueue">Actualiser</button></div>
+      <div id="queue"></div>
+    </div>
+
+    <div id="tab-stats" class="pane hidden">
+      <div class="card filters">
+        <div class="presets">
+          <button type="button" class="btn preset" data-days="7">7 jours</button>
+          <button type="button" class="btn preset" data-days="30">30 jours</button>
+          <button type="button" class="btn preset" data-days="365">1 an</button>
+        </div>
+        <div class="dates">
+          <label>Du <input type="date" id="from"></label>
+          <label>au <input type="date" id="to"></label>
+          <button type="button" class="btn primary" id="applyDates">Afficher</button>
+        </div>
+      </div>
+      <div id="stats"></div>
+    </div>
+
+    <div id="tab-log" class="pane hidden">
+      <div class="row"><button type="button" class="btn" id="reloadLog">Actualiser</button></div>
+      <div id="log"></div>
+    </div>
+  </main>
+</section>
+
+<script src="https://turos14.github.io/chess/js/chess.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
