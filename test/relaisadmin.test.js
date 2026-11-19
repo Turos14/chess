@@ -97,6 +97,13 @@ assert.strictEqual(adminLib.kindOf([{ name: 'bug' }]), null);
 // Ancien ticket GitHub (étiquette « puzzle » seule) : dans la file comme proposition.
 assert.strictEqual(adminLib.kindOf([{ name: 'puzzle' }]), 'propose');
 assert.strictEqual(adminLib.kindOf(['puzzle', 'puzzle-approved']), null);
+assert.strictEqual(adminLib.kindOf([], '[Problème] Test'), 'propose');
+assert.strictEqual(adminLib.kindOf([], '\u200B[Modification] X (gh-1)'), 'edit');
+assert.strictEqual(adminLib.kindOf(null, '[Suppression] X'), 'delete');
+assert.strictEqual(adminLib.kindOf(['puzzle-approved'], '[Problème] Test'), null);
+assert.strictEqual(adminLib.kindOf([], 'Bug dans la pendule'), null);
+assert.deepStrictEqual(adminLib.approveSteps('propose', []), [['puzzle-pending'], ['puzzle-approved']]);
+assert.deepStrictEqual(adminLib.approveSteps('delete', []), [['delete-puzzle'], ['delete-approved']]);
 assert.deepStrictEqual(adminLib.queueLabels(), ['puzzle-pending', 'puzzle', 'edit-puzzle', 'delete-puzzle']);
 assert.deepStrictEqual(adminLib.approveSteps('propose', ['puzzle']), [['puzzle-pending'], ['puzzle-approved']]);
 assert.deepStrictEqual(adminLib.approveSteps('propose', ['puzzle', 'puzzle-pending']), [['puzzle-approved']]);

@@ -83,14 +83,25 @@ var KINDS = [
 function labelNames(labels) {
   return (labels || []).map(function (l) { return typeof l === 'string' ? l : (l && l.name) || ''; });
 }
-// Type de demande en attente d'approbation, ou null.
-function kindOf(labels) {
+// Préfixes de titre posés par le relais et les formulaires : repli quand GitHub a ignoré les étiquettes (constaté :
+// une clé « fine-grained » crée le ticket mais ses étiquettes sont perdues sans erreur).
+var TITLE_KINDS = [['[Problème]', 'propose'], ['[Modification]', 'edit'], ['[Suppression]', 'delete']];
+function kindOfTitle(title) {
+  var t = String(title == null ? '' : title).replace(/\u200B/g, '').replace(/^\s+/, '');
+  for (var i = 0; i < TITLE_KINDS.length; i++) if (t.indexOf(TITLE_KINDS[i][0]) === 0) return TITLE_KINDS[i][1];
+  return null;
+}
+// Type de demande en attente d'approbation, ou null. `title` (facultatif) sert de repli sans étiquette.
+function kindOf(labels, title) {
   var names = labelNames(labels), i;
   for (i = 0; i < KINDS.length; i++) {
     if (names.indexOf(KINDS[i].approved) >= 0) continue;
     if (names.indexOf(KINDS[i].pending) >= 0 || (KINDS[i].legacy && names.indexOf(KINDS[i].legacy) >= 0)) return KINDS[i].kind;
   }
-  return null;
+  var k = kindOfTitle(title);
+  if (!k) return null;
+  for (i = 0; i < KINDS.length; i++) if (KINDS[i].kind === k && names.indexOf(KINDS[i].approved) >= 0) return null;
+  return k;
 }
 function approvedLabel(kind) {
   var i;
@@ -126,6 +137,6 @@ function cleanReason(v) {
 
 module.exports = {
   checkPassword: checkPassword, signSession: signSession, verifySession: verifySession, cookieValue: cookieValue,
-  sessionCookie: sessionCookie, clearCookie: clearCookie, splitFields: splitFields, kindOf: kindOf,
+  sessionCookie: sessionCookie, clearCookie: clearCookie, splitFields: splitFields, kindOf: kindOf, kindOfTitle: kindOfTitle,
   approvedLabel: approvedLabel, queueLabels: queueLabels, approveSteps: approveSteps, labelNames: labelNames, cleanReason: cleanReason, KINDS: KINDS, COOKIE: COOKIE, SESSION_S: SESSION_S
 };

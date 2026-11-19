@@ -66,10 +66,13 @@ function create(deps) {
     return (res[0] || []).map(function (s) { try { return JSON.parse(s); } catch (e) { return null; } }).filter(Boolean);
   }
 
-  // Tickets ouverts en attente (les PR sont exclues). Trois requêtes par étiquette pour ne rien rater au-delà de 100.
+  // Tickets ouverts en attente (les PR sont exclues) : une requête par étiquette, plus les tickets ouverts récents
+  // sans étiquette reconnue (repérés par le préfixe du titre, voir kindOf) — GitHub perd parfois les étiquettes.
   async function queue() {
     var seen = {}, items = [];
-    var rs = await Promise.all(admin.queueLabels().map(function (l) { return gh('/issues?state=open&per_page=100&labels=' + encodeURIComponent(l)); }));
+    var urls = admin.queueLabels().map(function (l) { return '/issues?state=open&per_page=100&labels=' + encodeURIComponent(l); });
+    urls.push('/issues?state=open&per_page=100');
+    var rs = await Promise.all(urls.map(function (u) { return gh(u); }));
     var lists = [];
     for (var i = 0; i < rs.length; i++) {
       if (!rs[i].ok) throw new Error('GitHub HTTP ' + rs[i].status);
@@ -78,7 +81,7 @@ function create(deps) {
     lists.forEach(function (list) {
       (Array.isArray(list) ? list : []).forEach(function (is) {
         if (!is || is.pull_request || is.state === 'closed' || seen[is.number]) return;
-        var kind = admin.kindOf(is.labels);
+        var kind = admin.kindOf(is.labels, is.title);
         if (!kind) return;
         seen[is.number] = true;
         items.push({
@@ -100,7 +103,7 @@ function create(deps) {
     var issue = await r.json();
     if (issue.pull_request) return { error: [400, 'Ce n’est pas un ticket de problème.'] };
     if (issue.state !== 'open') return { error: [409, 'Ce ticket est déjà fermé.'] };
-    var kind = admin.kindOf(issue.labels);
+    var kind = admin.kindOf(issue.labels, issue.title);
     if (!kind) return { error: [409, 'Ce ticket n’attend pas de validation.'] };
     return { issue: issue, kind: kind };
   }
@@ -224,7 +227,13 @@ function create(deps) {
         var steps = admin.approveSteps(p.kind, p.issue.labels);
         for (var si = 0; si < steps.length; si++) {
           var lr = await gh('/issues/' + n + '/labels', 'POST', { labels: steps[si] });
-          if (!lr.ok) return send(res, 502, { error: 'GitHub a refusé d’ajouter l’étiquette (HTTP ' + lr.status + ').' });
+          if (!lr.ok) {
+            var why = '';
+            try { why = (await lr.json()).message || ''; } catch (e) { /* ignore */ }
+            console.error('Étiquette refusée sur #' + n, lr.status, why);
+            return send(res, 502, { error: 'GitHub a refusé d’ajouter l’étiquette ' + steps[si].join(', ') + ' (HTTP ' + lr.status +
+              (why ? ' : ' + why : '') + '). Vérifier les droits de la clé GITHUB_TOKEN (Issues : Read and write) dans Vercel.' });
+          }
         }
         await journal({ action: 'approve', number: n, kind: p.kind });
         return send(res, 200, { ok: true });
