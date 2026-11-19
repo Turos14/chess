@@ -69,7 +69,7 @@ function create(deps) {
   // Tickets ouverts en attente (les PR sont exclues). Trois requêtes par étiquette pour ne rien rater au-delà de 100.
   async function queue() {
     var seen = {}, items = [];
-    var rs = await Promise.all(admin.KINDS.map(function (k) { return gh('/issues?state=open&per_page=100&labels=' + encodeURIComponent(k.pending)); }));
+    var rs = await Promise.all(admin.queueLabels().map(function (l) { return gh('/issues?state=open&per_page=100&labels=' + encodeURIComponent(l)); }));
     var lists = [];
     for (var i = 0; i < rs.length; i++) {
       if (!rs[i].ok) throw new Error('GitHub HTTP ' + rs[i].status);
@@ -221,8 +221,11 @@ function create(deps) {
       if (p.error) return send(res, p.error[0], { error: p.error[1] });
       var n = body.number;
       if (action === 'approve') {
-        var lr = await gh('/issues/' + n + '/labels', 'POST', { labels: [admin.approvedLabel(p.kind)] });
-        if (!lr.ok) return send(res, 502, { error: 'GitHub a refusé d’ajouter l’étiquette (HTTP ' + lr.status + ').' });
+        var steps = admin.approveSteps(p.kind, p.issue.labels);
+        for (var si = 0; si < steps.length; si++) {
+          var lr = await gh('/issues/' + n + '/labels', 'POST', { labels: steps[si] });
+          if (!lr.ok) return send(res, 502, { error: 'GitHub a refusé d’ajouter l’étiquette (HTTP ' + lr.status + ').' });
+        }
         await journal({ action: 'approve', number: n, kind: p.kind });
         return send(res, 200, { ok: true });
       }

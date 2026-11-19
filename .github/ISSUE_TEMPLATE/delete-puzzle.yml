@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         N'importe qui peut ouvrir ce ticket, mais il n'est **pas traité automatiquement** : seul Turos14 peut le
-        faire aboutir, en ajoutant manuellement l'étiquette `delete-approved` une fois la demande vérifiée.
+        faire aboutir, en la validant dans la modération (l'étiquette `delete-approved` est alors posée) une fois la demande vérifiée.
   - type: input
     id: ids
     attributes:

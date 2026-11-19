@@ -94,6 +94,13 @@ assert.strictEqual(adminLib.kindOf(['puzzle-pending', 'puzzle-approved']), null)
 assert.strictEqual(adminLib.kindOf([{ name: 'edit-puzzle' }]), 'edit');
 assert.strictEqual(adminLib.kindOf([{ name: 'delete-puzzle' }, { name: 'delete-approved' }]), null);
 assert.strictEqual(adminLib.kindOf([{ name: 'bug' }]), null);
+// Ancien ticket GitHub (étiquette « puzzle » seule) : dans la file comme proposition.
+assert.strictEqual(adminLib.kindOf([{ name: 'puzzle' }]), 'propose');
+assert.strictEqual(adminLib.kindOf(['puzzle', 'puzzle-approved']), null);
+assert.deepStrictEqual(adminLib.queueLabels(), ['puzzle-pending', 'puzzle', 'edit-puzzle', 'delete-puzzle']);
+assert.deepStrictEqual(adminLib.approveSteps('propose', ['puzzle']), [['puzzle-pending'], ['puzzle-approved']]);
+assert.deepStrictEqual(adminLib.approveSteps('propose', ['puzzle', 'puzzle-pending']), [['puzzle-approved']]);
+assert.deepStrictEqual(adminLib.approveSteps('edit', ['edit-puzzle']), [['edit-approved']]);
 var cr = adminLib.cleanReason('  ligne 1\n\n### titre @Turos14 #12\t' + new Array(400).join('x'));
 assert(cr.length <= 300 && !/\n/.test(cr) && cr.indexOf('@' + Z) >= 0 && cr.indexOf('###') < 0);
 

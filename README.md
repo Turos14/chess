@@ -82,21 +82,20 @@ Application web en JS / CSS / HTML (sans framework, code ES5 pour les anciens iO
   « résolu » local (coche ✓). Bouton **« Proposer un problème »** : un **éditeur visuel** en deux étapes — 1) place
   les pièces sur l'échiquier (palette, position de départ ou échiquier vide, trait à qui), 2) joue directement sur
   l'échiquier le ou les coups de la solution (un seul pour un mat en 1, plusieurs en alternant avec les réponses de
-  l'adversaire pour une combinaison plus longue) — puis ouvre un ticket GitHub pré-rempli ; un compte GitHub gratuit
-  suffit, pas de compte sur le site (un lien permet aussi de saisir directement une FEN/solution en texte). Une
-  Action GitHub revérifie la proposition avec le même moteur d'échecs que le site, puis l'ajoute automatiquement à
-  la liste publique et ferme le ticket (ou commente l'erreur précise sinon). Voir « Comment marche l'ajout de
-  problèmes » ci-dessous. Bouton **« Suppr. »** sur chaque problème : ouvre de la même façon un ticket de
-  suppression pré-rempli, mais il ne sera traité que si Turos14 l'approuve manuellement (voir « Comment marche la
-  suppression de problèmes »). **Catégorie** et **niveau de difficulté** (optionnels, choisis par le créateur à la
+  l'adversaire pour une combinaison plus longue) — puis **« Envoyer »** transmet la proposition au relais, sans
+  aucun compte (un lien permet aussi de saisir directement une FEN/solution en texte). Elle est **validée par la
+  modération dans l'appli admin**, puis une Action GitHub la revérifie avec le même moteur d'échecs que le site et
+  l'ajoute automatiquement à la liste publique. Voir « Comment marche l'ajout de problèmes » ci-dessous. Bouton
+  **« Suppr. »** sur chaque problème : envoie de la même façon une demande de suppression, traitée seulement après
+  validation dans l'admin (voir « Comment marche la suppression de problèmes »). **Catégorie** et **niveau de difficulté** (optionnels, choisis par le créateur à la
   proposition) : la liste publique affiche un onglet par catégorie utilisée (créé automatiquement, aucune liste
   figée à l'avance) et un filtre par niveau (Facile / Moyen / Difficile), pour que chaque joueur choisisse ce qu'il
   veut résoudre. Un problème peut avoir **plusieurs catégories** (séparées par des virgules à la proposition, liste
   dans `puzzles.json`) : il apparaît alors dans chaque onglet. Un champ **Rechercher** filtre la liste par titre,
   auteur, catégorie, niveau ou description (sans tenir compte des majuscules ni des accents). Le créateur peut
   ajouter une **description** (texte libre, 1000 caractères max.) affichée sous le problème. Bouton **« Modif. »**
-  sur chaque problème : rouvre l'éditeur avec sa position et sa solution, puis un ticket de modification
-  pré-rempli — appliqué seulement après validation manuelle de Turos14 (voir « Comment marche la modification de
+  sur chaque problème : rouvre l'éditeur avec sa position et sa solution, puis envoie une demande de modification —
+  appliquée seulement après validation dans l'admin (voir « Comment marche la modification de
   problèmes »).
 - **Aide-mémoire** (onglet dédié) : enchaînements de coups à retenir (ouvertures, pièges, finales…), joués sur
   l'échiquier depuis la position initiale ou une position placée à la main (éditeur de plateau proposé à la création,
@@ -187,62 +186,63 @@ fonctionnalité entière (comme le classement Elo) peut sembler ne pas marcher a
 
 ## Comment marche l'ajout de problèmes
 
-L'appli reste 100 % statique côté client ; pas de backend à nous pour autant. Le flux :
+L'appli reste 100 % statique côté client ; le seul service est le relais (`relais/`, Vercel). **Toute demande
+(ajout, modification, suppression) passe par la modération de l'appli admin** avant d'être publiée par le bot.
+Le flux :
 
 1. Dans l'appli, **« Proposer un problème »** ouvre un éditeur en deux étapes : placement des pièces
    (`public/js/puzzles.js`, échiquier interactif + palette de pièces), puis les coups de la solution joués
    directement dessus (autant que voulu). Le texte libre (FEN + coups UCI) reste possible en secours. Validation
-   locale (même moteur `chess.js`) avant d'ouvrir un **ticket GitHub pré-rempli**
-   (`.github/ISSUE_TEMPLATE/puzzle.yml`) dans un nouvel onglet — il faut un compte GitHub gratuit pour le soumettre,
-   pas de compte sur le site.
-2. À l'ouverture (ou modification) d'un ticket étiqueté `puzzle`, l'Action `.github/workflows/puzzle-intake.yml`
-   lance `scripts/puzzle-intake.js` (Node) : relit le corps du ticket, **revalide** la FEN et chaque coup de la
+   locale (même moteur `chess.js`), puis **« Envoyer »** : le relais crée un ticket étiqueté `puzzle-pending`
+   (même format que `.github/ISSUE_TEMPLATE/puzzle.yml` ; un ticket ouvert directement sur GitHub avec ce
+   formulaire reçoit la même étiquette et suit le même chemin). Aucun compte n'est demandé.
+2. La demande apparaît dans la file de l'**appli admin** (`relais/admin/`), avec l'échiquier et la solution
+   rejouable. « Approuver » pose l'étiquette `puzzle-approved` ; « Refuser » commente et ferme le ticket.
+3. L'ajout de `puzzle-approved` lance l'Action `.github/workflows/puzzle-intake.yml`, qui exécute
+   `scripts/puzzle-intake.js` (Node) : relit le corps du ticket, **revalide** la FEN et chaque coup de la
    solution avec `public/js/chess.js` (ne fait jamais confiance au client).
-3. Si c'est valide : ajoute/maj le problème dans `public/data/puzzles.json` (id préfixé `gh-<numéro de ticket>`,
+4. Si c'est valide : ajoute/maj le problème dans `public/data/puzzles.json` (id préfixé `gh-<numéro de ticket>`,
    pour ne jamais entrer en collision avec les problèmes de départ, en `seed-N`), commit + push sur `main`, commente
    et ferme le ticket. Un push fait avec le jeton par défaut de l'Action ne redéclenche pas les autres workflows sur
    push (anti-boucle, limitation volontaire de GitHub) : le déploiement Pages est donc **déclenché explicitement**
    (`gh workflow run deploy.yml`) après ce push. Si la FEN/solution est invalide : commente l'erreur précise et
-   laisse le ticket ouvert — le corriger relance la vérification. La **catégorie** (texte libre) et le **niveau de
+   laisse le ticket ouvert (retirer puis remettre `puzzle-approved` relance la vérification). La **catégorie** (texte libre) et le **niveau de
    difficulté** (liste déroulante Facile/Moyen/Difficile) du ticket sont repris tels quels, les deux étant optionnels
    (un niveau qui ne correspondrait à aucune des trois valeurs attendues — ticket modifié à la main par exemple —
    est rejeté comme une FEN invalide).
-4. Visible par tout le monde dans l'onglet **Problèmes** à la republication (~1 min), la liste étant rechargée à
+5. Visible par tout le monde dans l'onglet **Problèmes** à la republication (~1 min), la liste étant rechargée à
    chaque ouverture de l'écran (anti-cache par horodatage, pas seulement `?v=N` : la liste change sans déploiement).
 
-Limites assumées : pas de modération a priori (seulement une vérification de légalité des coups) — un problème légal
-mais malvenu (mauvais goût, titre offensant…) reste possible ; voir « Comment marche la suppression de problèmes »
-ci-dessous pour le retirer. Le suivi « résolu » (✓) est **local à l'appareil** (`localStorage`), comme le reste de
+Le suivi « résolu » (✓) est **local à l'appareil** (`localStorage`), comme le reste de
 l'appli — ce n'est que la liste des problèmes elle-même qui est partagée.
 
 ## Comment marche la suppression de problèmes
 
 Contrairement à l'ajout, rien dans le contenu d'une demande de suppression ne peut être validé automatiquement
 (pas de FEN/solution à vérifier) : le contrôle se fait donc par **validation manuelle**, via une 2ᵉ étiquette que
-seul Turos14 peut poser.
+seule la modération peut poser (depuis l'appli admin).
 
-1. Chaque problème de la liste publique a un bouton **« Suppr. »** qui ouvre un ticket GitHub pré-rempli
-   (`.github/ISSUE_TEMPLATE/delete-puzzle.yml`) avec son identifiant — n'importe qui peut l'ouvrir, l'étiquette
-   `delete-puzzle` étant posée automatiquement par le template. On peut aussi y indiquer plusieurs identifiants à
+1. Chaque problème de la liste publique a un bouton **« Suppr. »** qui envoie au relais une demande de suppression
+   (ticket au format de `.github/ISSUE_TEMPLATE/delete-puzzle.yml`, étiquette `delete-puzzle`) avec son identifiant. On peut aussi y indiquer plusieurs identifiants à
    la fois (séparés par des espaces).
 2. Ce ticket **ne déclenche rien tout seul**. `.github/workflows/puzzle-delete.yml` ne lance
    `scripts/puzzle-delete.js` que si le ticket porte **à la fois** `delete-puzzle` **et** `delete-approved` — la
-   2ᵉ étiquette n'existe que pour que Turos14 la pose à la main depuis l'interface GitHub (section « Labels » du
-   ticket) une fois la demande vérifiée ; poser cette étiquette déclenche l'Action (événement `labeled`).
+   2ᵉ étiquette est posée par « Approuver » dans l'appli admin ; poser cette étiquette déclenche l'Action
+   (événement `labeled`).
 3. Une fois approuvé : retire le(s) identifiant(s) demandé(s) de `public/data/puzzles.json`, commit + push sur
    `main` (et déclenche le déploiement Pages, comme pour l'ajout), commente le résultat (supprimés / introuvables)
    et ferme le ticket.
 
 ## Comment marche la modification de problèmes
 
-Même principe que la suppression : n'importe qui peut demander, seul Turos14 valide.
+Même principe que la suppression : n'importe qui peut demander, la modération valide dans l'appli admin.
 
 1. Le bouton **« Modif. »** d'un problème rouvre l'éditeur visuel directement sur ses coups de solution (« ‹ Échiquier »
    pour changer la position), puis le formulaire pré-rempli avec son titre, ses catégories, son niveau et sa
-   description. « Continuer sur GitHub » ouvre un ticket `edit-puzzle` (`.github/ISSUE_TEMPLATE/edit-puzzle.yml`)
+   description. « Envoyer » crée par le relais un ticket `edit-puzzle` (`.github/ISSUE_TEMPLATE/edit-puzzle.yml`)
    qui décrit le problème **tel qu'il doit devenir** : un champ optionnel vidé est effacé.
 2. Ce ticket **ne déclenche rien tout seul**. `.github/workflows/puzzle-edit.yml` ne lance `scripts/puzzle-edit.js`
-   qu'au moment où Turos14 **ajoute l'étiquette `edit-approved`** (évènement `labeled` uniquement : modifier le
+   qu'au moment où l'admin **ajoute l'étiquette `edit-approved`** (« Approuver ») (évènement `labeled` uniquement : modifier le
    ticket après approbation ne relance rien, il faut retirer puis remettre l'étiquette).
 3. Le script revérifie FEN et solution avec `public/js/chess.js`, remplace le problème dans
    `public/data/puzzles.json` (l'id, l'auteur et la date d'ajout sont conservés, `editedAt` est ajouté), commit +
@@ -253,17 +253,14 @@ Les étiquettes doivent exister dans le dépôt (GitHub ignore une étiquette in
 sont créées par `.github/workflows/labels.yml`, lancé à chaque modification de ce fichier sur `main` (ou à la main
 depuis l'onglet Actions).
 
-## Relais : proposer sans compte GitHub
+## Relais et appli admin
 
 Le dossier `relais/` est un **deuxième projet**, hébergé à part (Vercel, adresse séparée) : il reçoit les
-propositions / modifications / suppressions envoyées depuis l'appli sans compte GitHub et crée lui-même les
-tickets (même format, mêmes Actions). Une proposition envoyée ainsi attend l'étiquette `puzzle-approved` de
-Turos14 avant d'être publiée. Les fenêtres « Proposer », « Modif. » et « Suppr. » laissent le choix : **« Envoyer »**
-(relais, sans compte) ou **« Ticket GitHub »** (ticket pré-rempli, compte GitHub nécessaire — une proposition faite
-ainsi est publiée automatiquement si elle est valide, comme avant). Mise en ligne et fonctionnement : voir
-[`relais/README.md`](relais/README.md). Tant
-que l'adresse du relais (`RELAY_URL` dans `public/js/puzzles.js`) est vide, ou si le relais ne répond pas,
-l'appli ouvre un ticket GitHub pré-rempli comme avant.
+propositions / modifications / suppressions envoyées depuis l'appli (sans compte) et crée lui-même les tickets
+(même format, mêmes Actions), puis sert l'**appli admin** de modération (`/admin/`) où chaque demande est approuvée
+ou refusée. Les fenêtres « Proposer », « Modif. » et « Suppr. » n'ont plus que **« Envoyer »** : il n'y a plus de
+ticket GitHub ouvert depuis l'appli. Si le relais ne répond pas, l'appli affiche l'erreur et propose de réessayer
+plus tard. Mise en ligne et fonctionnement : voir [`relais/README.md`](relais/README.md).
 
 ## Pièces
 
@@ -302,7 +299,7 @@ public/js/eloview.js écran « Classement » et stockage du classement (navigate
 public/js/net.js     réseau pair-à-pair, bascule d'hôte
 public/js/memo.js    aide-mémoire : mise en forme, recherche des enchaînements (module pur, testable sous Node)
 public/js/memoview.js écran « Aide-mémoire » et son stockage local (navigateur)
-public/js/puzzles.js écran « Problèmes » (liste publique, résolution, proposition via ticket GitHub)
+public/js/puzzles.js écran « Problèmes » (liste publique, résolution, proposition via le relais)
 public/data/puzzles.json  liste publique des problèmes (modifiée uniquement par l'Action GitHub)
 public/js/           util, clock, board, gameview, pendule, local, online, app
 public/vendor/       PeerJS (MIT) et Stockfish.js 10 (GPL-3.0)
@@ -312,7 +309,7 @@ scripts/puzzle-intake.js  validation + intégration d'un problème proposé (lan
 scripts/puzzle-common.js  lecture/validation des tickets et publication, partagé par intake et edit
 scripts/puzzle-edit.js    modification d'un problème, déclenchée par l'étiquette edit-approved (Action GitHub)
 scripts/puzzle-delete.js  suppression d'un problème, déclenchée par l'étiquette delete-approved (Action GitHub)
-relais/              2e projet (Vercel) : envoi des problèmes sans compte GitHub, voir relais/README.md
+relais/              2e projet (Vercel) : envoi des demandes, appli admin de modération, voir relais/README.md
 .github/workflows/   déploiement GitHub Pages, intégration et suppression des problèmes
 .github/ISSUE_TEMPLATE/puzzle.yml  formulaire du ticket « Proposer un problème »
 .github/ISSUE_TEMPLATE/delete-puzzle.yml  formulaire du ticket « Supprimer un problème »

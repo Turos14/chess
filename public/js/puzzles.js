@@ -1,8 +1,8 @@
 /* Problèmes d'échecs : liste publique partagée (public/data/puzzles.json), ajoutée par n'importe qui via
- * un ticket GitHub (voir .github/ISSUE_TEMPLATE/puzzle.yml et .github/workflows/puzzle-intake.yml). L'appli
- * reste 100 % statique côté client : elle ne fait qu'ouvrir un ticket GitHub pré-rempli, c'est une Action
- * GitHub qui valide (avec ce même moteur chess.js) et publie en committant le JSON — visible de tout le
- * monde après republication du site (~1 min), sans backend à nous.
+ * une demande envoyée au relais (dossier relais/, voir RELAY_URL) : toute proposition, modification ou suppression
+ * passe par lui, jamais par un ticket GitHub ouvert depuis l'appli. Elle est modérée par Turos14 dans l'appli
+ * admin, puis publiée automatiquement par l'Action GitHub (qui revalide avec ce même moteur chess.js et committe
+ * le JSON) — visible de tout le monde après republication du site (~1 min). L'appli reste 100 % statique.
  *
  * Format d'un problème : {id, fen, solution:[coups UCI...], title, author, category, difficulty, description,
  * addedAt, editedAt}. `fen`
@@ -15,11 +15,9 @@
 (function () {
   'use strict';
   var P = {};
-  var REPO = 'https://github.com/Turos14/chess';
   var DESCRIPTION_MAX = 1000;   // même limite que scripts/puzzle-common.js
-  // Relais (dossier relais/ du dépôt, hébergé à part) : permet de proposer / modifier / supprimer un problème sans
-  // compte GitHub. Vide = pas encore en ligne : on ouvre alors un ticket GitHub pré-rempli comme avant (et aussi
-  // si le relais ne répond pas). window.PUZZLE_RELAY permet de le remplacer (tests).
+  // Relais (dossier relais/ du dépôt, hébergé à part) : seul canal pour proposer / modifier / supprimer un problème,
+  // sans compte GitHub, après modération par Turos14. window.PUZZLE_RELAY permet de le remplacer (tests).
   var RELAY_URL = window.PUZZLE_RELAY || 'https://chess-relais.vercel.app/api/submit';
   var DIFFICULTIES = ['facile', 'moyen', 'difficile'];
   var DIFF_LABEL = { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile' };
@@ -575,42 +573,30 @@
   }
 
   /* ---------- Demander la suppression d'un problème ---------- */
-  // Ouvre un ticket GitHub pré-rempli vers le template "delete-puzzle" (voir .github/ISSUE_TEMPLATE/delete-puzzle.yml).
-  // N'importe qui peut l'ouvrir, mais il ne sera traité que si Turos14 ajoute ensuite l'étiquette `delete-approved`
-  // à la main (voir .github/workflows/puzzle-delete.yml) : affiché à tout le monde, le ticket restant sans effet
-  // tant que ce n'est pas fait.
+  // Envoie la demande au relais ; elle n'est traitée que si Turos14 la valide dans l'admin.
   function requestDeletion(p) {
-    var issueTitle = '[Suppression] ' + (p.title || ('Problème #' + p.id));
-    function viaGithub() {
-      window.open(REPO + '/issues/new?template=delete-puzzle.yml'
-        + '&title=' + encodeURIComponent(issueTitle)
-        + '&ids=' + encodeURIComponent(p.id), '_blank');
-    }
-    if (!RELAY_URL) { viaGithub(); return; }
     var node = U.el('div');
     var reasonIn = U.el('input', 'txt'); reasonIn.placeholder = 'Raison (optionnel) : doublon, erreur…'; reasonIn.setAttribute('autocomplete', 'off');
     node.appendChild(reasonIn);
     U.dialog({
       title: 'Demander la suppression',
-      text: '« ' + (p.title || ('Problème #' + p.id)) + ' » ne sera supprimé qu’après validation par Turos14. « Envoyer » : directement, sans compte ; « Ticket GitHub » : ouvre un ticket pré-rempli (compte GitHub nécessaire).',
+      text: '« ' + (p.title || ('Problème #' + p.id)) + ' » ne sera supprimé qu’après validation par Turos14 dans l’administration.',
       node: node,
-      buttons: [{ label: 'Annuler' }, { label: 'Ticket GitHub', fn: viaGithub }, { label: 'Envoyer', primary: true, fn: function () {
-        sendToRelay({ kind: 'delete', ids: p.id, title: p.title || '', reason: reasonIn.value }, viaGithub,
+      buttons: [{ label: 'Annuler' }, { label: 'Envoyer', primary: true, fn: function () {
+        sendToRelay({ kind: 'delete', ids: p.id, title: p.title || '', reason: reasonIn.value },
           'Demande de suppression envoyée. Elle sera appliquée après validation par Turos14.');
       } }]
     });
   }
 
-  // Envoie la demande au relais ; en cas de relais injoignable, retombe sur le ticket GitHub (fallback).
-  function sendToRelay(payload, fallback, okText) {
+  // Envoie la demande au relais ; en cas d'échec, affiche l'erreur (pas d'autre canal : réessayer plus tard).
+  function sendToRelay(payload, okText) {
     U.toast('Envoi…');
     U.ajax('POST', RELAY_URL, payload, function (err, res) {
-      // Bouton (geste de l'utilisateur) plutôt qu'ouverture directe : un window.open après une requête est bloqué
-      // par la plupart des navigateurs mobiles.
       if (err && (err.network || err.status >= 500)) {   // injoignable, ou clé GitHub refusée (502)
         var why = err.status >= 500 ? err.message : 'pas de réponse' + (err.status ? ' (HTTP ' + err.status + ')' : '') + ' — adresse de l’appli : ' + location.origin;
-        U.dialog({ title: 'Relais indisponible', text: 'L’envoi direct n’a pas abouti (' + why + '). Tu peux passer par un ticket GitHub à la place (compte GitHub gratuit nécessaire).',
-          buttons: [{ label: 'Annuler' }, { label: 'Ouvrir GitHub', primary: true, fn: function () { fallback(); } }] });
+        U.dialog({ title: 'Envoi impossible', text: 'L’envoi n’a pas abouti (' + why + '). Ta demande n’a pas été transmise : réessaie un peu plus tard.',
+          buttons: [{ label: 'OK', primary: true }] });
         return;
       }
       if (err) { U.dialog({ title: 'Envoi refusé', text: err.message, buttons: [{ label: 'OK', primary: true }] }); return; }
@@ -619,41 +605,20 @@
   }
 
   /* ---------- Proposer un problème ---------- */
-  // d : {fen, solutionRaw, title, author, category, difficulty, description}. editing : problème modifié (ticket
-  // "edit-puzzle", traité seulement après approbation manuelle — voir .github/workflows/puzzle-edit.yml), sinon
-  // nouvelle proposition (ticket "puzzle").
-  // viaGithub : l'utilisateur a choisi « Ticket GitHub » plutôt que l'envoi direct par le relais.
-  function openGithubIssue(d, editing, viaGithub) {
+  // d : {fen, solutionRaw, title, author, category, difficulty, description}. editing : problème modifié (demande
+  // « edit »), sinon nouvelle proposition (« propose »). Dans les deux cas, modération par Turos14 avant publication.
+  function sendPuzzleRequest(d, editing) {
     var uci = d.solutionRaw.replace(/^\s+|\s+$/g, '').split(/\s+/).join(' ');
-    if (RELAY_URL && !viaGithub) {
-      var payload = { kind: editing ? 'edit' : 'propose', fen: d.fen, solution: uci, title: d.title, category: d.category,
-        difficulty: d.difficulty || '', description: d.description };
-      if (editing) payload.id = editing.id; else payload.author = d.author;
-      sendToRelay(payload, function () { openGithubTicket(d, editing, uci); }, editing
-        ? 'Modification envoyée. Elle sera appliquée après validation par Turos14.'
-        : 'Problème envoyé. Il apparaîtra dans la liste après validation par Turos14.');
-      return;
-    }
-    openGithubTicket(d, editing, uci);
-  }
-
-  function openGithubTicket(d, editing, uci) {
-    var url = REPO + '/issues/new?template=' + (editing ? 'edit-puzzle.yml' : 'puzzle.yml')
-      + '&title=' + encodeURIComponent(editing
-        ? '[Modification] ' + (editing.title || ('Problème #' + editing.id)) + ' (' + editing.id + ')'
-        : '[Problème] ' + (d.title ? d.title : 'sans titre'))
-      + (editing ? '&puzzle_id=' + encodeURIComponent(editing.id) : '&author=' + encodeURIComponent(d.author || ''))
-      + '&fen=' + encodeURIComponent(d.fen)
-      + '&solution=' + encodeURIComponent(uci)
-      + '&puzzle_title=' + encodeURIComponent(d.title || '')
-      + '&category=' + encodeURIComponent(d.category || '')
-      + (d.difficulty ? '&difficulty=' + encodeURIComponent(DIFF_LABEL[d.difficulty]) : '')
-      + (d.description ? '&description=' + encodeURIComponent(d.description) : '');
-    window.open(url, '_blank');
+    var payload = { kind: editing ? 'edit' : 'propose', fen: d.fen, solution: uci, title: d.title, category: d.category,
+      difficulty: d.difficulty || '', description: d.description };
+    if (editing) payload.id = editing.id; else payload.author = d.author;
+    sendToRelay(payload, editing
+      ? 'Modification envoyée. Elle sera appliquée après validation par Turos14.'
+      : 'Problème envoyé. Il apparaîtra dans la liste après validation par Turos14.');
   }
 
   // prefill : {fen, solution:[uci...]} si on vient de l'éditeur visuel (champs FEN/solution masqués, déjà
-  // valides par construction — revérifiés quand même avant d'ouvrir GitHub) ; sinon saisie texte libre.
+  // valides par construction — revérifiés quand même avant l'envoi) ; sinon saisie texte libre.
   // editing : problème existant (bouton « Modif. ») dont les champs pré-remplissent le formulaire.
   function proposeDialog(prefill, editing) {
     var node = U.el('div');
@@ -701,7 +666,7 @@
     node.appendChild(err);
     var buttons = [{ label: 'Annuler' }];
     if (!prefill) buttons.push({ label: 'Éditeur visuel', fn: function (h) { h.close(true); P.openEditor(editing); } });
-    function submit(viaGithub) { return function (h) {
+    function submit(h) {
       var fen = prefill ? prefill.fen : fenIn.value;
       var solRaw = prefill ? prefill.solution.join(' ') : solIn.value;
       var msg = validatePuzzle(fen, solRaw);
@@ -714,20 +679,14 @@
         U.store.set('puzzleCategory', categoryIn.value);
       }
       h.close(true);
-      openGithubIssue({ fen: fen, solutionRaw: solRaw, title: titleIn.value, author: authorIn.value, category: categoryIn.value, difficulty: diffSeg.get(), description: description }, editing, viaGithub);
-    }; }
-    // Avec le relais : deux façons d'envoyer, au choix — directement sans compte, ou par un ticket GitHub.
-    if (RELAY_URL) buttons.push({ label: 'Ticket GitHub', keep: true, fn: submit(true) });
-    buttons.push({ label: RELAY_URL ? 'Envoyer' : 'Continuer sur GitHub', primary: true, keep: true, fn: submit(false) });
+      sendPuzzleRequest({ fen: fen, solutionRaw: solRaw, title: titleIn.value, author: authorIn.value, category: categoryIn.value, difficulty: diffSeg.get(), description: description }, editing);
+    }
+    buttons.push({ label: 'Envoyer', primary: true, keep: true, fn: submit });
     U.dialog({
       title: editing ? 'Modifier le problème' : 'Proposer un problème',
-      text: RELAY_URL
-        ? '« Envoyer » : directement, sans compte' + (editing ? ' ; la modification est appliquée après validation par Turos14.'
-          : ' ; le problème est vérifié puis publié après validation par Turos14.') +
-          ' « Ticket GitHub » : ouvre un ticket pré-rempli sur GitHub (compte GitHub gratuit nécessaire).'
-        : editing
-          ? 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). La modification n’est appliquée qu’après validation manuelle par Turos14.'
-          : 'Ouvre un ticket GitHub pré-rempli (nécessite un compte GitHub gratuit). Une vérification automatique l’ajoute à la liste publique si tout est valide — visible de tout le monde en moins d’une minute.',
+      text: editing
+        ? 'La modification sera appliquée après validation par Turos14 dans l’administration.'
+        : 'Le problème est vérifié automatiquement, puis publié après validation par Turos14 dans l’administration.',
       node: node,
       buttons: buttons,
       vertical: buttons.length > 3

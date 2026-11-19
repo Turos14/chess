@@ -1,16 +1,16 @@
 name: "Problème d'échecs"
 description: "Proposer un problème pour la liste publique du site (visible par tout le monde)"
 title: "[Problème] "
-labels: ["puzzle"]
+labels: ["puzzle-pending"]
 body:
   - type: markdown
     attributes:
       value: |
         Les deux premiers champs sont pré-remplis si tu es arrivé ici via le bouton
-        « Proposer un problème » du site. Une vérification automatique (le même moteur
-        d'échecs que le site) ajoute le problème à la liste publique si tout est valide,
-        et ferme ce ticket — sinon elle laisse un commentaire expliquant l'erreur ; modifie
-        alors ce ticket, il sera revérifié automatiquement.
+        « Proposer un problème » du site. Le problème n'est **pas publié automatiquement** :
+        il est d'abord validé par la modération (Turos14). Une fois validé, une vérification
+        automatique (le même moteur d'échecs que le site) l'ajoute à la liste publique si tout
+        est valide, et ferme ce ticket — sinon elle laisse un commentaire expliquant l'erreur.
   - type: input
     id: fen
     attributes:

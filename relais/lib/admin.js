@@ -75,7 +75,8 @@ function splitFields(body) {
 
 // Étiquettes qui font entrer un ticket dans la file, et celles que l'admin pose à l'approbation.
 var KINDS = [
-  { kind: 'propose', pending: 'puzzle-pending', approved: 'puzzle-approved' },
+  // `legacy` : étiquette des tickets ouverts directement sur GitHub (ancien formulaire, plus traités automatiquement).
+  { kind: 'propose', pending: 'puzzle-pending', legacy: 'puzzle', approved: 'puzzle-approved' },
   { kind: 'edit', pending: 'edit-puzzle', approved: 'edit-approved' },
   { kind: 'delete', pending: 'delete-puzzle', approved: 'delete-approved' }
 ];
@@ -86,7 +87,8 @@ function labelNames(labels) {
 function kindOf(labels) {
   var names = labelNames(labels), i;
   for (i = 0; i < KINDS.length; i++) {
-    if (names.indexOf(KINDS[i].pending) >= 0 && names.indexOf(KINDS[i].approved) < 0) return KINDS[i].kind;
+    if (names.indexOf(KINDS[i].approved) >= 0) continue;
+    if (names.indexOf(KINDS[i].pending) >= 0 || (KINDS[i].legacy && names.indexOf(KINDS[i].legacy) >= 0)) return KINDS[i].kind;
   }
   return null;
 }
@@ -94,6 +96,25 @@ function approvedLabel(kind) {
   var i;
   for (i = 0; i < KINDS.length; i++) if (KINDS[i].kind === kind) return KINDS[i].approved;
   return null;
+}
+
+// Étiquettes à interroger pour remplir la file (étiquettes d'attente, anciennes comprises).
+function queueLabels() {
+  var out = [];
+  KINDS.forEach(function (k) { out.push(k.pending); if (k.legacy) out.push(k.legacy); });
+  return out;
+}
+// Requêtes d'étiquetage de l'approbation, dans l'ordre : un ticket ancien (`puzzle` sans `puzzle-pending`) reçoit
+// d'abord `puzzle-pending` (requête séparée), puis l'étiquette d'approbation, car le workflow exige `puzzle-pending`
+// au moment de l'évènement « labeled » de `puzzle-approved`.
+function approveSteps(kind, labels) {
+  var names = labelNames(labels), steps = [], i;
+  for (i = 0; i < KINDS.length; i++) {
+    if (KINDS[i].kind !== kind) continue;
+    if (names.indexOf(KINDS[i].pending) < 0) steps.push([KINDS[i].pending]);
+    steps.push([KINDS[i].approved]);
+  }
+  return steps;
 }
 
 // Raison d'un refus : une ligne, ≤ 300 caractères, mentions neutralisées (le commentaire est posté avec le jeton).
@@ -106,5 +127,5 @@ function cleanReason(v) {
 module.exports = {
   checkPassword: checkPassword, signSession: signSession, verifySession: verifySession, cookieValue: cookieValue,
   sessionCookie: sessionCookie, clearCookie: clearCookie, splitFields: splitFields, kindOf: kindOf,
-  approvedLabel: approvedLabel, labelNames: labelNames, cleanReason: cleanReason, KINDS: KINDS, COOKIE: COOKIE, SESSION_S: SESSION_S
+  approvedLabel: approvedLabel, queueLabels: queueLabels, approveSteps: approveSteps, labelNames: labelNames, cleanReason: cleanReason, KINDS: KINDS, COOKIE: COOKIE, SESSION_S: SESSION_S
 };

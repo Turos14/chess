@@ -83,14 +83,15 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 - **Navigation** : `app.js` (`App.show`) gère les écrans et transitions ; robuste aux clics rapides, ne pas
   contourner.
 - **Problèmes (puzzles)** : la liste publique `public/data/puzzles.json` est modifiée par les Actions GitHub
-  (et parfois à la main par l'utilisateur). Proposition / modification / suppression via tickets pré-remplis
-  (`.github/ISSUE_TEMPLATE/`), traités par `scripts/puzzle-intake.js`, `puzzle-edit.js`, `puzzle-delete.js`
-  (lecture des champs, revalidation avec `chess.js` et publication partagées dans `scripts/puzzle-common.js` ;
-  commit sur `main` puis déclenchement explicite de `deploy.yml`, car un push fait par `GITHUB_TOKEN` ne relance
-  pas les workflows). Modification et suppression exigent une étiquette posée à la main par Turos14
-  (`edit-approved` / `delete-approved`). Les libellés des champs des templates (`### <Label>` dans le corps du
-  ticket) et les paramètres d'URL de pré-remplissage (`id` des champs) doivent rester synchronisés avec
-  `puzzle-common.js` et `openGithubIssue` dans `puzzles.js`. `category` est un texte ou une liste de textes.
+  (et parfois à la main par l'utilisateur). Proposition / modification / suppression : l'appli envoie **toujours**
+  au relais (plus aucun ticket GitHub ouvert depuis l'appli), qui crée un ticket ; **toute demande est validée dans
+  l'appli admin** (« Approuver » pose `puzzle-approved` / `edit-approved` / `delete-approved`), et seul l'ajout de
+  cette étiquette lance le bot : `scripts/puzzle-intake.js`, `puzzle-edit.js`, `puzzle-delete.js` (lecture des
+  champs, revalidation avec `chess.js` et publication partagées dans `scripts/puzzle-common.js` ; commit sur `main`
+  puis déclenchement explicite de `deploy.yml`, car un push fait par `GITHUB_TOKEN` ne relance pas les workflows).
+  Un ticket ouvert directement avec les templates `.github/ISSUE_TEMPLATE/` suit la même file (`puzzle-pending`).
+  Les libellés des champs (`### <Label>` dans le corps du ticket) doivent rester synchronisés entre les templates,
+  `relais/lib/ticket.js` et `puzzle-common.js`. `category` est un texte ou une liste de textes.
 - **Relais (`relais/`)** : 2e projet, fonction Vercel qui crée les tickets à la place des visiteurs sans compte
   GitHub (`lib/ticket.js` produit le même corps de ticket que les templates — `test/relais.test.js` vérifie qu'il
   est relu par `puzzle-common.js`). Ses propositions portent `puzzle-pending` et ne sont publiées qu'à l'ajout de
@@ -101,7 +102,7 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   autorisées côté client et serveur (`statsdata.js` ↔ `lib/stats.js`, `livedata.js` ↔ `lib/live.js`) doivent rester
   identiques : `test/statscross.test.js` et `test/livecross.test.js` le vérifient. Node 18+ (pas la contrainte ES5),
   toujours sans dépendance npm. Côté appli, `RELAY_URL` en tête de `puzzles.js` (surchargeable par
-  `window.PUZZLE_RELAY` ; vide = tickets GitHub comme avant). Le relais n'est pas publié par `deploy.yml` mais
+  `window.PUZZLE_RELAY`). Le relais n'est pas publié par `deploy.yml` mais
   Vercel suit `main` : un push sur `main` le met aussi en production ; c'est le seul code hors `public/` exécuté
   en production. Configuration Vercel (variables, Redis) : `relais/README.md`. Les ids sont
   `gh-<n° de ticket>` (et `seed-N` pour les problèmes de départ). `test/puzzles.test.js` valide ce fichier :

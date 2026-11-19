@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-/* Lancé par .github/workflows/puzzle-intake.yml à chaque ouverture/modification d'un ticket "puzzle" :
- * relit le corps du ticket (formulaire GitHub), valide la FEN et la solution avec le vrai moteur
+/* Lancé par .github/workflows/puzzle-intake.yml quand l'admin du relais (validation manuelle)
+ * ajoute l'étiquette "puzzle-approved" à un ticket "puzzle-pending" : relit le corps du ticket (formulaire GitHub), valide la FEN et la solution avec le vrai moteur
  * d'échecs (public/js/chess.js, le même que le site), puis :
  *  - si valide : ajoute/met à jour le problème dans public/data/puzzles.json, commit + push (republie
  *    le site via le workflow de déploiement Pages), commente et ferme le ticket ;
- *  - sinon : commente l'erreur et laisse le ticket ouvert (une modification du ticket relance ce script).
+ *  - sinon : commente l'erreur et laisse le ticket ouvert (après correction, retirer puis remettre `puzzle-approved` relance ce script).
  * Utilise `gh` (préinstallé sur les runners GitHub, authentifié via GH_TOKEN) pour commenter/fermer.
  * Lecture/validation des champs et publication : scripts/puzzle-common.js (partagé avec puzzle-edit.js). */
 'use strict';
@@ -16,8 +16,8 @@ var login = process.env.ISSUE_LOGIN || 'quelqu’un';
 
 var read = C.readPuzzleFields(body);
 if (read.error) {
-  C.comment(issueNumber, '❌ ' + read.error + '\n\nModifie ce ticket (le champ en cause) : il sera revérifié automatiquement à l’enregistrement' +
-    ' (pour une proposition envoyée depuis l’appli, étiquette `puzzle-pending` : retirer puis remettre `puzzle-approved`).');
+  C.comment(issueNumber, '❌ ' + read.error + '\n\nModifie ce ticket (le champ en cause) : puis retire et remets l’étiquette `puzzle-approved`' +
+    ' (le ticket est revérifié à chaque nouvelle approbation, pas à la simple modification).');
   console.log('Rejeté : ' + read.error);
   process.exit(0);
 }
