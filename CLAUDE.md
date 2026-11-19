@@ -32,7 +32,7 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 
 ## Architecture
 
-- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js`, `analysis.js`, `multichess.js`, `multiroom.js`, `chat.js`, `statsdata.js` utilisent un
+- **Modules purs vs modules navigateur.** `chess.js`, `room.js`, `elo.js`, `engineStrength.js`, `memo.js`, `analysis.js`, `multichess.js`, `multiroom.js`, `chat.js`, `statsdata.js`, `livedata.js` utilisent un
   wrapper UMD `(function (root, factory) {…})` : sans DOM, chargeables sous Node (`require`) et testés dans
   `test/`. Tous les autres fichiers de `public/js/` sont des IIFE qui posent un global sur `window`
   (`U`, `Board`, `GameView`, `Local`, `Online`, `AI`, `Rec`, `EloView`, `Puzzles`, `App`…) et dépendent de
@@ -95,7 +95,11 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   GitHub (`lib/ticket.js` produit le même corps de ticket que les templates — `test/relais.test.js` vérifie qu'il
   est relu par `puzzle-common.js`). Ses propositions portent `puzzle-pending` et ne sont publiées qu'à l'ajout de
   `puzzle-approved`. Limites d'envois dans `lib/limit.js` (Upstash Redis via son API REST, repli en mémoire ;
-  `fetch`, horloge et mémoire injectables pour `test/relaislimit.test.js`). Node 18+ (pas la contrainte ES5),
+  `fetch`, horloge et mémoire injectables pour `test/relaislimit.test.js`). Le relais porte aussi `api/stats.js`,
+  `api/live.js` et `api/admin.js` (une seule fonction, `?a=<action>`, session par cookie HMAC, mot de passe
+  `ADMIN_PASSWORD`) servant la page admin PWA `relais/admin/` ; Redis est partagé via `lib/redis.js`. Les listes
+  autorisées côté client et serveur (`statsdata.js` ↔ `lib/stats.js`, `livedata.js` ↔ `lib/live.js`) doivent rester
+  identiques : `test/statscross.test.js` et `test/livecross.test.js` le vérifient. Node 18+ (pas la contrainte ES5),
   toujours sans dépendance npm. Côté appli, `RELAY_URL` en tête de `puzzles.js` (surchargeable par
   `window.PUZZLE_RELAY` ; vide = tickets GitHub comme avant). Le relais n'est pas publié par `deploy.yml` mais
   Vercel suit `main` : un push sur `main` le met aussi en production ; c'est le seul code hors `public/` exécuté
