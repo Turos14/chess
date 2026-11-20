@@ -576,21 +576,5 @@
     "description": null,
     "addedAt": 1793119727014,
     "editedAt": 1795175276722
-  },
-  {
-    "id": "gh-138",
-    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    "solution": [
-      "d2d4",
-      "d7d5",
-      "g1f3",
-      "g8f6"
-    ],
-    "title": "test",
-    "author": "arthur",
-    "category": "supr",
-    "difficulty": null,
-    "description": null,
-    "addedAt": 1795175223042
   }
 ]
