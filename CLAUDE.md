@@ -85,8 +85,9 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
 - **Problèmes (puzzles)** : la liste publique `public/data/puzzles.json` est modifiée par les Actions GitHub
   (et parfois à la main par l'utilisateur). Proposition / modification / suppression : l'appli envoie **toujours**
   au relais (plus aucun ticket GitHub ouvert depuis l'appli), qui crée un ticket ; **toute demande est validée dans
-  l'appli admin** (« Approuver » pose `puzzle-approved` / `edit-approved` / `delete-approved`), et seul l'ajout de
-  cette étiquette lance le bot : `scripts/puzzle-intake.js`, `puzzle-edit.js`, `puzzle-delete.js` (lecture des
+  l'appli admin** : « Approuver » poste un commentaire `<!-- admin-approve:<type> -->` (la clé du relais ne peut pas poser
+  d'étiquettes, GitHub les ignore), que les workflows n'acceptent que de Turos14 ; l'étiquette `*-approved` posée à la main
+  marche aussi. Seule l'approbation lance le bot : `scripts/puzzle-intake.js`, `puzzle-edit.js`, `puzzle-delete.js` (lecture des
   champs, revalidation avec `chess.js` et publication partagées dans `scripts/puzzle-common.js` ; commit sur `main`
   puis déclenchement explicite de `deploy.yml`, car un push fait par `GITHUB_TOKEN` ne relance pas les workflows).
   Un ticket ouvert directement avec les templates `.github/ISSUE_TEMPLATE/` suit la même file (`puzzle-pending`).

@@ -102,12 +102,10 @@ assert.strictEqual(adminLib.kindOf([], '\u200B[Modification] X (gh-1)'), 'edit')
 assert.strictEqual(adminLib.kindOf(null, '[Suppression] X'), 'delete');
 assert.strictEqual(adminLib.kindOf(['puzzle-approved'], '[Problème] Test'), null);
 assert.strictEqual(adminLib.kindOf([], 'Bug dans la pendule'), null);
-assert.deepStrictEqual(adminLib.approveSteps('propose', []), [['puzzle-pending'], ['puzzle-approved']]);
-assert.deepStrictEqual(adminLib.approveSteps('delete', []), [['delete-puzzle'], ['delete-approved']]);
+['propose', 'edit', 'delete'].forEach(function (k) {
+  assert.ok(adminLib.approveComment(k).indexOf('<!-- admin-approve:' + k + ' -->') >= 0);
+});
 assert.deepStrictEqual(adminLib.queueLabels(), ['puzzle-pending', 'puzzle', 'edit-puzzle', 'delete-puzzle']);
-assert.deepStrictEqual(adminLib.approveSteps('propose', ['puzzle']), [['puzzle-pending'], ['puzzle-approved']]);
-assert.deepStrictEqual(adminLib.approveSteps('propose', ['puzzle', 'puzzle-pending']), [['puzzle-approved']]);
-assert.deepStrictEqual(adminLib.approveSteps('edit', ['edit-puzzle']), [['edit-approved']]);
 var cr = adminLib.cleanReason('  ligne 1\n\n### titre @Turos14 #12\t' + new Array(400).join('x'));
 assert(cr.length <= 300 && !/\n/.test(cr) && cr.indexOf('@' + Z) >= 0 && cr.indexOf('###') < 0);
 
@@ -187,18 +185,18 @@ assert(cr.length <= 300 && !/\n/.test(cr) && cr.indexOf('@' + Z) >= 0 && cr.inde
   assert(JSON.stringify(r.json).indexOf(Z) < 0);
   assert(gh.calls.every(function (c) { return c.auth === 'Bearer tok' && c.method === 'GET'; }));
 
-  // Approve : étiquette adaptée au type ; refus si fermé, déjà approuvé, mauvais type, PR, inconnu, numéro invalide.
+  // Approve : commentaire avec le marqueur du type ; refus si fermé, déjà approuvé (étiquette), mauvais type, PR, inconnu, numéro invalide.
   gh.calls.length = 0;
   r = await run(h, req('approve', 'POST', { cookie: cookie, body: { number: 1 } }));
   assert.strictEqual(r.status, 200);
   var lab = gh.calls.filter(function (c) { return c.method === 'POST'; });
-  assert.strictEqual(lab.length, 1); assert.strictEqual(lab[0].path, '/issues/1/labels'); assert.deepStrictEqual(lab[0].body, { labels: ['puzzle-approved'] });
+  assert.strictEqual(lab.length, 1); assert.strictEqual(lab[0].path, '/issues/1/comments');
+  assert.ok(lab[0].body.body.indexOf('<!-- admin-approve:propose -->') >= 0);
   r = await run(h, req('approve', 'POST', { cookie: cookie, body: { number: 2 } }));
-  assert.deepStrictEqual(gh.calls[gh.calls.length - 1].body, { labels: ['edit-approved'] });
+  assert.ok(gh.calls[gh.calls.length - 1].body.body.indexOf('<!-- admin-approve:edit -->') >= 0);
   r = await run(h, req('approve', 'POST', { cookie: cookie, body: { number: 6 } }));
-  assert.deepStrictEqual(gh.calls[gh.calls.length - 1].body, { labels: ['delete-approved'] });
+  assert.ok(gh.calls[gh.calls.length - 1].body.body.indexOf('<!-- admin-approve:delete -->') >= 0);
   var n = gh.calls.length;
-  assert.strictEqual((await run(h, req('approve', 'POST', { cookie: cookie, body: { number: 1 } }))).status, 409);   // déjà approuvé
   assert.strictEqual((await run(h, req('approve', 'POST', { cookie: cookie, body: { number: 7 } }))).status, 409);   // fermé
   assert.strictEqual((await run(h, req('approve', 'POST', { cookie: cookie, body: { number: 5 } }))).status, 409);   // mauvais type
   assert.strictEqual((await run(h, req('approve', 'POST', { cookie: cookie, body: { number: 4 } }))).status, 400);   // PR

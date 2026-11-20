@@ -9,7 +9,7 @@ existantes (`scripts/puzzle-*.js`) les traitent sans changement.
 - `lib/ticket.js` : vérification de la demande et construction du ticket (testé par `test/relais.test.js`).
 - Toute publication passe par une **validation manuelle dans l'admin** (seul chemin de validation ; la file contient
   aussi les tickets ouverts directement sur GitHub, y compris d'anciens tickets `puzzle` sans `puzzle-pending`) ; l'admin
-  pose l'étiquette d'approbation, ce qui déclenche le bot (Actions GitHub) :
+  poste un commentaire d'approbation (marqueur caché), ce qui déclenche le bot (Actions GitHub) :
   - proposition → étiquette `puzzle-pending` (ou ancienne `puzzle`) ; **`puzzle-approved`** pour la publier ;
   - modification → `edit-puzzle` ; ajouter **`edit-approved`** ;
   - suppression → `delete-puzzle` ; ajouter **`delete-approved`**.
@@ -125,8 +125,8 @@ soit celle du site (protection CSRF). Réponses JSON `{ ok: true, … }` ou `{ e
 | POST | `login` | `{ password }` : ouvre la session (401 faux, 429 trop d'essais, 503 admin non configuré) |
 | POST | `logout` | ferme la session |
 | GET | `me` | vérifie la session |
-| GET | `queue` | tickets ouverts en attente (`puzzle-pending` ou ancienne `puzzle`, `edit-puzzle`, `delete-puzzle` sans l'étiquette d'approbation), découpés en champs ; les PR sont exclues |
-| POST | `approve` | `{ number }` : pose `puzzle-approved` / `edit-approved` / `delete-approved` (un ancien ticket `puzzle` reçoit d'abord `puzzle-pending`, en requête séparée, car le workflow l'exige) |
+| GET | `queue` | tickets ouverts en attente (`puzzle-pending` ou ancienne `puzzle`, `edit-puzzle`, `delete-puzzle` sans l'étiquette d'approbation, ou sans étiquette mais titré `[Problème]` / `[Modification]` / `[Suppression]`), découpés en champs ; les PR sont exclues |
+| POST | `approve` | `{ number }` : commente le ticket avec le marqueur caché `<!-- admin-approve:propose|edit|delete -->` ; les workflows des problèmes s'en déclenchent (événement `issue_comment`), seulement si le commentaire vient de Turos14 (`OWNER`). Pas d'étiquette : la clé fine-grained du relais ne peut pas en poser (GitHub les ignore). Les étiquettes `*-approved` posées à la main sur GitHub marchent toujours. |
 | POST | `refuse` | `{ number, reason }` : commente « Refusé par la modération : … » puis ferme le ticket (non planifié) |
 | GET | `stats` | `from`, `to` (AAAA-MM-JJ, 400 jours maximum, défaut 30 derniers jours) : compteurs par jour |
 | GET | `live` | parties en direct : `{ now, games: [{ gid, m, var, sf?, teams?, mv, tc?, end?, startedAt, updatedAt }] }` (200 plus récentes ; en cours < 15 min, terminées < 1 h) |

@@ -3,6 +3,8 @@ name: Modification d'un problème (via Issue)
 on:
   issues:
     types: [labeled]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: write
@@ -20,7 +22,13 @@ jobs:
     # la modification. Volontairement limité à l'évènement "labeled" de cette étiquette (pas "edited") : le contenu
     # du ticket ne peut donc pas être changé après approbation sans une nouvelle approbation (retirer puis
     # remettre l'étiquette).
-    if: github.event.label.name == 'edit-approved' && contains(github.event.issue.labels.*.name, 'edit-puzzle')
+    # Deuxième déclencheur : « Approuver » dans l'admin du relais poste un commentaire avec un marqueur caché
+    # (la clé du relais ne peut pas poser d'étiquettes). Accepté seulement s'il vient de Turos14 (propriétaire).
+    if: >-
+      (github.event_name == 'issues' && github.event.label.name == 'edit-approved' && contains(github.event.issue.labels.*.name, 'edit-puzzle')) ||
+      (github.event_name == 'issue_comment' && !github.event.issue.pull_request && github.event.issue.state == 'open' &&
+       github.event.comment.user.login == 'Turos14' && github.event.comment.author_association == 'OWNER' &&
+       contains(github.event.comment.body, '<!-- admin-approve:edit -->'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -3,6 +3,8 @@ name: Suppression d'un problème (via Issue)
 on:
   issues:
     types: [opened, edited, labeled]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: write
@@ -19,7 +21,13 @@ jobs:
     # pas : il faut aussi "delete-approved", ajoutée à la main par Turos14 depuis l'interface GitHub une fois la
     # demande vérifiée. Tant que cette 2e étiquette manque, ce job ne tourne jamais (ni à l'ouverture, ni à une
     # modification) — c'est elle qui déclenche réellement le traitement (événement "labeled").
-    if: contains(github.event.issue.labels.*.name, 'delete-puzzle') && contains(github.event.issue.labels.*.name, 'delete-approved')
+    # Deuxième déclencheur : « Approuver » dans l'admin du relais poste un commentaire avec un marqueur caché
+    # (la clé du relais ne peut pas poser d'étiquettes). Accepté seulement s'il vient de Turos14 (propriétaire).
+    if: >-
+      (github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'delete-puzzle') && contains(github.event.issue.labels.*.name, 'delete-approved')) ||
+      (github.event_name == 'issue_comment' && !github.event.issue.pull_request && github.event.issue.state == 'open' &&
+       github.event.comment.user.login == 'Turos14' && github.event.comment.author_association == 'OWNER' &&
+       contains(github.event.comment.body, '<!-- admin-approve:delete -->'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

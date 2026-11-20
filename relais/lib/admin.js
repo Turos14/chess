@@ -115,17 +115,10 @@ function queueLabels() {
   KINDS.forEach(function (k) { out.push(k.pending); if (k.legacy) out.push(k.legacy); });
   return out;
 }
-// Requêtes d'étiquetage de l'approbation, dans l'ordre : un ticket ancien (`puzzle` sans `puzzle-pending`) reçoit
-// d'abord `puzzle-pending` (requête séparée), puis l'étiquette d'approbation, car le workflow exige `puzzle-pending`
-// au moment de l'évènement « labeled » de `puzzle-approved`.
-function approveSteps(kind, labels) {
-  var names = labelNames(labels), steps = [], i;
-  for (i = 0; i < KINDS.length; i++) {
-    if (KINDS[i].kind !== kind) continue;
-    if (names.indexOf(KINDS[i].pending) < 0) steps.push([KINDS[i].pending]);
-    steps.push([KINDS[i].approved]);
-  }
-  return steps;
+// Commentaire posté par « Approuver » : le marqueur caché `<!-- admin-approve:<type> -->` déclenche le workflow du
+// type (puzzle-intake / puzzle-edit / puzzle-delete), qui vérifie aussi que l'auteur est Turos14.
+function approveComment(kind) {
+  return 'Approuvé par la modération : le bot publie la demande dans quelques minutes.\n\n<!-- admin-approve:' + kind + ' -->';
 }
 
 // Raison d'un refus : une ligne, ≤ 300 caractères, mentions neutralisées (le commentaire est posté avec le jeton).
@@ -138,5 +131,5 @@ function cleanReason(v) {
 module.exports = {
   checkPassword: checkPassword, signSession: signSession, verifySession: verifySession, cookieValue: cookieValue,
   sessionCookie: sessionCookie, clearCookie: clearCookie, splitFields: splitFields, kindOf: kindOf, kindOfTitle: kindOfTitle,
-  approvedLabel: approvedLabel, queueLabels: queueLabels, approveSteps: approveSteps, labelNames: labelNames, cleanReason: cleanReason, KINDS: KINDS, COOKIE: COOKIE, SESSION_S: SESSION_S
+  approvedLabel: approvedLabel, queueLabels: queueLabels, approveComment: approveComment, labelNames: labelNames, cleanReason: cleanReason, KINDS: KINDS, COOKIE: COOKIE, SESSION_S: SESSION_S
 };

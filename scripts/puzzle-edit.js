@@ -12,7 +12,7 @@ var issueNumber = process.env.ISSUE_NUMBER;
 var body = process.env.ISSUE_BODY || '';
 
 function fail(msg) {
-  C.comment(issueNumber, '❌ ' + msg + '\n\nCorrige ce ticket, puis retire et remets l’étiquette `edit-approved` pour relancer la modification.');
+  C.comment(issueNumber, '❌ ' + msg + '\n\nCorrige ce ticket, puis approuve de nouveau la demande dans l’admin (ou retire et remets l’étiquette `edit-approved`).');
   console.log('Rejeté : ' + msg);
   process.exit(0);
 }

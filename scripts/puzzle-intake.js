@@ -16,7 +16,7 @@ var login = process.env.ISSUE_LOGIN || 'quelqu’un';
 
 var read = C.readPuzzleFields(body);
 if (read.error) {
-  C.comment(issueNumber, '❌ ' + read.error + '\n\nModifie ce ticket (le champ en cause) : puis retire et remets l’étiquette `puzzle-approved`' +
+  C.comment(issueNumber, '❌ ' + read.error + '\n\nModifie ce ticket (le champ en cause) : puis approuve de nouveau la demande dans l’admin (ou retire et remets l’étiquette `puzzle-approved`)' +
     ' (le ticket est revérifié à chaque nouvelle approbation, pas à la simple modification).');
   console.log('Rejeté : ' + read.error);
   process.exit(0);

@@ -197,8 +197,8 @@ Le flux :
    (même format que `.github/ISSUE_TEMPLATE/puzzle.yml` ; un ticket ouvert directement sur GitHub avec ce
    formulaire reçoit la même étiquette et suit le même chemin). Aucun compte n'est demandé.
 2. La demande apparaît dans la file de l'**appli admin** (`relais/admin/`), avec l'échiquier et la solution
-   rejouable. « Approuver » pose l'étiquette `puzzle-approved` ; « Refuser » commente et ferme le ticket.
-3. L'ajout de `puzzle-approved` lance l'Action `.github/workflows/puzzle-intake.yml`, qui exécute
+   rejouable. « Approuver » poste un commentaire d'approbation (marqueur caché `<!-- admin-approve:propose -->`, accepté seulement de Turos14) ; « Refuser » commente et ferme le ticket.
+3. L'approbation (ce commentaire, ou l'étiquette `puzzle-approved` posée à la main) lance `.github/workflows/puzzle-intake.yml`, qui exécute
    `scripts/puzzle-intake.js` (Node) : relit le corps du ticket, **revalide** la FEN et chaque coup de la
    solution avec `public/js/chess.js` (ne fait jamais confiance au client).
 4. Si c'est valide : ajoute/maj le problème dans `public/data/puzzles.json` (id préfixé `gh-<numéro de ticket>`,
@@ -227,7 +227,7 @@ seule la modération peut poser (depuis l'appli admin).
    la fois (séparés par des espaces).
 2. Ce ticket **ne déclenche rien tout seul**. `.github/workflows/puzzle-delete.yml` ne lance
    `scripts/puzzle-delete.js` que si le ticket porte **à la fois** `delete-puzzle` **et** `delete-approved` — la
-   2ᵉ étiquette est posée par « Approuver » dans l'appli admin ; poser cette étiquette déclenche l'Action
+   « Approuver » dans l'appli admin poste à la place un commentaire d'approbation, qui déclenche aussi l'Action
    (événement `labeled`).
 3. Une fois approuvé : retire le(s) identifiant(s) demandé(s) de `public/data/puzzles.json`, commit + push sur
    `main` (et déclenche le déploiement Pages, comme pour l'ajout), commente le résultat (supprimés / introuvables)
@@ -242,7 +242,7 @@ Même principe que la suppression : n'importe qui peut demander, la modération 
    description. « Envoyer » crée par le relais un ticket `edit-puzzle` (`.github/ISSUE_TEMPLATE/edit-puzzle.yml`)
    qui décrit le problème **tel qu'il doit devenir** : un champ optionnel vidé est effacé.
 2. Ce ticket **ne déclenche rien tout seul**. `.github/workflows/puzzle-edit.yml` ne lance `scripts/puzzle-edit.js`
-   qu'au moment où l'admin **ajoute l'étiquette `edit-approved`** (« Approuver ») (évènement `labeled` uniquement : modifier le
+   qu'au moment de l'approbation (commentaire « Approuver » de l'admin, ou étiquette `edit-approved` posée à la main) (évènement `labeled` uniquement : modifier le
    ticket après approbation ne relance rien, il faut retirer puis remettre l'étiquette).
 3. Le script revérifie FEN et solution avec `public/js/chess.js`, remplace le problème dans
    `public/data/puzzles.json` (l'id, l'auteur et la date d'ajout sont conservés, `editedAt` est ajouté), commit +

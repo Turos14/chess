@@ -3,6 +3,8 @@ name: Ajout d'un problème (via Issue)
 on:
   issues:
     types: [labeled]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: write
@@ -19,9 +21,13 @@ jobs:
     # "puzzle-approved" sur un ticket "puzzle-pending" (qu'il vienne du relais ou d'un ticket ouvert sur GitHub).
     # Traitée seulement sur cet évènement "labeled" : le ticket ne peut pas être changé après approbation sans
     # nouvelle approbation. Plus de traitement à l'ouverture ni à la modification.
+    # Deuxième déclencheur : « Approuver » dans l'admin du relais poste un commentaire avec un marqueur caché
+    # (la clé du relais ne peut pas poser d'étiquettes). Accepté seulement s'il vient de Turos14 (propriétaire).
     if: >-
-      github.event.label.name == 'puzzle-approved' &&
-      contains(github.event.issue.labels.*.name, 'puzzle-pending')
+      (github.event_name == 'issues' && github.event.label.name == 'puzzle-approved' && contains(github.event.issue.labels.*.name, 'puzzle-pending')) ||
+      (github.event_name == 'issue_comment' && !github.event.issue.pull_request && github.event.issue.state == 'open' &&
+       github.event.comment.user.login == 'Turos14' && github.event.comment.author_association == 'OWNER' &&
+       contains(github.event.comment.body, '<!-- admin-approve:propose -->'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

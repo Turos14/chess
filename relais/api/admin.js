@@ -224,16 +224,14 @@ function create(deps) {
       if (p.error) return send(res, p.error[0], { error: p.error[1] });
       var n = body.number;
       if (action === 'approve') {
-        var steps = admin.approveSteps(p.kind, p.issue.labels);
-        for (var si = 0; si < steps.length; si++) {
-          var lr = await gh('/issues/' + n + '/labels', 'POST', { labels: steps[si] });
-          if (!lr.ok) {
-            var why = '';
-            try { why = (await lr.json()).message || ''; } catch (e) { /* ignore */ }
-            console.error('Étiquette refusée sur #' + n, lr.status, why);
-            return send(res, 502, { error: 'GitHub a refusé d’ajouter l’étiquette ' + steps[si].join(', ') + ' (HTTP ' + lr.status +
-              (why ? ' : ' + why : '') + '). Vérifier les droits de la clé GITHUB_TOKEN (Issues : Read and write) dans Vercel.' });
-          }
+        // Approbation par commentaire (la clé du relais ne peut pas poser d'étiquettes) : les workflows des problèmes
+        // réagissent à ce marqueur, seulement s'il est écrit par Turos14 (propriétaire de la clé), voir .github/workflows/.
+        var cr = await gh('/issues/' + n + '/comments', 'POST', { body: admin.approveComment(p.kind) });
+        if (!cr.ok) {
+          var why = '';
+          try { why = (await cr.json()).message || ''; } catch (e) { /* ignore */ }
+          console.error('Commentaire d’approbation refusé sur #' + n, cr.status, why);
+          return send(res, 502, { error: 'GitHub a refusé le commentaire d’approbation (HTTP ' + cr.status + (why ? ' : ' + why : '') + ').' });
         }
         await journal({ action: 'approve', number: n, kind: p.kind });
         return send(res, 200, { ok: true });
