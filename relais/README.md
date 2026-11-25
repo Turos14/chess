@@ -111,10 +111,20 @@ service worker** : la page affiche des données de modération, rien n'est gard�
 
 Variables d'environnement :
 
-- **`ADMIN_PASSWORD`** : **obligatoire pour activer l'admin** (sans elle, l'API répond 503). Mot de passe long et
-  unique, jamais réutilisé ailleurs. Changer le mot de passe déconnecte toutes les sessions.
+- **`ADMIN_PASSWORD`** : **obligatoire pour activer l'admin** (sans elle, l'API répond 503). C'est le mot de passe du
+  compte **`admin`**. Mot de passe long et unique, jamais réutilisé ailleurs. Changer le mot de passe déconnecte toutes
+  les sessions (tous comptes, si `ADMIN_SESSION_SECRET` n'est pas défini).
 - `ADMIN_SESSION_SECRET` (facultatif) : clé de signature des sessions ; sinon dérivée du mot de passe.
 - `STATS_MAX_PER_DAY` et `LIVE_MAX_PER_DAY` (voir plus haut), `GITHUB_TOKEN` et `GITHUB_REPO` comme pour `/api/submit`.
+
+**Comptes** (`lib/accounts.js`) : le compte `admin` (mot de passe `ADMIN_PASSWORD`) a tous les droits et est **le seul
+à pouvoir créer, modifier et supprimer les autres comptes** (onglet « Comptes »). Chaque autre compte a un identifiant
+(2 à 32 caractères `a-z 0-9 _ . -`), un mot de passe (10 caractères minimum, haché scrypt + sel, jamais renvoyé) et des
+droits, un par onglet : `mod` (Modération : file, approuver, refuser), `live` (En direct), `stats` (Statistiques),
+`log` (Journal). Stockage : hash Redis `admin:users` (**Redis obligatoire** pour les comptes ; sans lui, seul `admin`
+existe). Les droits sont relus à chaque requête : une modification s'applique tout de suite ; un nouveau mot de passe ou
+une suppression invalide les sessions ouvertes du compte. Connexion avec un identifiant vide = `admin`. Le journal
+indique l'auteur de chaque action (`by`).
 
 Session : cookie `admin_session` signé (HMAC-SHA256), `HttpOnly; Secure; SameSite=Strict`, valable 2 h. Connexion
 limitée à 5 essais / 15 min par adresse. Tout `POST` exige l'en-tête `X-Admin: 1` et, si `Origin` est présent, qu'elle
@@ -122,15 +132,18 @@ soit celle du site (protection CSRF). Réponses JSON `{ ok: true, … }` ou `{ e
 
 | Méthode | `a=` | Rôle |
 |---|---|---|
-| POST | `login` | `{ password }` : ouvre la session (401 faux, 429 trop d'essais, 503 admin non configuré) |
+| POST | `login` | `{ user, password }` : ouvre la session et renvoie `{ user, root, perms }` (401 faux, 429 trop d'essais, 503 admin non configuré) |
 | POST | `logout` | ferme la session |
-| GET | `me` | vérifie la session |
+| GET | `me` | vérifie la session : `{ user, root, perms }` |
+| GET | `users` | *admin seul* : comptes `{ name, perms, createdAt, updatedAt }` |
+| POST | `user_save` | *admin seul* : `{ create: true, name, password, perms }` crée (409 s'il existe) ; `{ name, perms, password? }` modifie |
+| POST | `user_delete` | *admin seul* : `{ name }` supprime (`admin` ne se supprime pas) |
 | GET | `queue` | tickets ouverts en attente (`puzzle-pending` ou ancienne `puzzle`, `edit-puzzle`, `delete-puzzle` sans l'étiquette d'approbation, ou sans étiquette mais titré `[Problème]` / `[Modification]` / `[Suppression]`), découpés en champs ; les PR sont exclues |
 | POST | `approve` | `{ number }` : commente le ticket avec le marqueur caché `<!-- admin-approve:propose|edit|delete -->` ; les workflows des problèmes s'en déclenchent (événement `issue_comment`), seulement si le commentaire vient de Turos14 (`OWNER`). Pas d'étiquette : la clé fine-grained du relais ne peut pas en poser (GitHub les ignore). Les étiquettes `*-approved` posées à la main sur GitHub marchent toujours. |
 | POST | `refuse` | `{ number, reason }` : commente « Refusé par la modération : … » puis ferme le ticket (non planifié) |
 | GET | `stats` | `from`, `to` (AAAA-MM-JJ, 400 jours maximum, défaut 30 derniers jours) : compteurs par jour |
 | GET | `live` | parties en direct : `{ now, games: [{ gid, m, var, sf?, teams?, mv, tc?, end?, startedAt, updatedAt }] }` (200 plus récentes ; en cours < 15 min, terminées < 1 h) |
-| GET | `log` | 100 dernières actions du journal (`admin:log`, Redis, 500 conservées, **sans adresse IP**) |
+| GET | `log` | 100 dernières actions du journal (avec l'auteur `by`) (`admin:log`, Redis, 500 conservées, **sans adresse IP**) |
 
 **L'admin ne fait que poser des étiquettes** (ou refuser et fermer) : la publication d'un problème reste faite par les
 Actions GitHub existantes, comme avec une étiquette posée à la main. Aucun accès au code ni aux fichiers du dépôt.

@@ -100,7 +100,8 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   `puzzle-approved`. Limites d'envois dans `lib/limit.js` (Upstash Redis via son API REST, repli en mémoire ;
   `fetch`, horloge et mémoire injectables pour `test/relaislimit.test.js`). Le relais porte aussi `api/stats.js`,
   `api/live.js` et `api/admin.js` (une seule fonction, `?a=<action>`, session par cookie HMAC, mot de passe
-  `ADMIN_PASSWORD`) servant la page admin PWA `relais/admin/` (servie sous `/admin/` ; manifeste et icônes vérifiés
+  `ADMIN_PASSWORD` du compte `admin`, seul à gérer les autres comptes et leurs droits par onglet : `lib/accounts.js`,
+  hash Redis `admin:users`, droits relus à chaque requête) servant la page admin PWA `relais/admin/` (servie sous `/admin/` ; manifeste et icônes vérifiés
   par `test/adminpwa.test.js`) ; Redis est partagé via `lib/redis.js`. Les listes
   autorisées côté client et serveur (`statsdata.js` ↔ `lib/stats.js`, `livedata.js` ↔ `lib/live.js`) doivent rester
   identiques : `test/statscross.test.js` et `test/livecross.test.js` le vérifient. Node 18+ (pas la contrainte ES5),

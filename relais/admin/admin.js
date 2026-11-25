@@ -54,22 +54,40 @@
   }
 
   // ---------- connexion ----------
-  var loaded = { mod: false, live: false, stats: false, log: false };
+  var TABS = ['mod', 'live', 'stats', 'log', 'users'];
+  var PERM_LABEL = { mod: 'Modération', live: 'En direct', stats: 'Statistiques', log: 'Journal' };
+  var PERMS = ['mod', 'live', 'stats', 'log'];
+  var loaded = {};
+  var me = null;   // { user, root, perms } renvoyé par login / me
+
+  // Onglet permis au compte connecté (« Comptes » : compte admin seulement).
+  function allowed(t) {
+    if (!me) return false;
+    if (t === 'users') return !!me.root;
+    return !!me.root || (me.perms || []).indexOf(t) >= 0;
+  }
 
   function showLogin(msg) {
+    me = null;
     $('app').classList.add('hidden');
     $('login').classList.remove('hidden');
     $('pw').value = '';
     $('loginError').textContent = msg || '';
-    loaded = { mod: false, live: false, stats: false, log: false };
+    loaded = {};
     if (typeof resetLive === 'function') resetLive();
-    clear($('queue')); clear($('stats')); clear($('log'));
+    clear($('queue')); clear($('stats')); clear($('log')); clear($('users'));
   }
-  function showApp() {
+  function showApp(d) {
+    me = { user: d && d.user || 'admin', root: !!(d && d.root), perms: d && Array.isArray(d.perms) ? d.perms : [] };
     $('login').classList.add('hidden');
     $('app').classList.remove('hidden');
-    selectTab('mod');
-    if (!live.fetchedAt) loadLive();   // pour le badge « en cours » (puis rafraîchi seulement quand l'onglet est ouvert)
+    $('who').textContent = me.user;
+    var first = null, tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('hidden', !allowed(tabs[i].getAttribute('data-tab')));
+    TABS.forEach(function (t) { if (!first && allowed(t)) first = t; });
+    $('noAccess').classList.toggle('hidden', !!first);
+    selectTab(first);
+    if (allowed('live') && !live.fetchedAt) loadLive();   // pour le badge « en cours » (puis rafraîchi seulement quand l'onglet est ouvert)
   }
 
   $('loginForm').addEventListener('submit', function (ev) {
@@ -77,11 +95,11 @@
     var btn = $('loginBtn');
     btn.disabled = true;
     $('loginError').textContent = '';
-    api('login', { body: { password: $('pw').value } }).then(function () {
-      showApp();
+    api('login', { body: { user: $('user').value, password: $('pw').value } }).then(function (d) {
+      showApp(d);
     }).catch(function (e) {
       var m;
-      if (e.status === 401) m = 'Mot de passe incorrect.';
+      if (e.status === 401) m = 'Identifiant ou mot de passe incorrect.';
       else if (e.status === 429) m = 'Trop d’essais : réessayez dans un moment.';
       else if (e.status === 503) m = 'L’administration est désactivée (aucun mot de passe configuré sur le serveur).';
       else m = e.message || 'Connexion impossible.';
@@ -112,15 +130,17 @@
 
   // ---------- onglets ----------
   function selectTab(name) {
+    if (!allowed(name)) name = null;
     var tabs = document.querySelectorAll('.tab');
     for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('on', tabs[i].getAttribute('data-tab') === name);
-    ['mod', 'live', 'stats', 'log'].forEach(function (t) { $('tab-' + t).classList.toggle('hidden', t !== name); });
+    TABS.forEach(function (t) { $('tab-' + t).classList.toggle('hidden', t !== name); });
     syncLive();
-    if (!loaded[name]) {
+    if (name && !loaded[name]) {
       loaded[name] = true;
       if (name === 'mod') loadQueue();
       else if (name === 'live') { /* chargé par syncLive */ }
       else if (name === 'stats') setPreset(30);
+      else if (name === 'users') loadUsers();
       else loadLog();
     }
   }
@@ -635,7 +655,13 @@
   }
 
   // ---------- journal ----------
-  var ACT = { approve: 'Approbation', refuse: 'Refus', login: 'Connexion', login_fail: 'Connexion échouée', live_view: 'Consultation du direct' };
+  var ACT = {
+    approve: 'Approbation', refuse: 'Refus', login: 'Connexion', login_fail: 'Connexion échouée', live_view: 'Consultation du direct',
+    user_create: 'Compte créé', user_update: 'Compte modifié', user_delete: 'Compte supprimé'
+  };
+  function permText(list) {
+    return list && list.length ? list.map(function (p) { return PERM_LABEL[p] || p; }).join(', ') : 'aucun droit';
+  }
   function loadLog() {
     var box = $('log');
     clear(box);
@@ -648,7 +674,9 @@
         var r = el('div', 'logrow');
         r.appendChild(el('span', 'when', fmtDate(e.at)));
         r.appendChild(el('span', 'act', ACT[e.action] || e.action));
+        if (e.by) r.appendChild(el('span', 'by', e.by));
         if (e.number != null) r.appendChild(el('span', '', 'Ticket #' + e.number + (e.kind ? ' (' + (KIND_LABEL[e.kind] || e.kind).toLowerCase() + ')' : '')));
+        if (e.target) r.appendChild(el('span', '', '« ' + e.target + ' »' + (e.perms ? ' : ' + permText(e.perms) : '') + (e.password ? ', nouveau mot de passe' : '')));
         box.appendChild(r);
       });
     }).catch(function (e) {
@@ -658,6 +686,104 @@
     });
   }
   $('reloadLog').addEventListener('click', loadLog);
+
+  // ---------- comptes (compte admin seulement) ----------
+  function permBoxes(box, checked) {
+    clear(box);
+    var inputs = {};
+    PERMS.forEach(function (p) {
+      var lab = el('label', 'perm');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = (checked || []).indexOf(p) >= 0;
+      inputs[p] = cb;
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode(' ' + PERM_LABEL[p]));
+      box.appendChild(lab);
+    });
+    return function () { return PERMS.filter(function (p) { return inputs[p].checked; }); };
+  }
+  var newPerms = permBoxes($('nuPerms'), ['mod']);
+
+  function userCard(u) {
+    var c = el('div', 'card user');
+    var head = el('div', 't-head');
+    head.appendChild(el('span', 't-title', u.name));
+    head.appendChild(el('span', 't-meta', 'créé le ' + fmtDate(u.createdAt) + (u.updatedAt && u.updatedAt !== u.createdAt ? ' · modifié le ' + fmtDate(u.updatedAt) : '')));
+    c.appendChild(head);
+    var pbox = el('div', 'perms');
+    c.appendChild(pbox);
+    var getPerms = permBoxes(pbox, u.perms);
+    var pwLab = el('label', 'user-pw', 'Nouveau mot de passe (facultatif) ');
+    var pw = document.createElement('input');
+    pw.type = 'password'; pw.autocomplete = 'new-password'; pw.placeholder = 'inchangé';
+    pwLab.appendChild(pw);
+    c.appendChild(pwLab);
+    var acts = el('div', 'actions');
+    var save = el('button', 'btn primary', 'Enregistrer'), del = el('button', 'btn danger', 'Supprimer');
+    save.type = del.type = 'button';
+    acts.appendChild(save); acts.appendChild(del);
+    c.appendChild(acts);
+    save.addEventListener('click', function () {
+      save.disabled = true;
+      api('user_save', { body: { name: u.name, perms: getPerms(), password: pw.value } }).then(function () {
+        flash('Compte « ' + u.name + ' » enregistré' + (pw.value ? ' (nouveau mot de passe : il devra se reconnecter).' : '.'), true);
+        loadUsers();
+      }).catch(function (e) { if (e.status !== 401) flash(e.message); }).then(function () { save.disabled = false; });
+    });
+    var box = null;
+    del.addEventListener('click', function () {
+      if (box) return;
+      box = el('div', 'confirm');
+      box.appendChild(el('p', '', 'Supprimer le compte « ' + u.name + ' » ? Il sera déconnecté tout de suite.'));
+      var yes = el('button', 'btn danger', 'Oui, supprimer'), no = el('button', 'btn', 'Annuler');
+      yes.type = no.type = 'button';
+      box.appendChild(yes); box.appendChild(no);
+      acts.appendChild(box);
+      no.addEventListener('click', function () { acts.removeChild(box); box = null; });
+      yes.addEventListener('click', function () {
+        yes.disabled = true;
+        api('user_delete', { body: { name: u.name } }).then(function () {
+          flash('Compte « ' + u.name + ' » supprimé.', true);
+          loadUsers();
+        }).catch(function (e) { yes.disabled = false; if (e.status !== 401) flash(e.message); });
+      });
+    });
+    return c;
+  }
+
+  function loadUsers() {
+    var box = $('users');
+    clear(box);
+    box.appendChild(el('p', 'empty', 'Chargement…'));
+    api('users').then(function (d) {
+      clear(box);
+      var us = d.users || [];
+      if (!us.length) { box.appendChild(el('p', 'empty', 'Aucun autre compte que « admin ».')); return; }
+      us.forEach(function (u) { box.appendChild(userCard(u)); });
+    }).catch(function (e) {
+      if (e.status === 401) return;
+      clear(box);
+      box.appendChild(el('p', 'error', 'Impossible de charger les comptes : ' + e.message));
+    });
+  }
+  $('reloadUsers').addEventListener('click', loadUsers);
+
+  $('newUser').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var btn = $('nuBtn');
+    btn.disabled = true;
+    $('nuError').textContent = '';
+    var name = $('nuName').value.trim().toLowerCase();
+    api('user_save', { body: { create: true, name: name, password: $('nuPw').value, perms: newPerms() } }).then(function () {
+      flash('Compte « ' + name + ' » créé.', true);
+      $('nuName').value = ''; $('nuPw').value = '';
+      newPerms = permBoxes($('nuPerms'), ['mod']);
+      loadUsers();
+    }).catch(function (e) {
+      if (e.status !== 401) $('nuError').textContent = e.message;
+    }).then(function () { btn.disabled = false; });
+  });
 
   // ---------- en direct ----------
   // Parties partagées par les joueurs consentants (sans noms). Rafraîchi toutes les 5 s tant que l'onglet est visible.

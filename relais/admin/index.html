@@ -21,6 +21,8 @@
   <form id="loginForm" class="card login-card" autocomplete="off">
     <h1>Administration</h1>
     <p class="hint">Accès réservé à la modération de l’appli d’échecs.</p>
+    <label for="user">Identifiant</label>
+    <input id="user" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="admin">
     <label for="pw">Mot de passe</label>
     <input id="pw" type="password" autocomplete="current-password" required>
     <button type="submit" class="btn primary" id="loginBtn">Se connecter</button>
@@ -36,8 +38,10 @@
       <button type="button" class="tab" data-tab="live">En direct <span class="badge" id="liveBadge"></span></button>
       <button type="button" class="tab" data-tab="stats">Statistiques</button>
       <button type="button" class="tab" data-tab="log">Journal</button>
+      <button type="button" class="tab hidden" data-tab="users">Comptes</button>
     </nav>
     <button type="button" class="btn ghost hidden" id="installBtn">Installer</button>
+    <span class="who" id="who"></span>
     <button type="button" class="btn ghost" id="logoutBtn">Déconnexion</button>
   </header>
   <div id="flash" class="flash hidden" role="status"></div>
@@ -77,6 +81,24 @@
         </div>
       </div>
       <div id="stats"></div>
+    </div>
+
+    <p id="noAccess" class="empty hidden">Ce compte n’a accès à aucun onglet : demande à l’administrateur de lui donner des droits.</p>
+
+    <div id="tab-users" class="pane hidden">
+      <p class="hint note">Seul le compte « admin » gère les comptes. Les droits modifiés s’appliquent tout de suite ; un nouveau mot de passe ou une suppression déconnecte le compte.</p>
+      <form id="newUser" class="card user-form" autocomplete="off">
+        <h2>Nouveau compte</h2>
+        <div class="user-fields">
+          <label>Identifiant <input id="nuName" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="32" required></label>
+          <label>Mot de passe <input id="nuPw" type="password" autocomplete="new-password" minlength="10" required></label>
+        </div>
+        <div class="perms" id="nuPerms"></div>
+        <button type="submit" class="btn primary" id="nuBtn">Créer le compte</button>
+        <p id="nuError" class="error" role="alert"></p>
+      </form>
+      <div class="row"><button type="button" class="btn" id="reloadUsers">Actualiser</button></div>
+      <div id="users"></div>
     </div>
 
     <div id="tab-log" class="pane hidden">
