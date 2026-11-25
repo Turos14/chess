@@ -55,6 +55,7 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   voyage dans ce même état : ne jamais y exposer le `cid` d'un auteur (il donne droit au siège) ; masquage et
   « ignorer » se font donc par nom, côté appareil récepteur. `rules.js` porte tous les textes de règles de l'appli
   (écran `rules` + `Rules.dialog(id)` depuis les menus de partie) : y mettre à jour toute règle modifiée dans les moteurs.
+  Ces textes viennent de `docs/regles-appli-echecs.pdf` (+ `.html`), document de référence à garder cohérent.
 - **IA** : Stockfish.js 10 vendu dans `public/vendor/` (choisi exprès : pas de fichier NNUE), lancé en Web Worker
   par `engine.js`. Cette version n'a pas `UCI_Elo` : la force est calibrée par `engineStrength.js`
   (Skill Level + coup aléatoire parmi les meilleurs sous ~1300) ; temps de réflexion tiré entre 1 et 2 s par coup. Les parties contre l'IA ne modifient
@@ -99,7 +100,8 @@ Pas de build, pas de dépendances npm, pas de linter. Les tests sont de simples 
   `puzzle-approved`. Limites d'envois dans `lib/limit.js` (Upstash Redis via son API REST, repli en mémoire ;
   `fetch`, horloge et mémoire injectables pour `test/relaislimit.test.js`). Le relais porte aussi `api/stats.js`,
   `api/live.js` et `api/admin.js` (une seule fonction, `?a=<action>`, session par cookie HMAC, mot de passe
-  `ADMIN_PASSWORD`) servant la page admin PWA `relais/admin/` ; Redis est partagé via `lib/redis.js`. Les listes
+  `ADMIN_PASSWORD`) servant la page admin PWA `relais/admin/` (servie sous `/admin/` ; manifeste et icônes vérifiés
+  par `test/adminpwa.test.js`) ; Redis est partagé via `lib/redis.js`. Les listes
   autorisées côté client et serveur (`statsdata.js` ↔ `lib/stats.js`, `livedata.js` ↔ `lib/live.js`) doivent rester
   identiques : `test/statscross.test.js` et `test/livecross.test.js` le vérifient. Node 18+ (pas la contrainte ES5),
   toujours sans dépendance npm. Côté appli, `RELAY_URL` en tête de `puzzles.js` (surchargeable par
