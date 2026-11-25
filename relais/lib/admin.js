@@ -1,6 +1,6 @@
 /* Outils de l'admin du relais : session signée (HMAC), mot de passe comparé en temps constant, lecture des
  * tickets de problèmes (découpage du corps en champs, type de demande) et nettoyage de la raison d'un refus.
- * Module sans réseau, testé par test/relaisadmin.test.js. */
+ * Les comptes eux-mêmes sont dans lib/accounts.js. Module sans réseau, testé par test/relaisadmin.test.js. */
 'use strict';
 var crypto = require('crypto');
 var neutralize = require('./ticket.js').neutralize;
@@ -28,11 +28,15 @@ function sessionKey(env) {
 function b64url(buf) { return Buffer.from(buf).toString('base64url'); }
 function mac(key, payload) { return crypto.createHmac('sha256', key).update(payload).digest('base64url'); }
 
-// Jeton `<payload>.<signature>` ; payload = { exp } (ms).
-function signSession(env, nowMs) {
-  var payload = b64url(JSON.stringify({ exp: nowMs + SESSION_S * 1000 }));
+// Jeton `<payload>.<signature>` ; payload = { exp (ms), u (identifiant), v (version du mot de passe, comptes
+// secondaires) }. Sans `who` : compte « admin ».
+function signSession(env, nowMs, who) {
+  var p = { exp: nowMs + SESSION_S * 1000, u: (who && who.u) || 'admin' };
+  if (who && who.v) p.v = who.v;
+  var payload = b64url(JSON.stringify(p));
   return payload + '.' + mac(sessionKey(env), payload);
 }
+// Charge utile { exp, u, v? } si le jeton est valide, sinon false.
 function verifySession(env, token, nowMs) {
   if (typeof token !== 'string' || !env.ADMIN_PASSWORD) return false;
   var parts = token.split('.');
@@ -40,7 +44,9 @@ function verifySession(env, token, nowMs) {
   if (!safeEqual(parts[1], mac(sessionKey(env), parts[0]))) return false;
   var p;
   try { p = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8')); } catch (e) { return false; }
-  return !!p && typeof p.exp === 'number' && p.exp > nowMs;
+  if (!p || typeof p.exp !== 'number' || p.exp <= nowMs) return false;
+  if (typeof p.u !== 'string' || !p.u) p.u = 'admin';   // jetons d'avant les comptes
+  return p;
 }
 
 function cookieValue(header, name) {

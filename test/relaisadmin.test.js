@@ -2,13 +2,14 @@
 var assert = require('assert');
 var adminLib = require('../relais/lib/admin.js');
 var adminApi = require('../relais/api/admin.js');
+var accounts = require('../relais/lib/accounts.js');
 
 var Z = '​';
 var NOW = Date.UTC(2026, 10, 18, 10);
 var ENV = { ADMIN_PASSWORD: 'mot-de-passe-tres-long', GITHUB_TOKEN: 'tok', GITHUB_REPO: 'Turos14/chess' };
 var HOST = 'chess-relais.vercel.app';
 
-// Faux Redis (store injecté) : HGETALL, LPUSH, LTRIM, LRANGE.
+// Faux Redis (store injecté) : HGETALL, HGET, HSET, HSETNX, HDEL, LPUSH, LTRIM, LRANGE.
 function fakeStore() {
   var hashes = {}, lists = {};
   return {
@@ -16,6 +17,11 @@ function fakeStore() {
     pipeline: function (cmds) {
       return Promise.resolve(cmds.map(function (c) {
         if (c[0] === 'HGETALL') { var a = []; Object.keys(hashes[c[1]] || {}).forEach(function (f) { a.push(f, String(hashes[c[1]][f])); }); return a; }
+        var hh = hashes[c[1]] = hashes[c[1]] || {};
+        if (c[0] === 'HGET') return hh[c[2]] === undefined ? null : hh[c[2]];
+        if (c[0] === 'HSET') { var isNew = hh[c[2]] === undefined; hh[c[2]] = c[3]; return isNew ? 1 : 0; }
+        if (c[0] === 'HSETNX') { if (hh[c[2]] !== undefined) return 0; hh[c[2]] = c[3]; return 1; }
+        if (c[0] === 'HDEL') { var had = hh[c[2]] !== undefined; delete hh[c[2]]; return had ? 1 : 0; }
         if (c[0] === 'LPUSH') { (lists[c[1]] = lists[c[1]] || []).unshift(c[2]); return 1; }
         if (c[0] === 'LTRIM') { lists[c[1]] = (lists[c[1]] || []).slice(c[2], c[3] + 1); return 'OK'; }
         if (c[0] === 'LRANGE') return (lists[c[1]] || []).slice(c[2], c[3] + 1);
@@ -231,7 +237,7 @@ assert(cr.length <= 300 && !/\n/.test(cr) && cr.indexOf('@' + Z) >= 0 && cr.inde
   await run(h, req('approve', 'POST', { cookie: cookie, body: { number: 11 } }));
   r = await run(h, req('log', 'GET', { cookie: cookie }));
   assert.deepStrictEqual(r.json.entries.map(function (e) { return e.action; }), ['approve', 'login', 'login_fail']);
-  assert.deepStrictEqual(r.json.entries[0], { action: 'approve', number: 11, kind: 'propose', at: NOW });
+  assert.deepStrictEqual(r.json.entries[0], { action: 'approve', by: 'admin', number: 11, kind: 'propose', at: NOW });
   assert(!/6\.6\.6\.6/.test(JSON.stringify(st.lists)));
   for (var i = 0; i < 520; i++) st.lists['admin:log'].unshift(JSON.stringify({ at: i, action: 'login' }));
   await run(h, req('login', 'POST', { body: { password: ENV.ADMIN_PASSWORD }, ip: '6.6.6.7' }));
@@ -271,6 +277,83 @@ assert(cr.length <= 300 && !/\n/.test(cr) && cr.indexOf('@' + Z) >= 0 && cr.inde
   cookie = await login();
   assert.deepStrictEqual((await run(h, req('stats', 'GET', { cookie: cookie }))).json.days, {});
   assert.strictEqual((await run(h, req('log', 'GET', { cookie: cookie }))).json.entries[0].action, 'login');
+
+  // Comptes : seul « admin » gère ; les autres n'ont que leurs droits ; suppression / nouveau mot de passe = déconnexion.
+  make([issue(13, ['puzzle-pending'], 'x')]);
+  var root = await login();
+  r = await run(h, req('me', 'GET', { cookie: root }));
+  assert.deepStrictEqual(r.json, { ok: true, user: 'admin', root: true, perms: ['mod', 'live', 'stats', 'log'] });
+  r = await run(h, req('login', 'POST', { body: { user: ' Admin ', password: ENV.ADMIN_PASSWORD }, ip: '7.7.7.1' }));
+  assert.strictEqual(r.status, 200); assert.strictEqual(r.json.user, 'admin');
+  function save(c, b) { return run(h, req('user_save', 'POST', { cookie: c, body: b })); }
+  assert.strictEqual((await save(root, { create: true, name: 'admin', password: 'abcdefghijk', perms: [] })).status, 400);
+  assert.strictEqual((await save(root, { create: true, name: 'a b', password: 'abcdefghijk', perms: [] })).status, 400);
+  assert.strictEqual((await save(root, { create: true, name: 'modo', password: 'court', perms: [] })).status, 400);
+  r = await save(root, { create: true, name: 'Modo', password: 'mot-de-passe-modo', perms: ['mod', 'xx', 'log'] });
+  assert.strictEqual(r.status, 200, JSON.stringify(r.json));
+  assert.deepStrictEqual(r.json.user, { name: 'modo', perms: ['mod', 'log'], createdAt: NOW, updatedAt: NOW });
+  assert.strictEqual((await save(root, { create: true, name: 'modo', password: 'mot-de-passe-autre', perms: [] })).status, 409);
+  var stored = JSON.parse(st.hashes['admin:users'].modo);
+  assert(stored.hash && stored.salt && JSON.stringify(stored).indexOf('mot-de-passe-modo') < 0);   // jamais en clair
+  r = await run(h, req('users', 'GET', { cookie: root }));
+  assert.deepStrictEqual(r.json.users, [{ name: 'modo', perms: ['mod', 'log'], createdAt: NOW, updatedAt: NOW }]);
+  assert(JSON.stringify(r.json).indexOf(stored.hash) < 0);
+  // Connexion du compte secondaire.
+  assert.strictEqual((await run(h, req('login', 'POST', { body: { user: 'modo', password: 'faux-mot-de-passe' }, ip: '7.7.7.2' }))).status, 401);
+  r = await run(h, req('login', 'POST', { body: { user: 'modo', password: 'mot-de-passe-modo' }, ip: '7.7.7.2' }));
+  assert.strictEqual(r.status, 200); assert.deepStrictEqual(r.json, { ok: true, user: 'modo', root: false, perms: ['mod', 'log'] });
+  var modo = r.headers['Set-Cookie'].split(';')[0];
+  assert.strictEqual((await run(h, req('login', 'POST', { body: { user: 'personne', password: 'mot-de-passe-modo' }, ip: '7.7.7.3' }))).status, 401);
+  // Droits : file et journal oui ; direct, statistiques et comptes non (403).
+  assert.strictEqual((await run(h, req('queue', 'GET', { cookie: modo }))).status, 200);
+  assert.strictEqual((await run(h, req('log', 'GET', { cookie: modo }))).status, 200);
+  assert.strictEqual((await run(h, req('live', 'GET', { cookie: modo }))).status, 403);
+  assert.strictEqual((await run(h, req('stats', 'GET', { cookie: modo }))).status, 403);
+  assert.strictEqual((await run(h, req('users', 'GET', { cookie: modo }))).status, 403);
+  assert.strictEqual((await save(modo, { create: true, name: 'pirate', password: 'mot-de-passe-pirate', perms: ['mod'] })).status, 403);
+  assert.strictEqual((await save(modo, { name: 'modo', perms: ['mod', 'live', 'stats', 'log'] })).status, 403);
+  assert.strictEqual((await run(h, req('user_delete', 'POST', { cookie: modo, body: { name: 'modo' } }))).status, 403);
+  assert(!st.hashes['admin:users'].pirate);
+  r = await run(h, req('approve', 'POST', { cookie: modo, body: { number: 13 } }));
+  assert.strictEqual(r.status, 200);
+  r = await run(h, req('log', 'GET', { cookie: modo }));
+  assert.deepStrictEqual(r.json.entries[0], { action: 'approve', by: 'modo', number: 13, kind: 'propose', at: NOW });
+  assert(r.json.entries.some(function (e) { return e.action === 'user_create' && e.by === 'admin' && e.target === 'modo'; }));
+  assert(r.json.entries.some(function (e) { return e.action === 'login_fail' && e.by === 'modo'; }));
+  assert(r.json.entries.some(function (e) { return e.action === 'login_fail' && e.by === undefined; }));   // identifiant inconnu non noté
+  // Modification des droits : prise en compte immédiatement, sans reconnexion.
+  r = await save(root, { name: 'modo', perms: ['stats'] });
+  assert.strictEqual(r.status, 200); assert.deepStrictEqual(r.json.user.perms, ['stats']);
+  assert.strictEqual((await run(h, req('queue', 'GET', { cookie: modo }))).status, 403);
+  assert.strictEqual((await run(h, req('stats', 'GET', { cookie: modo }))).status, 200);
+  assert.strictEqual((await save(root, { name: 'inconnu', perms: [] })).status, 404);
+  // Nouveau mot de passe : l'ancienne session tombe, l'ancien mot de passe aussi.
+  assert.strictEqual((await save(root, { name: 'modo', password: 'nouveau-mot-de-passe', perms: ['stats'] })).status, 200);
+  assert.strictEqual((await run(h, req('me', 'GET', { cookie: modo }))).status, 401);
+  assert.strictEqual((await run(h, req('login', 'POST', { body: { user: 'modo', password: 'mot-de-passe-modo' }, ip: '7.7.7.4' }))).status, 401);
+  r = await run(h, req('login', 'POST', { body: { user: 'modo', password: 'nouveau-mot-de-passe' }, ip: '7.7.7.4' }));
+  modo = r.headers['Set-Cookie'].split(';')[0];
+  // Suppression : la session tombe ; « admin » ne se supprime pas.
+  assert.strictEqual((await run(h, req('user_delete', 'POST', { cookie: root, body: { name: 'admin' } }))).status, 400);
+  assert.strictEqual((await run(h, req('user_delete', 'POST', { cookie: root, body: { name: 'modo' } }))).status, 200);
+  assert.strictEqual((await run(h, req('user_delete', 'POST', { cookie: root, body: { name: 'modo' } }))).status, 404);
+  assert.strictEqual((await run(h, req('me', 'GET', { cookie: modo }))).status, 401);
+  assert.deepStrictEqual((await run(h, req('users', 'GET', { cookie: root }))).json.users, []);
+  // Jeton signé pour un compte avec une autre version : refusé.
+  await save(root, { create: true, name: 'modo2', password: 'mot-de-passe-modo2', perms: ['log'] });
+  var fake = 'admin_session=' + adminLib.signSession(ENV, NOW, { u: 'modo2', v: 'autre' });
+  assert.strictEqual((await run(h, req('me', 'GET', { cookie: fake }))).status, 401);
+  // Sans Redis : seul « admin » existe, la création est refusée proprement.
+  make([], ENV, null);
+  root = await login();
+  assert.strictEqual((await save(root, { create: true, name: 'modo', password: 'mot-de-passe-modo', perms: [] })).status, 503);
+  assert.deepStrictEqual((await run(h, req('users', 'GET', { cookie: root }))).json.users, []);
+  // lib/accounts.js
+  assert(accounts.verifyPassword('secret-long', accounts.makeAccount('x1', 'secret-long', [], 0)));
+  assert(!accounts.verifyPassword('secret-lonG', accounts.makeAccount('x1', 'secret-long', [], 0)));
+  assert(!accounts.verifyPassword('x', { salt: 'a', hash: 'zz' }));
+  assert.deepStrictEqual(accounts.cleanPerms(['log', 'mod', 'log', 'root']), ['mod', 'log']);
+  assert(!accounts.validName('admin') && !accounts.validName('a') && accounts.validName('ab') && !accounts.validName('Ab'));
 
   // GitHub injoignable : 502 propre.
   var err = console.error; console.error = function () {};
